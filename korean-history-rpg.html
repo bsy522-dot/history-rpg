@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>한국사 영웅전</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+  font-family: 'Noto Serif KR', Georgia, serif; 
+  background: #0a0a14; color: #e8dcc8; 
+  min-height: 100vh; overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.screen { display: none; min-height: 100vh; padding: 20px 16px; flex-direction: column; align-items: center; justify-content: center; }
+.screen.active { display: flex; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+@keyframes glow { 0%,100%{text-shadow:0 0 20px #c4956a44} 50%{text-shadow:0 0 40px #c4956a99} }
+@keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+.animate-in { animation: fadeIn .6s ease; }
+.shake { animation: shake .4s ease-in-out; }
+
+h1.title {
+  font-size: clamp(28px, 7vw, 48px); font-weight: 900; line-height: 1.2;
+  background: linear-gradient(180deg, #f4e4c1, #c4956a);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: glow 3s ease-in-out infinite; text-align: center;
+}
+.subtitle { font-size: clamp(12px, 3vw, 16px); color: #8a7a6a; font-style: italic; text-align: center; margin-top: 8px; }
+.label { font-size: 12px; letter-spacing: 6px; color: #8a7a6a; text-align: center; margin-bottom: 8px; }
+
+.btn {
+  padding: 12px 24px; border: 1px solid #5a3a1a; border-radius: 8px; cursor: pointer;
+  font-size: 15px; font-family: inherit; font-weight: 700; color: #e8dcc8;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4); transition: all .15s; display: inline-block; text-align: center;
+  -webkit-user-select: none; user-select: none;
+}
+.btn:active { transform: scale(.96); filter: brightness(.85); }
+.btn:disabled { opacity: .35; pointer-events: none; }
+.btn-primary { background: #6B1A0A; }
+.btn-secondary { background: #2a2a3e; }
+.btn-blue { background: #1B3A5C; }
+.btn-green { background: #2a5a2a; }
+.btn-era { background: var(--era-color, #8B2500); }
+
+.hp-bar-wrap { background: #1a1a2e; border-radius: 6px; height: 16px; overflow: hidden; border: 1px solid #333; position: relative; margin-bottom: 4px; }
+.hp-bar { height: 100%; border-radius: 6px; transition: width .5s ease; }
+.hp-bar-text { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 10px; color: #fff; line-height: 16px; font-weight: 700; text-shadow: 0 1px 2px #000; }
+.sp-bar-wrap { background: #1a1a2e; border-radius: 6px; height: 12px; overflow: hidden; border: 1px solid #333; position: relative; }
+.sp-bar { height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); border-radius: 6px; transition: width .5s ease; }
+.sp-bar-text { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 9px; color: #fff; line-height: 12px; text-shadow: 0 1px 2px #000; }
+
+.team-card {
+  background: linear-gradient(135deg, #151520, #1a1a2e); border: 1px solid #2a2a3e;
+  border-radius: 10px; padding: 14px; 
+}
+.team-icon { font-size: 26px; }
+.team-role { font-size: 12px; color: #c4956a; font-weight: 700; }
+.team-name { font-size: 15px; font-weight: 700; }
+.team-desc { font-size: 11px; color: #888; line-height: 1.6; margin-top: 6px; }
+
+.story-box {
+  background: #0a0a14cc; border-radius: 10px; padding: 20px; min-height: 80px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+}
+.story-text { font-size: 14px; line-height: 2; text-align: center; }
+.story-highlight { color: #c4956a; font-weight: 700; }
+.dots { display: flex; gap: 5px; justify-content: center; margin-top: 12px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: background .3s; }
+.dot.active { background: var(--era-color, #c4956a); }
+
+.arena {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #0d0d1a; border-radius: 12px; padding: 16px 12px; margin-bottom: 10px;
+  min-height: 140px; position: relative;
+}
+.fighter { text-align: center; flex: 1; }
+.fighter-emoji { font-size: 40px; margin-bottom: 4px; }
+.fighter-name { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.enemy-name { color: #e74c3c; }
+.vs { font-size: 18px; color: #555; font-weight: 900; padding: 0 6px; }
+.bar-area { width: 110px; margin: 0 auto; }
+
+.log-box {
+  background: #0a0a14; border: 1px solid #222; border-radius: 8px;
+  padding: 8px 10px; height: 80px; overflow-y: auto; margin-bottom: 10px;
+  font-size: 12px; line-height: 1.8;
+}
+.log-old { color: #555; }
+.log-new { color: #e8dcc8; }
+
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.action-grid .btn { width: 100%; font-size: 13px; padding: 10px 6px; }
+.skill-tip { font-size: 10px; color: #666; background: #111; padding: 4px 8px; border-radius: 4px; flex: 1; min-width: 0; }
+.skill-tip strong { color: #999; }
+.debuff-text { font-size: 10px; color: #e67e22; margin-top: 2px; }
+.defend-text { font-size: 10px; color: #3498db; margin-top: 2px; }
+
+.victory-box { background: #151520; border: 1px solid #c4956a44; border-radius: 10px; padding: 16px; display: inline-block; margin: 12px 0; }
+.reward-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.reward-text { font-size: 17px; font-weight: 700; color: #f4d03f; }
+
+.recap-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.recap-item + .recap-item { border-top: 1px solid #1a1a2e; }
+.recap-emoji { font-size: 20px; }
+.recap-title { font-size: 13px; font-weight: 700; }
+.recap-sub { font-size: 11px; color: #666; }
+.quote { font-size: 12px; color: #555; line-height: 1.8; font-style: italic; margin: 16px 0; }
+.w100 { width: 100%; max-width: 500px; }
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE ===== -->
+<div id="screen-title" class="screen active">
+  <div class="animate-in" style="text-align:center">
+    <div class="label">TURN-BASED RPG</div>
+    <h1 class="title">한국사 영웅전</h1>
+    <div class="subtitle">단군에서 이순신까지 — 반만년 역사를 전장에서 체험하라</div>
+    <div style="margin-top:32px;display:flex;flex-direction:column;gap:12px;align-items:center">
+      <button class="btn btn-primary" style="padding:14px 44px;font-size:17px;letter-spacing:3px" onclick="startGame()">⚔️ 새 이야기 시작</button>
+      <button class="btn btn-secondary" style="padding:10px 32px" onclick="showScreen('screen-team')">🎭 제작팀 소개</button>
+    </div>
+    <div style="margin-top:48px;font-size:11px;color:#555;line-height:2">
+      Ch.1 고조선 (BC 2333) → Ch.2 고구려 (BC 37) → Ch.3 삼국시대 (612)<br>
+      Ch.4 고려 (1236) → Ch.5 조선 (1592)
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEAM ===== -->
+<div id="screen-team" class="screen" style="justify-content:flex-start;padding-top:24px">
+  <h2 class="animate-in" style="font-size:24px;text-align:center;margin-bottom:4px;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🎭 제작팀 (8인)</h2>
+  <p style="color:#777;font-size:12px;text-align:center;margin-bottom:16px">역사와 재미 사이의 균형을 만드는 팀</p>
+  <div id="team-grid" style="display:grid;grid-template-columns:1fr;gap:10px;width:100%;max-width:500px"></div>
+  <button class="btn btn-secondary" style="margin-top:20px" onclick="showScreen('screen-title')">← 타이틀로</button>
+</div>
+
+<!-- ===== STORY ===== -->
+<div id="screen-story" class="screen">
+  <div class="w100" style="text-align:center">
+    <div id="story-label" class="label"></div>
+    <div id="story-year" style="font-size:13px;font-weight:700;margin-bottom:4px"></div>
+    <h2 id="story-title" style="font-size:clamp(20px,5vw,26px);font-weight:900;margin-bottom:20px;line-height:1.4"></h2>
+    <div class="story-box" id="story-box">
+      <p class="story-text animate-in" id="story-text"></p>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button class="btn btn-era" id="story-next-btn" onclick="nextStoryLine()">다음 ▶</button>
+    </div>
+    <div class="dots" id="story-dots"></div>
+  </div>
+</div>
+
+<!-- ===== BATTLE ===== -->
+<div id="screen-battle" class="screen" style="justify-content:flex-start;padding-top:14px">
+  <div class="w100">
+    <div id="battle-header" style="text-align:center;margin-bottom:8px;font-size:11px;color:#666;letter-spacing:3px"></div>
+    <div class="arena" id="arena">
+      <div class="fighter" id="player-side">
+        <div class="fighter-emoji" id="player-emoji"></div>
+        <div class="fighter-name" id="player-name"></div>
+        <div class="bar-area">
+          <div class="hp-bar-wrap"><div class="hp-bar" id="player-hp-bar" style="background:linear-gradient(90deg,#27ae60,#27ae60aa)"></div><span class="hp-bar-text" id="player-hp-text"></span></div>
+          <div class="sp-bar-wrap"><div class="sp-bar" id="player-sp-bar"></div><span class="sp-bar-text" id="player-sp-text"></span></div>
+        </div>
+        <div class="defend-text" id="defend-indicator" style="display:none">🛡️ 방어 중</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="fighter" id="enemy-side">
+        <div class="fighter-emoji" id="enemy-emoji"></div>
+        <div class="fighter-name enemy-name" id="enemy-name"></div>
+        <div class="bar-area">
+          <div class="hp-bar-wrap"><div class="hp-bar" id="enemy-hp-bar" style="background:linear-gradient(90deg,#e74c3c,#e74c3caa)"></div><span class="hp-bar-text" id="enemy-hp-text"></span></div>
+        </div>
+        <div class="debuff-text" id="debuff-indicator" style="display:none"></div>
+      </div>
+    </div>
+    <div class="log-box" id="battle-log"></div>
+    <div class="action-grid">
+      <button class="btn btn-primary" id="btn-attack" onclick="doAttack()">⚔️ 공격</button>
+      <button class="btn btn-blue" id="btn-defend" onclick="doDefend()">🛡️ 방어 (SP+8)</button>
+    </div>
+    <div class="action-grid" id="skill-buttons"></div>
+    <button class="btn btn-green" id="btn-item" style="width:100%;font-size:13px;margin-bottom:8px" onclick="doItem()"></button>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="skill-tips"></div>
+  </div>
+</div>
+
+<!-- ===== VICTORY ===== -->
+<div id="screen-victory" class="screen">
+  <div class="animate-in" style="text-align:center;max-width:460px">
+    <div style="font-size:48px;margin-bottom:10px">🏆</div>
+    <h2 style="font-size:26px;font-weight:900;margin-bottom:8px;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">승리!</h2>
+    <div id="victory-enemy" style="font-size:15px;color:#c4956a;margin-bottom:4px"></div>
+    <div class="victory-box">
+      <div class="reward-label">보상 획득</div>
+      <div class="reward-text" id="victory-reward"></div>
+    </div>
+    <div id="victory-history" style="background:#0a0a14;border:1px solid #ffffff11;border-radius:10px;padding:14px;margin:12px 0;text-align:left;font-size:12px;color:#aaa;line-height:1.8"></div>
+    <button class="btn btn-primary" id="victory-next-btn" style="padding:14px 36px;font-size:15px;letter-spacing:2px" onclick="nextChapter()"></button>
+  </div>
+</div>
+
+<!-- ===== GAME END ===== -->
+<div id="screen-end" class="screen">
+  <div class="animate-in" style="text-align:center;max-width:500px">
+    <div style="font-size:44px;margin-bottom:12px">🇰🇷</div>
+    <h1 class="title" style="font-size:clamp(24px,6vw,32px)">한국사 영웅전 — 완결</h1>
+    <div style="font-size:13px;color:#8a7a6a;line-height:2;margin:12px 0 20px">
+      단군의 건국 (BC 2333)부터 이순신의 임진왜란 (1592)까지,<br>약 4,000년의 역사를 함께 걸었습니다.
+    </div>
+    <div id="end-recap" style="background:#151520;border:1px solid #c4956a22;border-radius:12px;padding:16px;margin-bottom:16px;text-align:left"></div>
+    <div class="quote">"역사를 잊은 민족에게 미래는 없다" — 단재 신채호</div>
+    <button class="btn btn-primary" style="padding:12px 36px" onclick="showScreen('screen-title')">처음으로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────
+const TEAM = [
+  { role:"총괄 프로듀서", name:"박진우", desc:"프로젝트 방향성·일정·예산 총괄. 역사 고증과 게임성 균형의 핵심 의사결정자.", icon:"🎯" },
+  { role:"시나리오 작가", name:"김서연", desc:"단군~조선까지 역사 스토리라인 집필. 사건의 인과관계를 자연스러운 서사로 풀어냄.", icon:"📜" },
+  { role:"역사 고증 자문", name:"이한솔 (사학과 박사)", desc:"모든 대사·사건·연도의 사실 확인. '재미를 위한 각색'의 허용 범위 설정.", icon:"🏛️" },
+  { role:"캐릭터 디자이너", name:"정유나", desc:"시대별 복장·갑옷·무기 고증 기반 캐릭터 일러스트. 영걸전 스타일 초상화.", icon:"🎨" },
+  { role:"게임 디자이너", name:"최동현", desc:"턴제 전투 시스템, 밸런싱, 난이도 설계. '쉽지만 전략적인' 핵심 루프.", icon:"⚔️" },
+  { role:"프로그래머", name:"한지민", desc:"Unity/Godot 기반 개발. 전투 엔진, UI, 세이브/로드, 맵 이동 구현.", icon:"💻" },
+  { role:"배경/맵 아티스트", name:"오승환", desc:"시대별 배경 일러스트와 전투맵. 고조선 초원부터 조선 궁궐까지.", icon:"🗺️" },
+  { role:"사운드 디자이너", name:"윤채원", desc:"시대별 BGM, 전투 효과음. 국악 요소를 현대적으로 편곡.", icon:"🎵" },
+];
+
+const CHAPTERS = [
+  { id:1, era:"고조선", year:"BC 2333", title:"단군, 하늘의 뜻을 잇다", color:"#4A6741",
+    story:["환인의 아들 환웅이 태백산 신단수 아래로 내려왔다.","풍백, 우사, 운사를 거느리고 인간 세상을 다스리니, 이를 신시(神市)라 했다.","곰과 호랑이가 사람이 되길 원했으나, 오직 곰만이 100일의 시련을 견뎠다.","환웅과 웅녀 사이에서 단군왕검이 태어나, 아사달에 도읍을 정하고 조선을 세웠다.","▶ 역사 포인트: BC 2333년, 한민족 최초의 국가 건국. 홍익인간(弘益人間) — '널리 인간을 이롭게 하라'는 건국 이념이 오늘날 대한민국 교육이념으로 이어진다."],
+    enemy:{ name:"사나운 호랑이", hp:45, atk:8, def:2, emoji:"🐯" },
+    player:{ name:"단군왕검", hp:120, atk:15, def:5, emoji:"👑",
+      skills:[{ name:"천부인 번개", dmg:25, cost:15, desc:"하늘의 힘으로 번개를 내린다" },{ name:"홍익의 빛", dmg:0, heal:30, cost:10, desc:"이로운 기운으로 회복" }]},
+    reward:"홍익검(弘益劍) 획득!" },
+  { id:2, era:"고구려", year:"BC 37", title:"주몽, 부여를 떠나다", color:"#8B2500",
+    story:["부여의 금와왕 궁에서 자란 주몽은 활 솜씨가 천하에 비길 데 없었다.","금와왕의 아들들은 주몽을 시기하여 목숨을 노렸다.","어머니 유화부인의 도움으로 부여를 탈출, 남쪽으로 달렸다.","엄리대수에서 물고기와 자라가 다리를 놓아 강을 건넜다.","졸본에 도읍을 정하고 고구려를 건국하니, BC 37년이었다.","▶ 역사 포인트: 고구려는 이후 700년간 동북아 최강국. 광개토대왕, 을지문덕의 나라. 만주와 한반도 북부를 아우르는 대제국이었다."],
+    enemy:{ name:"부여 추격대장 대소", hp:65, atk:12, def:4, emoji:"⚔️" },
+    player:{ name:"주몽", hp:100, atk:18, def:4, emoji:"🏹",
+      skills:[{ name:"신궁 연사", dmg:30, cost:15, desc:"백발백중 활로 세 발 연사" },{ name:"엄리대수 가호", dmg:0, heal:25, cost:12, desc:"강의 정령이 보호" }]},
+    reward:"주몽의 활 획득!" },
+  { id:3, era:"삼국시대", year:"612", title:"을지문덕, 살수에서 웃다", color:"#1B3A5C",
+    story:["수나라 양제는 113만 대군으로 고구려를 침략했다.","을지문덕은 거짓 항복으로 적을 깊숙이 유인했다.","지친 수나라 군대가 살수를 건너는 순간, 상류의 둑을 터뜨렸다.","30만 별동대 중 살아 돌아간 자는 고작 2,700명.","을지문덕은 양제에게 시(詩)를 보내 조롱하기까지 했다.","▶ 역사 포인트: 612년 살수대첩. 수나라는 이 패전으로 결국 멸망. 한 나라의 전쟁이 다른 나라의 멸망을 불러온 대표적 사례."],
+    enemy:{ name:"수나라 우문술", hp:80, atk:14, def:6, emoji:"🐉" },
+    player:{ name:"을지문덕", hp:110, atk:16, def:7, emoji:"🌊",
+      skills:[{ name:"살수 범람", dmg:35, cost:20, desc:"둑을 터뜨려 물바다로!" },{ name:"유인지계", dmg:0, heal:0, cost:8, desc:"적 방어 3턴 절반 감소", debuff:true }]},
+    reward:"을지문덕의 지략서 획득!" },
+  { id:4, era:"고려", year:"1236", title:"팔만대장경, 불심으로 나라를 지키다", color:"#8B6914",
+    story:["몽골 제국의 침략으로 고려는 강화도로 천도했다.","초조대장경이 몽골군에 의해 불타 없어졌다.","부처의 힘으로 외적을 물리치겠다는 일념으로 대장경 재조각에 착수.","16년에 걸쳐 8만여 장의 목판을 새겼다 — 팔만대장경.","▶ 역사 포인트: 1236~1251년 제작. 군사적·문화적 저항을 동시에 보여준 사건. 해인사 보관, 유네스코 세계기록유산."],
+    enemy:{ name:"몽골 살리타이", hp:90, atk:16, def:5, emoji:"🏇" },
+    player:{ name:"김윤후", hp:100, atk:14, def:6, emoji:"🛡️",
+      skills:[{ name:"처인성 사격", dmg:32, cost:15, desc:"성벽 위에서 정확한 화살" },{ name:"불심 결계", dmg:0, heal:35, cost:15, desc:"대장경 기운이 아군을 감싼다" }]},
+    reward:"팔만대장경 부적 획득!" },
+  { id:5, era:"조선", year:"1592", title:"이순신, 바다를 뒤집다", color:"#003366",
+    story:["1592년 4월, 히데요시의 15만 왜군이 부산포에 상륙했다.","육지에서 연패하며 선조는 의주까지 도망쳤다.","그러나 바다에서는 달랐다. 이순신이 거북선을 이끌고 출격.","옥포, 사천, 한산도... 연전연승. 학익진은 세계 해전사의 걸작.","적의 보급로를 완전히 차단하여 왜군의 북진을 막았다.","▶ 역사 포인트: 임진왜란(1592~1598). 이순신의 23전 23승은 세계 해전사 유례없는 기록. 제해권 장악이 전쟁을 바꾼 사례."],
+    enemy:{ name:"와키자카 야스하루", hp:100, atk:18, def:7, emoji:"⛵" },
+    player:{ name:"이순신", hp:130, atk:20, def:8, emoji:"🐢",
+      skills:[{ name:"학익진 포격", dmg:40, cost:20, desc:"학의 날개 진형으로 포위 사격" },{ name:"거북선 돌격", dmg:28, cost:12, desc:"철갑 거북선으로 돌진" }]},
+    reward:"충무공의 장검 획득!" }
+];
+
+// ─── STATE ──────────────────────────
+let chapterIdx = 0, storyLine = 0;
+let playerHp, playerMaxHp, playerSp = 50, enemyHp, enemyMaxHp;
+let isPlayerTurn = true, animating = false, defending = false, enemyDebuff = 0;
+let itemCount = 3;
+const ITEM_HEAL = 30;
+
+function ch() { return CHAPTERS[chapterIdx]; }
+
+// ─── SCREENS ────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── TEAM ───────────────────────────
+(function buildTeam() {
+  const g = document.getElementById('team-grid');
+  g.innerHTML = TEAM.map(m => `
+    <div class="team-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span class="team-icon">${m.icon}</span>
+        <div><div class="team-role">${m.role}</div><div class="team-name">${m.name}</div></div>
+      </div>
+      <div class="team-desc">${m.desc}</div>
+    </div>`).join('');
+})();
+
+// ─── START ──────────────────────────
+function startGame() {
+  chapterIdx = 0; storyLine = 0; itemCount = 3;
+  showStory();
+}
+function showStory() {
+  storyLine = 0;
+  const c = ch();
+  document.documentElement.style.setProperty('--era-color', c.color);
+  document.getElementById('screen-story').style.background = `linear-gradient(180deg, ${c.color}22, #0a0a14)`;
+  document.getElementById('story-label').textContent = `CHAPTER ${c.id} · ${c.era}`;
+  document.getElementById('story-year').textContent = c.year + '년';
+  document.getElementById('story-year').style.color = c.color;
+  document.getElementById('story-title').style.background = `linear-gradient(180deg, #f4e4c1, ${c.color})`;
+  document.getElementById('story-title').style.webkitBackgroundClip = 'text';
+  document.getElementById('story-title').style.webkitTextFillColor = 'transparent';
+  document.getElementById('story-title').textContent = c.title;
+  document.getElementById('story-box').style.border = `1px solid ${c.color}44`;
+  renderStoryLine();
+  showScreen('screen-story');
+}
+function renderStoryLine() {
+  const c = ch(), lines = c.story, txt = lines[storyLine];
+  const el = document.getElementById('story-text');
+  el.textContent = txt;
+  el.className = 'story-text animate-in' + (txt.startsWith('▶') ? ' story-highlight' : '');
+  const btn = document.getElementById('story-next-btn');
+  if (storyLine >= lines.length - 1) {
+    btn.textContent = '⚔️ 전투 돌입!'; btn.onclick = initBattle;
+  } else {
+    btn.textContent = '다음 ▶'; btn.onclick = nextStoryLine;
+  }
+  const dots = document.getElementById('story-dots');
+  dots.innerHTML = lines.map((_, i) => `<div class="dot${i <= storyLine ? ' active' : ''}"></div>`).join('');
+}
+function nextStoryLine() { storyLine++; renderStoryLine(); }
+
+// ─── BATTLE ─────────────────────────
+function initBattle() {
+  const c = ch();
+  playerHp = c.player.hp; playerMaxHp = c.player.hp;
+  playerSp = 50; enemyHp = c.enemy.hp; enemyMaxHp = c.enemy.hp;
+  isPlayerTurn = true; animating = false; defending = false; enemyDebuff = 0;
+  document.getElementById('battle-header').textContent = `CHAPTER ${c.id} · ${c.era} (${c.year})`;
+  document.getElementById('arena').style.border = `1px solid ${c.color}33`;
+  document.getElementById('arena').style.backgroundImage = `radial-gradient(circle at 50% 100%, ${c.color}11, transparent 70%)`;
+  document.getElementById('player-emoji').textContent = c.player.emoji;
+  document.getElementById('player-name').textContent = c.player.name;
+  document.getElementById('enemy-emoji').textContent = c.enemy.emoji;
+  document.getElementById('enemy-name').textContent = c.enemy.name;
+  document.getElementById('defend-indicator').style.display = 'none';
+  document.getElementById('debuff-indicator').style.display = 'none';
+  // skill buttons
+  const sb = document.getElementById('skill-buttons');
+  sb.innerHTML = c.player.skills.map((s, i) => `<button class="btn btn-era" id="btn-skill-${i}" onclick="doSkill(${i})">✨ ${s.name} <span style="font-size:10px;opacity:.7">(SP:${s.cost})</span></button>`).join('');
+  // skill tips
+  const st = document.getElementById('skill-tips');
+  st.innerHTML = c.player.skills.map(s => `<div class="skill-tip"><strong>${s.name}</strong>: ${s.desc}</div>`).join('');
+  updateBars();
+  updateItemBtn();
+  document.getElementById('battle-log').innerHTML = `<div class="log-new">${c.enemy.name}이(가) 나타났다!</div>`;
+  showScreen('screen-battle');
+}
+
+function updateBars() {
+  const phpPct = Math.max(0, (playerHp / playerMaxHp) * 100);
+  const espPct = Math.max(0, (playerSp / 50) * 100);
+  const ehpPct = Math.max(0, (enemyHp / enemyMaxHp) * 100);
+  document.getElementById('player-hp-bar').style.width = phpPct + '%';
+  document.getElementById('player-hp-text').textContent = playerHp + '/' + playerMaxHp;
+  document.getElementById('player-sp-bar').style.width = espPct + '%';
+  document.getElementById('player-sp-text').textContent = 'SP ' + playerSp + '/50';
+  document.getElementById('enemy-hp-bar').style.width = ehpPct + '%';
+  document.getElementById('enemy-hp-text').textContent = enemyHp + '/' + enemyMaxHp;
+}
+function updateItemBtn() {
+  document.getElementById('btn-item').textContent = `🧪 회복약 (${itemCount}개) — HP +${ITEM_HEAL}`;
+  document.getElementById('btn-item').disabled = itemCount <= 0;
+}
+function addLog(msg) {
+  const box = document.getElementById('battle-log');
+  // make all existing logs old
+  box.querySelectorAll('.log-new').forEach(el => { el.className = 'log-old'; });
+  box.innerHTML += `<div class="log-new">${msg}</div>`;
+  box.scrollTop = box.scrollHeight;
+}
+function setActions(enabled) {
+  document.getElementById('btn-attack').disabled = !enabled;
+  document.getElementById('btn-defend').disabled = !enabled;
+  document.getElementById('btn-item').disabled = !enabled || itemCount <= 0;
+  ch().player.skills.forEach((s, i) => {
+    const b = document.getElementById('btn-skill-' + i);
+    if (b) b.disabled = !enabled || playerSp < s.cost;
+  });
+}
+function shakeEl(id) {
+  const el = document.getElementById(id);
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 400);
+}
+
+function doAttack() {
+  if (animating || !isPlayerTurn) return;
+  animating = true; isPlayerTurn = false; setActions(false);
+  const c = ch(), defMod = enemyDebuff > 0 ? 0.5 : 1;
+  let dmg = Math.max(1, Math.floor(c.player.atk - c.enemy.def * defMod)) + Math.floor(Math.random() * 5);
+  enemyHp = Math.max(0, enemyHp - dmg);
+  if (enemyDebuff > 0) enemyDebuff--;
+  updateDebuff();
+  shakeEl('enemy-side');
+  addLog(`${c.player.name}의 공격! ${dmg} 데미지!`);
+  updateBars();
+  if (enemyHp <= 0) { setTimeout(() => { addLog(`${c.enemy.name}을(를) 물리쳤다!`); setTimeout(showVictory, 1000); }, 500); }
+  else enemyTurn();
+}
+function doSkill(idx) {
+  if (animating || !isPlayerTurn) return;
+  const skill = ch().player.skills[idx];
+  if (playerSp < skill.cost) { addLog("SP가 부족하다!"); return; }
+  animating = true; isPlayerTurn = false; setActions(false);
+  playerSp -= skill.cost;
+  if (skill.debuff) {
+    enemyDebuff = 3; updateDebuff();
+    addLog(`${skill.name} 발동! 적 방어력 감소!`);
+    updateBars(); enemyTurn(); return;
+  }
+  if (skill.heal) {
+    const healed = Math.min(skill.heal, playerMaxHp - playerHp);
+    playerHp += healed;
+    addLog(`${skill.name}! HP ${healed} 회복!`);
+    if (enemyDebuff > 0) enemyDebuff--; updateDebuff();
+    updateBars(); enemyTurn(); return;
+  }
+  const defMod = enemyDebuff > 0 ? 0.5 : 1;
+  let dmg = Math.max(1, Math.floor(skill.dmg - ch().enemy.def * defMod)) + Math.floor(Math.random() * 6);
+  enemyHp = Math.max(0, enemyHp - dmg);
+  if (enemyDebuff > 0) enemyDebuff--; updateDebuff();
+  shakeEl('enemy-side');
+  addLog(`${skill.name}! ${dmg} 데미지!`);
+  updateBars();
+  if (enemyHp <= 0) { setTimeout(() => { addLog(`${ch().enemy.name}을(를) 물리쳤다!`); setTimeout(showVictory, 1000); }, 500); }
+  else enemyTurn();
+}
+function doDefend() {
+  if (animating || !isPlayerTurn) return;
+  animating = true; isPlayerTurn = false; setActions(false);
+  defending = true;
+  document.getElementById('defend-indicator').style.display = 'block';
+  const rec = Math.min(8, 50 - playerSp);
+  playerSp = Math.min(50, playerSp + 8);
+  addLog(`방어 태세! SP ${rec} 회복!`);
+  if (enemyDebuff > 0) enemyDebuff--; updateDebuff();
+  updateBars(); enemyTurn();
+}
+function doItem() {
+  if (animating || !isPlayerTurn || itemCount <= 0) return;
+  animating = true; isPlayerTurn = false; setActions(false);
+  itemCount--;
+  const healed = Math.min(ITEM_HEAL, playerMaxHp - playerHp);
+  playerHp += healed;
+  addLog(`회복약 사용! HP ${healed} 회복!`);
+  if (enemyDebuff > 0) enemyDebuff--; updateDebuff();
+  updateBars(); updateItemBtn(); enemyTurn();
+}
+function updateDebuff() {
+  const el = document.getElementById('debuff-indicator');
+  if (enemyDebuff > 0) { el.style.display = 'block'; el.textContent = `⬇ 방어력 감소 (${enemyDebuff}턴)`; }
+  else el.style.display = 'none';
+}
+function enemyTurn() {
+  setTimeout(() => {
+    const c = ch(), wasDefending = defending;
+    let dmg = Math.max(1, c.enemy.atk - c.player.def - (wasDefending ? 5 : 0)) + Math.floor(Math.random() * 4) - 1;
+    if (wasDefending) dmg = Math.max(1, Math.floor(dmg * 0.5));
+    dmg = Math.max(1, dmg);
+    playerHp = Math.max(0, playerHp - dmg);
+    shakeEl('player-side');
+    addLog(`${c.enemy.name}의 공격! ${dmg} 데미지!${wasDefending ? ' (방어 중!)' : ''}`);
+    defending = false;
+    document.getElementById('defend-indicator').style.display = 'none';
+    updateBars();
+    animating = false;
+    if (playerHp <= 0) {
+      addLog("패배... 다시 도전!");
+      setTimeout(initBattle, 1500);
+    } else {
+      isPlayerTurn = true; setActions(true);
+    }
+  }, 800);
+}
+
+// ─── VICTORY ────────────────────────
+function showVictory() {
+  const c = ch();
+  document.getElementById('victory-enemy').textContent = c.enemy.name + '을(를) 물리쳤다!';
+  document.getElementById('victory-reward').textContent = '🎁 ' + c.reward;
+  document.getElementById('victory-history').innerHTML = `<div style="font-size:12px;color:#c4956a;font-weight:700;margin-bottom:6px">📖 이 챕터의 역사</div>${c.story[c.story.length - 1]}`;
+  const btn = document.getElementById('victory-next-btn');
+  btn.textContent = chapterIdx < CHAPTERS.length - 1 ? '다음 챕터로 ▶' : '엔딩 보기 ▶';
+  showScreen('screen-victory');
+}
+function nextChapter() {
+  if (chapterIdx < CHAPTERS.length - 1) {
+    chapterIdx++; itemCount = 3; showStory();
+  } else showEnd();
+}
+function showEnd() {
+  const el = document.getElementById('end-recap');
+  el.innerHTML = `<div style="font-size:14px;font-weight:700;color:#c4956a;margin-bottom:10px;text-align:center">📜 여정의 기록</div>` +
+    CHAPTERS.map((c, i) => `<div class="recap-item"><span class="recap-emoji">${c.player.emoji}</span><div><div class="recap-title">${c.player.name} — ${c.era} (${c.year})</div><div class="recap-sub">${c.title}</div></div></div>`).join('');
+  showScreen('screen-end');
+}
+</script>
+</body>
+</html>

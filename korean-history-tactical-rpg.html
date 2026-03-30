@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>한국사 영웅전 - 전술 RPG</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+body{font-family:'Noto Serif KR',serif;background:#0a0a14;color:#e8dcc8;overflow:hidden;height:100vh;width:100vw;touch-action:manipulation}
+canvas{display:block}
+
+/* ── UI Overlays ── */
+#ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#ui-layer>*{pointer-events:auto}
+#top-bar{position:absolute;top:0;left:0;right:0;padding:6px 12px;background:linear-gradient(180deg,#0a0a14ee,#0a0a1400);display:flex;justify-content:space-between;align-items:center;z-index:20}
+#top-bar .era{font-size:12px;color:#c4956a;font-weight:700;letter-spacing:2px}
+#top-bar .turn{font-size:11px;color:#888}
+#bottom-panel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,#0a0a14fa 70%,#0a0a1400);padding:8px 10px 12px;z-index:20;display:none}
+#unit-info{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+#unit-info .portrait{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid #c4956a;background:#151520}
+#unit-info .stats{flex:1}
+#unit-info .uname{font-size:14px;font-weight:700}
+#unit-info .hp-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+#unit-info .hp-label{font-size:10px;color:#888;width:22px}
+#unit-info .bar-bg{flex:1;height:10px;background:#1a1a2e;border-radius:5px;overflow:hidden;border:1px solid #333}
+#unit-info .bar-fill{height:100%;border-radius:5px;transition:width .4s}
+#unit-info .hp-num{font-size:10px;color:#aaa;width:50px;text-align:right}
+#action-buttons{display:flex;gap:6px;flex-wrap:wrap}
+#action-buttons button{padding:8px 14px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;color:#e8dcc8;cursor:pointer;transition:all .15s;flex:1;min-width:70px;text-align:center}
+#action-buttons button:active{transform:scale(.95);filter:brightness(.8)}
+#action-buttons button:disabled{opacity:.3;pointer-events:none}
+.btn-atk{background:#6B1A0A}
+.btn-skill{background:#1B3A5C}
+.btn-wait{background:#2a2a3e}
+.btn-item{background:#2a5a2a}
+
+/* ── Battle Cut-in ── */
+#battle-cutin{position:absolute;top:0;left:0;width:100%;height:100%;background:#000c;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:50}
+#battle-cutin .vs-row{display:flex;align-items:center;gap:20px;margin-bottom:16px}
+#battle-cutin .fighter{text-align:center}
+#battle-cutin .fighter .emoji{font-size:56px}
+#battle-cutin .fighter .fname{font-size:16px;font-weight:700;margin-top:4px}
+#battle-cutin .vs-text{font-size:28px;font-weight:900;color:#c4956a}
+#battle-cutin .dmg-text{font-size:22px;font-weight:900;color:#e74c3c;margin-top:8px;min-height:30px}
+#battle-cutin .result-text{font-size:14px;color:#ccc;margin-top:4px;min-height:20px}
+
+/* ── Screens ── */
+.overlay-screen{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px;text-align:center}
+.overlay-screen.active{display:flex}
+#title-screen{background:linear-gradient(180deg,#12120a,#0a0a14)}
+#story-screen{background:linear-gradient(180deg,#0f1a0fee,#0a0a14)}
+#victory-screen{background:#0a0a14ee}
+#gameover-screen{background:#0a0a14ee}
+#team-screen{background:#0a0a14;overflow-y:auto;justify-content:flex-start;padding-top:24px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #c4956a44}50%{text-shadow:0 0 40px #c4956a99}}
+@keyframes slideHit{0%{transform:translateX(0)}30%{transform:translateX(30px)}60%{transform:translateX(-10px)}100%{transform:translateX(0)}}
+@keyframes slideHitR{0%{transform:translateX(0)}30%{transform:translateX(-30px)}60%{transform:translateX(10px)}100%{transform:translateX(0)}}
+.anim-in{animation:fadeIn .6s ease}
+.hit-l{animation:slideHit .5s ease}
+.hit-r{animation:slideHitR .5s ease}
+
+.g-title{font-size:clamp(28px,7vw,48px);font-weight:900;line-height:1.2;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s infinite}
+.g-sub{font-size:clamp(11px,2.5vw,15px);color:#8a7a6a;margin-top:8px;font-style:italic}
+.g-btn{padding:14px 40px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:16px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer;letter-spacing:3px;box-shadow:0 3px 12px #0008;margin-top:8px}
+.g-btn:active{transform:scale(.96)}
+.g-btn-s{padding:10px 28px;font-size:13px;background:#2a2a3e;letter-spacing:1px}
+.story-box{background:#0a0a14cc;border:1px solid #ffffff22;border-radius:10px;padding:18px;max-width:440px;width:100%;margin:16px 0;min-height:70px;line-height:1.9;font-size:14px}
+.story-hl{color:#c4956a;font-weight:700}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:10px}
+.dot{width:7px;height:7px;border-radius:50%;background:#333}.dot.on{background:#c4956a}
+
+/* team */
+.team-grid{display:grid;grid-template-columns:1fr;gap:8px;width:100%;max-width:440px}
+.tc{background:linear-gradient(135deg,#151520,#1a1a2e);border:1px solid #2a2a3e;border-radius:10px;padding:12px;display:flex;gap:10px;align-items:flex-start}
+.tc-icon{font-size:24px;margin-top:2px}
+.tc-role{font-size:11px;color:#c4956a;font-weight:700}
+.tc-name{font-size:14px;font-weight:700}
+.tc-desc{font-size:11px;color:#888;line-height:1.5;margin-top:4px}
+
+/* message popup */
+#msg-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#151520ee;border:2px solid #c4956a;border-radius:12px;padding:20px 24px;z-index:80;display:none;text-align:center;max-width:320px;width:90%}
+#msg-popup .msg-title{font-size:16px;font-weight:700;color:#c4956a;margin-bottom:8px}
+#msg-popup .msg-body{font-size:13px;line-height:1.8;color:#ccc}
+#msg-popup button{margin-top:12px}
+
+/* guide */
+#guide{position:absolute;top:44px;left:0;right:0;text-align:center;font-size:12px;color:#c4956acc;z-index:20;pointer-events:none;text-shadow:0 1px 4px #000}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="ui-layer">
+  <div id="top-bar"><span class="era" id="era-label"></span><span class="turn" id="turn-label"></span></div>
+  <div id="guide"></div>
+  <div id="bottom-panel">
+    <div id="unit-info">
+      <div class="portrait" id="sel-portrait"></div>
+      <div class="stats">
+        <div class="uname" id="sel-name"></div>
+        <div class="hp-row"><span class="hp-label">HP</span><div class="bar-bg"><div class="bar-fill" id="sel-hp" style="background:#27ae60"></div></div><span class="hp-num" id="sel-hp-num"></span></div>
+        <div class="hp-row"><span class="hp-label">ATK</span><span class="hp-num" id="sel-atk" style="width:auto;color:#e8dcc8;font-weight:700"></span></div>
+      </div>
+    </div>
+    <div id="action-buttons"></div>
+  </div>
+  <div id="battle-cutin">
+    <div class="vs-row">
+      <div class="fighter"><div class="emoji" id="bc-left-emoji"></div><div class="fname" id="bc-left-name"></div></div>
+      <div class="vs-text">VS</div>
+      <div class="fighter"><div class="emoji" id="bc-right-emoji"></div><div class="fname" id="bc-right-name" style="color:#e74c3c"></div></div>
+    </div>
+    <div class="dmg-text" id="bc-dmg"></div>
+    <div class="result-text" id="bc-result"></div>
+  </div>
+  <div id="msg-popup"><div class="msg-title" id="msg-title"></div><div class="msg-body" id="msg-body"></div><button class="g-btn g-btn-s" id="msg-btn" onclick="closeMsg()">확인</button></div>
+</div>
+
+<!-- TITLE -->
+<div id="title-screen" class="overlay-screen active">
+  <div class="anim-in" style="text-align:center">
+    <div style="font-size:12px;letter-spacing:6px;color:#8a7a6a;margin-bottom:10px">TACTICAL RPG</div>
+    <h1 class="g-title">한국사 영웅전</h1>
+    <div class="g-sub">단군에서 이순신까지 — 전술 맵에서 역사를 체험하라</div>
+    <div style="margin-top:28px;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <button class="g-btn" onclick="startGame()">⚔️ 출진하라</button>
+      <button class="g-btn g-btn-s" onclick="showTeam()">🎭 제작팀</button>
+    </div>
+    <div style="margin-top:36px;font-size:10px;color:#555;line-height:2">
+      ▪ 아군을 터치하여 선택 → 이동범위 내 이동<br>
+      ▪ 적 인접 시 공격/스킬 선택 → 전투 컷인<br>
+      ▪ 적을 모두 섬멸하면 승리!
+    </div>
+  </div>
+</div>
+
+<!-- STORY -->
+<div id="story-screen" class="overlay-screen">
+  <div class="anim-in" style="max-width:460px;width:100%">
+    <div style="font-size:11px;letter-spacing:5px;color:#8a7a6a" id="st-label"></div>
+    <div style="font-size:13px;font-weight:700;margin:4px 0" id="st-year"></div>
+    <h2 style="font-size:clamp(18px,5vw,24px);font-weight:900;margin-bottom:4px;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="st-title"></h2>
+    <div class="story-box" id="st-box"><span id="st-text"></span></div>
+    <div style="text-align:center"><button class="g-btn" id="st-btn" style="padding:12px 32px;font-size:14px">다음 ▶</button></div>
+    <div class="dots" id="st-dots"></div>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="victory-screen" class="overlay-screen">
+  <div class="anim-in" style="text-align:center;max-width:400px">
+    <div style="font-size:48px;margin-bottom:8px">🏆</div>
+    <h2 style="font-size:24px;font-weight:900;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">전투 승리!</h2>
+    <div id="vic-reward" style="background:#151520;border:1px solid #c4956a44;border-radius:10px;padding:14px;margin:14px 0;font-size:16px;font-weight:700;color:#f4d03f"></div>
+    <div id="vic-history" style="background:#0a0a14;border:1px solid #fff1;border-radius:10px;padding:14px;text-align:left;font-size:12px;color:#aaa;line-height:1.8;margin-bottom:14px"></div>
+    <button class="g-btn" id="vic-btn" style="padding:12px 32px;font-size:14px">다음 ▶</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover-screen" class="overlay-screen">
+  <div class="anim-in" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">💀</div>
+    <h2 style="font-size:24px;font-weight:900;color:#e74c3c">패배...</h2>
+    <p style="font-size:13px;color:#888;margin:12px 0">역사는 아직 끝나지 않았다. 다시 일어서라!</p>
+    <button class="g-btn" onclick="retryChapter()" style="padding:12px 32px">다시 도전</button>
+  </div>
+</div>
+
+<!-- TEAM -->
+<div id="team-screen" class="overlay-screen">
+  <h2 style="font-size:22px;margin-bottom:12px;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🎭 제작팀 (8인)</h2>
+  <div class="team-grid" id="team-grid"></div>
+  <button class="g-btn g-btn-s" style="margin-top:16px;margin-bottom:24px" onclick="hideTeam()">← 돌아가기</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const TEAM=[
+  {role:"총괄 프로듀서",name:"박진우",desc:"프로젝트 방향성·일정 총괄. 역사 고증과 게임성 균형의 핵심.",icon:"🎯"},
+  {role:"시나리오 작가",name:"김서연",desc:"단군~조선 역사 스토리라인 집필. 인과관계를 서사로 풀어냄.",icon:"📜"},
+  {role:"역사 고증 자문",name:"이한솔 박사",desc:"모든 대사·사건·연도 사실 확인. 각색 허용 범위 설정.",icon:"🏛️"},
+  {role:"캐릭터 디자이너",name:"정유나",desc:"시대별 복장·무기 고증 기반 일러스트. 영걸전 스타일 초상화.",icon:"🎨"},
+  {role:"게임 디자이너",name:"최동현",desc:"턴제 전투·밸런싱·난이도. '쉽지만 전략적' 핵심 루프.",icon:"⚔️"},
+  {role:"프로그래머",name:"한지민",desc:"전투 엔진, UI, 맵 이동 시스템 구현.",icon:"💻"},
+  {role:"배경 아티스트",name:"오승환",desc:"시대별 배경·전투맵. 고조선 초원~조선 궁궐.",icon:"🗺️"},
+  {role:"사운드 디자이너",name:"윤채원",desc:"시대별 BGM, 전투 효과음. 국악의 현대적 편곡.",icon:"🎵"},
+];
+
+const CHAPTERS=[
+  { id:1,era:"고조선",year:"BC 2333",title:"단군, 하늘의 뜻을 잇다",color:"#4A6741",
+    terrain:"grass",
+    story:["환인의 아들 환웅이 태백산 신단수 아래로 내려왔다.","풍백·우사·운사를 거느리고 인간 세상을 다스렸다.","곰만이 100일의 시련을 견뎌 사람이 되었다.","환웅과 웅녀 사이에서 단군왕검이 태어났다.","▶ BC 2333년 건국. 홍익인간 — '널리 인간을 이롭게 하라'. 오늘날 대한민국 교육이념으로 이어진다."],
+    allies:[
+      {name:"단군왕검",emoji:"👑",hp:50,maxHp:50,atk:14,def:5,mov:3,skills:[{name:"천부인 번개",dmg:22,range:2},{name:"홍익의 빛",heal:20}]},
+      {name:"풍백",emoji:"💨",hp:35,maxHp:35,atk:10,def:3,mov:4,skills:[{name:"질풍격",dmg:16,range:1}]},
+      {name:"우사",emoji:"🌧️",hp:30,maxHp:30,atk:8,def:4,mov:3,skills:[{name:"치유비",heal:15}]},
+    ],
+    enemies:[
+      {name:"호랑이 대장",emoji:"🐯",hp:40,maxHp:40,atk:12,def:3,mov:3},
+      {name:"산적 두목",emoji:"🗡️",hp:28,maxHp:28,atk:9,def:2,mov:3},
+      {name:"늑대",emoji:"🐺",hp:22,maxHp:22,atk:8,def:1,mov:4},
+    ],
+    reward:"홍익검(弘益劍) 획득!"},
+  { id:2,era:"고구려",year:"BC 37",title:"주몽, 부여를 떠나다",color:"#8B2500",
+    terrain:"autumn",
+    story:["부여 궁에서 자란 주몽은 활의 달인이었다.","금와왕의 아들들이 주몽의 목숨을 노렸다.","유화부인의 도움으로 탈출, 남쪽으로!","엄리대수에서 물고기가 다리를 놓아 강을 건넜다.","▶ BC 37년 졸본에 고구려 건국. 이후 700년 동북아 최강국으로 군림한다."],
+    allies:[
+      {name:"주몽",emoji:"🏹",hp:45,maxHp:45,atk:16,def:4,mov:4,skills:[{name:"신궁 연사",dmg:24,range:3},{name:"엄리대수",heal:18}]},
+      {name:"오이",emoji:"🛡️",hp:38,maxHp:38,atk:10,def:6,mov:3,skills:[{name:"방패 강타",dmg:14,range:1}]},
+      {name:"마리",emoji:"⚔️",hp:32,maxHp:32,atk:12,def:3,mov:4,skills:[{name:"기습",dmg:18,range:1}]},
+    ],
+    enemies:[
+      {name:"대소 태자",emoji:"👹",hp:42,maxHp:42,atk:13,def:5,mov:3},
+      {name:"부여 기병",emoji:"🏇",hp:30,maxHp:30,atk:11,def:3,mov:4},
+      {name:"부여 궁수",emoji:"🎯",hp:24,maxHp:24,atk:10,def:2,mov:3},
+      {name:"부여 보병",emoji:"⚔️",hp:26,maxHp:26,atk:9,def:3,mov:3},
+    ],
+    reward:"주몽의 활 획득!"},
+  { id:3,era:"삼국시대",year:"612",title:"을지문덕, 살수대첩",color:"#1B3A5C",
+    terrain:"river",
+    story:["수 양제의 113만 대군이 고구려를 침략했다.","을지문덕은 거짓 항복으로 적을 깊이 유인했다.","살수를 건너는 순간, 둑을 터뜨렸다!","30만 중 2,700명만 생환. 살수대첩이다.","▶ 612년. 수나라는 이 패전으로 멸망. 한 전쟁이 제국의 운명을 바꿨다."],
+    allies:[
+      {name:"을지문덕",emoji:"🌊",hp:48,maxHp:48,atk:15,def:6,mov:3,skills:[{name:"살수 범람",dmg:26,range:2},{name:"유인지계",dmg:18,range:1}]},
+      {name:"고구려 장수",emoji:"⚔️",hp:38,maxHp:38,atk:13,def:5,mov:3,skills:[{name:"돌격",dmg:16,range:1}]},
+      {name:"고구려 궁수",emoji:"🏹",hp:28,maxHp:28,atk:12,def:3,mov:3,skills:[{name:"화살비",dmg:14,range:3}]},
+    ],
+    enemies:[
+      {name:"우문술",emoji:"🐉",hp:45,maxHp:45,atk:14,def:5,mov:3},
+      {name:"수나라 기병",emoji:"🏇",hp:32,maxHp:32,atk:12,def:4,mov:4},
+      {name:"수나라 보병",emoji:"🗡️",hp:28,maxHp:28,atk:10,def:3,mov:3},
+      {name:"수나라 보병",emoji:"🗡️",hp:28,maxHp:28,atk:10,def:3,mov:3},
+    ],
+    reward:"을지문덕의 지략서 획득!"},
+  { id:4,era:"고려",year:"1236",title:"팔만대장경의 수호",color:"#8B6914",
+    terrain:"temple",
+    story:["몽골 침략으로 고려는 강화도로 천도했다.","초조대장경이 불타 없어졌다.","16년에 걸쳐 8만여 장의 목판을 새겼다.","오자 단 한 글자 없는 세계 인쇄 문화의 기적.","▶ 1236~1251년. 군사적·문화적 저항의 상징. 유네스코 세계기록유산."],
+    allies:[
+      {name:"김윤후",emoji:"🛡️",hp:44,maxHp:44,atk:14,def:7,mov:3,skills:[{name:"처인성 사격",dmg:24,range:2},{name:"불심 결계",heal:22}]},
+      {name:"고려 무사",emoji:"⚔️",hp:36,maxHp:36,atk:12,def:5,mov:3,skills:[{name:"참격",dmg:16,range:1}]},
+      {name:"승병",emoji:"📿",hp:30,maxHp:30,atk:10,def:4,mov:3,skills:[{name:"경문 가호",heal:16}]},
+    ],
+    enemies:[
+      {name:"살리타이",emoji:"🏇",hp:48,maxHp:48,atk:15,def:5,mov:4},
+      {name:"몽골 기병",emoji:"🐎",hp:34,maxHp:34,atk:13,def:4,mov:4},
+      {name:"몽골 궁수",emoji:"🎯",hp:26,maxHp:26,atk:11,def:2,mov:3},
+      {name:"몽골 보병",emoji:"🗡️",hp:30,maxHp:30,atk:10,def:3,mov:3},
+    ],
+    reward:"팔만대장경 부적 획득!"},
+  { id:5,era:"조선",year:"1592",title:"이순신, 바다를 뒤집다",color:"#003366",
+    terrain:"sea",
+    story:["1592년, 히데요시의 15만 왜군이 상륙했다.","육지에서 연패, 선조는 의주로 도망쳤다.","바다에서 이순신이 거북선으로 출격했다.","한산도 학익진 — 세계 해전사의 걸작.","▶ 임진왜란. 이순신 23전 23승. 제해권 장악이 전쟁의 흐름을 바꿨다."],
+    allies:[
+      {name:"이순신",emoji:"🐢",hp:55,maxHp:55,atk:18,def:7,mov:3,skills:[{name:"학익진 포격",dmg:28,range:3},{name:"거북선 돌격",dmg:22,range:1}]},
+      {name:"이억기",emoji:"⛵",hp:40,maxHp:40,atk:14,def:5,mov:3,skills:[{name:"화포 사격",dmg:18,range:2}]},
+      {name:"정운",emoji:"🚢",hp:36,maxHp:36,atk:13,def:5,mov:4,skills:[{name:"돌격",dmg:16,range:1}]},
+      {name:"수군 병사",emoji:"⚓",hp:28,maxHp:28,atk:10,def:4,mov:3,skills:[{name:"방어 태세",heal:14}]},
+    ],
+    enemies:[
+      {name:"와키자카",emoji:"👺",hp:50,maxHp:50,atk:16,def:6,mov:3},
+      {name:"왜 전함",emoji:"⛵",hp:36,maxHp:36,atk:14,def:5,mov:3},
+      {name:"왜 전함",emoji:"⛵",hp:36,maxHp:36,atk:14,def:5,mov:3},
+      {name:"왜 소선",emoji:"🚣",hp:24,maxHp:24,atk:10,def:2,mov:4},
+      {name:"왜 소선",emoji:"🚣",hp:24,maxHp:24,atk:10,def:2,mov:4},
+    ],
+    reward:"충무공의 장검 획득!"},
+];
+
+// terrain colors
+const TERRAINS={
+  grass:{bg:"#2d4a2d",tile1:"#3a5c3a",tile2:"#2f4f2f",obstacle:"#1a3a1a",obsEmoji:"🌲"},
+  autumn:{bg:"#4a3a2a",tile1:"#5a4430",tile2:"#4a3828",obstacle:"#3a2a1a",obsEmoji:"🍂"},
+  river:{bg:"#1a3050",tile1:"#1f3a5a",tile2:"#1a3050",obstacle:"#0f2040",obsEmoji:"💧"},
+  temple:{bg:"#3a3020",tile1:"#4a3c28",tile2:"#3a3020",obstacle:"#2a2010",obsEmoji:"🏛️"},
+  sea:{bg:"#0a2a4a",tile1:"#0f3058",tile2:"#0a284a",obstacle:"#06203a",obsEmoji:"🌊"},
+};
+
+// ═══════════════════════════════════════════
+//  ENGINE
+// ═══════════════════════════════════════════
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+let W,H,COLS=8,ROWS=8,CELL;
+let mapOffX=0,mapOffY=0;
+
+// State
+let chapterIdx=0,storyIdx=0;
+let units=[],obstacles=[];
+let phase='title'; // title,story,player_select,player_move,player_action,enemy_turn,battle_anim,victory,gameover
+let selectedUnit=null,moveRange=[],attackTargets=[];
+let turnCount=1;
+let itemCount=3;
+
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  canvas.width=W;canvas.height=H;
+  CELL=Math.min(Math.floor((W-16)/COLS),Math.floor((H-120)/ROWS),56);
+  mapOffX=Math.floor((W-COLS*CELL)/2);
+  mapOffY=Math.floor((H-ROWS*CELL)/2)+10;
+  if(phase.startsWith('player')||phase==='enemy_turn')drawMap();
+}
+window.addEventListener('resize',resize);
+resize();
+
+// ── Team screen ──
+function showTeam(){
+  const g=document.getElementById('team-grid');
+  g.innerHTML=TEAM.map(m=>`<div class="tc"><span class="tc-icon">${m.icon}</span><div><div class="tc-role">${m.role}</div><div class="tc-name">${m.name}</div><div class="tc-desc">${m.desc}</div></div></div>`).join('');
+  document.getElementById('team-screen').classList.add('active');
+}
+function hideTeam(){document.getElementById('team-screen').classList.remove('active')}
+
+// ── Story ──
+function showStory(){
+  storyIdx=0;
+  const c=CHAPTERS[chapterIdx];
+  document.getElementById('st-label').textContent=`CHAPTER ${c.id} · ${c.era}`;
+  document.getElementById('st-year').textContent=c.year;
+  document.getElementById('st-year').style.color=c.color;
+  document.getElementById('st-title').textContent=c.title;
+  document.getElementById('story-screen').style.background=`linear-gradient(180deg,${c.color}22,#0a0a14)`;
+  document.getElementById('st-box').style.borderColor=c.color+'44';
+  renderStoryLine();
+  document.getElementById('story-screen').classList.add('active');
+}
+function renderStoryLine(){
+  const lines=CHAPTERS[chapterIdx].story;
+  const t=lines[storyIdx];
+  const el=document.getElementById('st-text');
+  el.textContent=t;
+  el.className=t.startsWith('▶')?'story-hl':'';
+  const btn=document.getElementById('st-btn');
+  if(storyIdx>=lines.length-1){btn.textContent='⚔️ 전투 개시!';btn.onclick=startBattle;}
+  else{btn.textContent='다음 ▶';btn.onclick=()=>{storyIdx++;renderStoryLine();};}
+  document.getElementById('st-dots').innerHTML=lines.map((_,i)=>`<div class="dot${i<=storyIdx?' on':''}"></div>`).join('');
+}
+
+// ── Init Battle ──
+function startBattle(){
+  document.getElementById('story-screen').classList.remove('active');
+  document.getElementById('title-screen').classList.remove('active');
+  const c=CHAPTERS[chapterIdx];
+  units=[];obstacles=[];
+  // place allies on left
+  c.allies.forEach((a,i)=>{
+    units.push({...a,id:'a'+i,team:'ally',x:0+Math.floor(i/4),y:1+i*2,acted:false,origIdx:i});
+  });
+  // place enemies on right
+  c.enemies.forEach((e,i)=>{
+    units.push({...e,id:'e'+i,team:'enemy',x:COLS-1-Math.floor(i/4),y:1+Math.min(i,ROWS-3)*Math.floor((ROWS-2)/Math.max(c.enemies.length-1,1)),acted:false});
+  });
+  // spread enemies better
+  const enemies=units.filter(u=>u.team==='enemy');
+  enemies.forEach((e,i)=>{
+    e.x=COLS-1-Math.floor(i/3);
+    e.y=1+Math.round(i*(ROWS-3)/Math.max(enemies.length-1,1));
+    if(e.y>=ROWS)e.y=ROWS-1;
+  });
+  // obstacles
+  const ter=TERRAINS[c.terrain];
+  for(let i=0;i<5;i++){
+    let ox,oy,tries=0;
+    do{ox=2+Math.floor(Math.random()*(COLS-4));oy=Math.floor(Math.random()*ROWS);tries++;}
+    while(tries<50&&(units.some(u=>u.x===ox&&u.y===oy)||obstacles.some(o=>o.x===ox&&o.y===oy)));
+    if(tries<50)obstacles.push({x:ox,y:oy,emoji:ter.obsEmoji});
+  }
+  turnCount=1;itemCount=3;
+  document.getElementById('era-label').textContent=`CH.${c.id} ${c.era} (${c.year})`;
+  phase='player_select';
+  selectedUnit=null;moveRange=[];attackTargets=[];
+  startPlayerTurn();
+  drawMap();
+}
+
+function startPlayerTurn(){
+  units.filter(u=>u.team==='ally'&&u.hp>0).forEach(u=>u.acted=false);
+  document.getElementById('turn-label').textContent=`턴 ${turnCount}`;
+  phase='player_select';selectedUnit=null;moveRange=[];attackTargets=[];
+  document.getElementById('bottom-panel').style.display='none';
+  setGuide('아군을 터치하여 선택하세요');
+  drawMap();
+  // check if any ally can act
+  if(units.filter(u=>u.team==='ally'&&u.hp>0&&!u.acted).length===0) endPlayerTurn();
+}
+
+function setGuide(t){document.getElementById('guide').textContent=t;}
+
+// ── Drawing ──
+function drawMap(){
+  const c=CHAPTERS[chapterIdx];
+  const ter=TERRAINS[c.terrain];
+  ctx.fillStyle=ter.bg;ctx.fillRect(0,0,W,H);
+  // grid
+  for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
+    const px=mapOffX+x*CELL,py=mapOffY+y*CELL;
+    ctx.fillStyle=(x+y)%2===0?ter.tile1:ter.tile2;
+    ctx.fillRect(px,py,CELL,CELL);
+    ctx.strokeStyle='#00000033';ctx.strokeRect(px,py,CELL,CELL);
+  }
+  // move range highlight
+  moveRange.forEach(({x,y})=>{
+    ctx.fillStyle='rgba(100,200,255,0.25)';
+    ctx.fillRect(mapOffX+x*CELL,mapOffY+y*CELL,CELL,CELL);
+    ctx.strokeStyle='rgba(100,200,255,0.5)';ctx.lineWidth=2;
+    ctx.strokeRect(mapOffX+x*CELL+1,mapOffY+y*CELL+1,CELL-2,CELL-2);
+    ctx.lineWidth=1;
+  });
+  // attack targets highlight
+  attackTargets.forEach(u=>{
+    ctx.fillStyle='rgba(255,60,60,0.3)';
+    ctx.fillRect(mapOffX+u.x*CELL,mapOffY+u.y*CELL,CELL,CELL);
+    ctx.strokeStyle='rgba(255,60,60,0.6)';ctx.lineWidth=2;
+    ctx.strokeRect(mapOffX+u.x*CELL+1,mapOffY+u.y*CELL+1,CELL-2,CELL-2);
+    ctx.lineWidth=1;
+  });
+  // obstacles
+  obstacles.forEach(o=>{
+    ctx.fillStyle=ter.obstacle;ctx.fillRect(mapOffX+o.x*CELL,mapOffY+o.y*CELL,CELL,CELL);
+    ctx.font=`${CELL*0.5}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(o.emoji,mapOffX+o.x*CELL+CELL/2,mapOffY+o.y*CELL+CELL/2);
+  });
+  // units
+  units.filter(u=>u.hp>0).forEach(u=>{
+    const px=mapOffX+u.x*CELL,py=mapOffY+u.y*CELL;
+    // shadow / glow
+    if(selectedUnit&&selectedUnit.id===u.id){
+      ctx.fillStyle='rgba(255,215,0,0.3)';ctx.fillRect(px,py,CELL,CELL);
+    }
+    // bg circle
+    ctx.fillStyle=u.team==='ally'?'#27ae6066':'#e74c3c55';
+    ctx.beginPath();ctx.arc(px+CELL/2,py+CELL/2,CELL*0.38,0,Math.PI*2);ctx.fill();
+    // emoji
+    ctx.font=`${CELL*0.55}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(u.emoji,px+CELL/2,py+CELL/2);
+    // hp bar
+    const bw=CELL-6,bh=4,bx=px+3,by=py+CELL-7;
+    ctx.fillStyle='#111';ctx.fillRect(bx,by,bw,bh);
+    const hpPct=Math.max(0,u.hp/u.maxHp);
+    ctx.fillStyle=u.team==='ally'?'#27ae60':'#e74c3c';
+    ctx.fillRect(bx,by,bw*hpPct,bh);
+    // acted indicator
+    if(u.team==='ally'&&u.acted){
+      ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(px,py,CELL,CELL);
+    }
+  });
+  // selected unit ring
+  if(selectedUnit&&selectedUnit.hp>0){
+    const px=mapOffX+selectedUnit.x*CELL,py=mapOffY+selectedUnit.y*CELL;
+    ctx.strokeStyle='#f4d03f';ctx.lineWidth=2;
+    ctx.strokeRect(px+1,py+1,CELL-2,CELL-2);ctx.lineWidth=1;
+  }
+}
+
+// ── Input ──
+canvas.addEventListener('click',handleClick);
+canvas.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];handleClick({clientX:t.clientX,clientY:t.clientY});});
+
+function handleClick(e){
+  if(phase==='battle_anim'||phase==='enemy_turn')return;
+  const cx=e.clientX-mapOffX,cy=e.clientY-mapOffY;
+  const gx=Math.floor(cx/CELL),gy=Math.floor(cy/CELL);
+  if(gx<0||gx>=COLS||gy<0||gy>=ROWS)return;
+
+  if(phase==='player_select'){
+    const u=units.find(u=>u.x===gx&&u.y===gy&&u.hp>0&&u.team==='ally'&&!u.acted);
+    if(u){selectUnit(u);}
+  }
+  else if(phase==='player_move'){
+    // clicked on move range?
+    if(moveRange.some(m=>m.x===gx&&m.y===gy)){
+      moveUnit(selectedUnit,gx,gy);
+    }
+    // clicked another ally?
+    else{
+      const u=units.find(u=>u.x===gx&&u.y===gy&&u.hp>0&&u.team==='ally'&&!u.acted);
+      if(u){selectUnit(u);}
+      else{phase='player_select';selectedUnit=null;moveRange=[];document.getElementById('bottom-panel').style.display='none';setGuide('아군을 터치하여 선택하세요');drawMap();}
+    }
+  }
+  else if(phase==='player_action'){
+    // click enemy to attack?
+    const tgt=attackTargets.find(t=>t.x===gx&&t.y===gy);
+    if(tgt){showActionMenu(tgt);}
+  }
+}
+
+function selectUnit(u){
+  selectedUnit=u;
+  phase='player_move';
+  moveRange=calcMoveRange(u);
+  attackTargets=[];
+  showUnitInfo(u);
+  setGuide(`${u.name} — 이동할 칸을 터치하세요`);
+  drawMap();
+}
+
+function calcMoveRange(u){
+  const range=[];
+  const visited=new Set();
+  const q=[{x:u.x,y:u.y,steps:0}];
+  visited.add(u.x+','+u.y);
+  while(q.length){
+    const cur=q.shift();
+    if(cur.steps>0){
+      const occupied=units.some(o=>o.hp>0&&o.x===cur.x&&o.y===cur.y);
+      const blocked=obstacles.some(o=>o.x===cur.x&&o.y===cur.y);
+      if(!occupied&&!blocked)range.push({x:cur.x,y:cur.y});
+      if(occupied||blocked)continue;
+    }
+    if(cur.steps<u.mov){
+      [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}].forEach(d=>{
+        const nx=cur.x+d.dx,ny=cur.y+d.dy;
+        if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&!visited.has(nx+','+ny)){
+          visited.add(nx+','+ny);
+          q.push({x:nx,y:ny,steps:cur.steps+1});
+        }
+      });
+    }
+  }
+  return range;
+}
+
+function moveUnit(u,tx,ty){
+  u.x=tx;u.y=ty;
+  // find adjacent enemies
+  attackTargets=units.filter(e=>e.team==='enemy'&&e.hp>0&&Math.abs(e.x-u.x)+Math.abs(e.y-u.y)<=1);
+  // also check skill ranges
+  if(u.skills){
+    u.skills.forEach(sk=>{
+      if(sk.range&&sk.range>1){
+        units.filter(e=>e.team==='enemy'&&e.hp>0&&Math.abs(e.x-u.x)+Math.abs(e.y-u.y)<=sk.range).forEach(e=>{
+          if(!attackTargets.includes(e))attackTargets.push(e);
+        });
+      }
+    });
+  }
+  moveRange=[];
+  if(attackTargets.length>0){
+    phase='player_action';
+    setGuide('적을 터치하여 공격하거나 대기/아이템 선택');
+    showUnitInfo(u);
+    showActionButtons(u,true);
+  } else {
+    phase='player_action';
+    setGuide('행동을 선택하세요');
+    showUnitInfo(u);
+    showActionButtons(u,false);
+  }
+  drawMap();
+}
+
+function showUnitInfo(u){
+  const p=document.getElementById('bottom-panel');p.style.display='block';
+  document.getElementById('sel-portrait').textContent=u.emoji;
+  document.getElementById('sel-portrait').style.borderColor=u.team==='ally'?'#27ae60':'#e74c3c';
+  document.getElementById('sel-name').textContent=u.name;
+  document.getElementById('sel-hp').style.width=(u.hp/u.maxHp*100)+'%';
+  document.getElementById('sel-hp').style.background=u.team==='ally'?'#27ae60':'#e74c3c';
+  document.getElementById('sel-hp-num').textContent=u.hp+'/'+u.maxHp;
+  document.getElementById('sel-atk').textContent='ATK '+u.atk+' / DEF '+u.def+' / MOV '+u.mov;
+}
+
+function showActionButtons(u, hasTargets){
+  const ab=document.getElementById('action-buttons');
+  let html='';
+  if(hasTargets) html+=`<button class="btn-atk" onclick="startAttack('normal')">⚔️ 공격</button>`;
+  if(u.skills) u.skills.forEach((sk,i)=>{
+    if(sk.heal){
+      html+=`<button class="btn-skill" onclick="useHealSkill(${i})">💚 ${sk.name}</button>`;
+    } else if(hasTargets){
+      html+=`<button class="btn-skill" onclick="startAttack('skill',${i})">✨ ${sk.name}</button>`;
+    }
+  });
+  if(itemCount>0) html+=`<button class="btn-item" onclick="useItem()">🧪 회복약(${itemCount})</button>`;
+  html+=`<button class="btn-wait" onclick="waitUnit()">⏳ 대기</button>`;
+  ab.innerHTML=html;
+}
+
+// ── Battle ──
+let pendingAttackType=null,pendingSkillIdx=null;
+
+function startAttack(type,skillIdx){
+  pendingAttackType=type;pendingSkillIdx=skillIdx!=null?skillIdx:null;
+  if(attackTargets.length===1){
+    executeBattle(attackTargets[0]);
+  } else {
+    setGuide('공격할 적을 터치하세요');
+    drawMap();
+  }
+}
+function showActionMenu(target){
+  if(pendingAttackType){executeBattle(target);}
+  else{pendingAttackType='normal';executeBattle(target);}
+}
+
+function executeBattle(target){
+  phase='battle_anim';
+  const atk=selectedUnit;
+  let dmg,skillName='';
+  if(pendingAttackType==='skill'&&pendingSkillIdx!=null){
+    const sk=atk.skills[pendingSkillIdx];
+    dmg=Math.max(1,sk.dmg-target.def)+Math.floor(Math.random()*5);
+    skillName=sk.name;
+  } else {
+    dmg=Math.max(1,atk.atk-target.def)+Math.floor(Math.random()*4);
+    skillName='공격';
+  }
+  // Show battle cutin
+  showBattleCutin(atk,target,dmg,skillName);
+  pendingAttackType=null;pendingSkillIdx=null;
+}
+
+function showBattleCutin(atk,def,dmg,skillName){
+  const el=document.getElementById('battle-cutin');
+  el.style.display='flex';
+  document.getElementById('bc-left-emoji').textContent=atk.emoji;
+  document.getElementById('bc-left-name').textContent=atk.name;
+  document.getElementById('bc-right-emoji').textContent=def.emoji;
+  document.getElementById('bc-right-name').textContent=def.name;
+  document.getElementById('bc-dmg').textContent='';
+  document.getElementById('bc-result').textContent=skillName+'!';
+  // animate
+  setTimeout(()=>{
+    document.getElementById('bc-left-emoji').parentElement.classList.add('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.add('hit-r');
+  },300);
+  setTimeout(()=>{
+    document.getElementById('bc-dmg').textContent=`💥 ${dmg} 데미지!`;
+    def.hp=Math.max(0,def.hp-dmg);
+  },700);
+  setTimeout(()=>{
+    let result='';
+    if(def.hp<=0)result=`${def.name} 격파!`;
+    document.getElementById('bc-result').textContent=result;
+  },1100);
+  setTimeout(()=>{
+    document.getElementById('battle-cutin').style.display='none';
+    document.getElementById('bc-left-emoji').parentElement.classList.remove('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.remove('hit-r');
+    // counter attack?
+    if(def.hp>0&&Math.abs(atk.x-def.x)+Math.abs(atk.y-def.y)<=1){
+      setTimeout(()=>counterAttack(def,atk),200);
+    } else {
+      finishAction(atk);
+    }
+  },1600);
+}
+
+function counterAttack(atk,def){
+  const dmg=Math.max(1,atk.atk-def.def-2)+Math.floor(Math.random()*3);
+  const el=document.getElementById('battle-cutin');
+  el.style.display='flex';
+  document.getElementById('bc-left-emoji').textContent=atk.emoji;
+  document.getElementById('bc-left-name').textContent=atk.name;
+  document.getElementById('bc-left-name').style.color=atk.team==='enemy'?'#e74c3c':'#e8dcc8';
+  document.getElementById('bc-right-emoji').textContent=def.emoji;
+  document.getElementById('bc-right-name').textContent=def.name;
+  document.getElementById('bc-right-name').style.color=def.team==='enemy'?'#e74c3c':'#e8dcc8';
+  document.getElementById('bc-dmg').textContent='';
+  document.getElementById('bc-result').textContent='반격!';
+  setTimeout(()=>{
+    document.getElementById('bc-left-emoji').parentElement.classList.add('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.add('hit-r');
+  },300);
+  setTimeout(()=>{
+    document.getElementById('bc-dmg').textContent=`💥 ${dmg} 데미지!`;
+    def.hp=Math.max(0,def.hp-dmg);
+  },600);
+  setTimeout(()=>{
+    el.style.display='none';
+    document.getElementById('bc-left-emoji').parentElement.classList.remove('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.remove('hit-r');
+    // reset name colors
+    document.getElementById('bc-left-name').style.color='';
+    document.getElementById('bc-right-name').style.color='#e74c3c';
+    finishAction(selectedUnit);
+  },1200);
+}
+
+function finishAction(u){
+  u.acted=true;
+  selectedUnit=null;moveRange=[];attackTargets=[];
+  document.getElementById('bottom-panel').style.display='none';
+  // check win/lose
+  if(units.filter(e=>e.team==='enemy'&&e.hp>0).length===0){
+    phase='victory';setTimeout(showVictory,500);return;
+  }
+  if(units.filter(a=>a.team==='ally'&&a.hp>0).length===0){
+    phase='gameover';setTimeout(showGameOver,500);return;
+  }
+  // next ally or enemy turn
+  if(units.filter(a=>a.team==='ally'&&a.hp>0&&!a.acted).length===0){
+    endPlayerTurn();
+  } else {
+    phase='player_select';
+    setGuide('다음 아군을 선택하세요');
+    drawMap();
+  }
+}
+
+function useHealSkill(idx){
+  const sk=selectedUnit.skills[idx];
+  if(!sk.heal)return;
+  selectedUnit.hp=Math.min(selectedUnit.maxHp,selectedUnit.hp+sk.heal);
+  showMsg('회복!',`${sk.name}! HP ${sk.heal} 회복!`,()=>{finishAction(selectedUnit);});
+}
+function useItem(){
+  if(itemCount<=0)return;
+  itemCount--;
+  selectedUnit.hp=Math.min(selectedUnit.maxHp,selectedUnit.hp+20);
+  showMsg('아이템',`회복약 사용! HP 20 회복! (남은: ${itemCount}개)`,()=>{finishAction(selectedUnit);});
+}
+function waitUnit(){finishAction(selectedUnit);}
+
+// ── Enemy Turn ──
+function endPlayerTurn(){
+  phase='enemy_turn';
+  setGuide('적 턴...');
+  document.getElementById('bottom-panel').style.display='none';
+  drawMap();
+  const enemies=units.filter(u=>u.team==='enemy'&&u.hp>0);
+  let i=0;
+  function nextEnemy(){
+    if(i>=enemies.length){turnCount++;startPlayerTurn();return;}
+    const e=enemies[i];i++;
+    // find nearest ally
+    const allies=units.filter(u=>u.team==='ally'&&u.hp>0);
+    if(allies.length===0){phase='gameover';showGameOver();return;}
+    let nearest=allies[0],minD=999;
+    allies.forEach(a=>{const d=Math.abs(a.x-e.x)+Math.abs(a.y-e.y);if(d<minD){minD=d;nearest=a;}});
+    // if adjacent, attack
+    if(minD<=1){
+      enemyAttack(e,nearest,nextEnemy);
+    } else {
+      // move toward
+      const range=calcMoveRange(e);
+      let bestCell=null,bestDist=999;
+      range.forEach(c=>{const d=Math.abs(c.x-nearest.x)+Math.abs(c.y-nearest.y);if(d<bestDist){bestDist=d;bestCell=c;}});
+      if(bestCell){e.x=bestCell.x;e.y=bestCell.y;}
+      drawMap();
+      // check if now adjacent
+      const newD=Math.abs(e.x-nearest.x)+Math.abs(e.y-nearest.y);
+      if(newD<=1){
+        setTimeout(()=>enemyAttack(e,nearest,nextEnemy),400);
+      } else {
+        setTimeout(nextEnemy,300);
+      }
+    }
+  }
+  setTimeout(nextEnemy,600);
+}
+
+function enemyAttack(atk,def,callback){
+  phase='battle_anim';
+  const dmg=Math.max(1,atk.atk-def.def)+Math.floor(Math.random()*4);
+  const el=document.getElementById('battle-cutin');
+  el.style.display='flex';
+  document.getElementById('bc-left-emoji').textContent=atk.emoji;
+  document.getElementById('bc-left-name').textContent=atk.name;
+  document.getElementById('bc-left-name').style.color='#e74c3c';
+  document.getElementById('bc-right-emoji').textContent=def.emoji;
+  document.getElementById('bc-right-name').textContent=def.name;
+  document.getElementById('bc-right-name').style.color='#e8dcc8';
+  document.getElementById('bc-dmg').textContent='';
+  document.getElementById('bc-result').textContent=atk.name+'의 공격!';
+  setTimeout(()=>{
+    document.getElementById('bc-left-emoji').parentElement.classList.add('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.add('hit-r');
+  },300);
+  setTimeout(()=>{
+    document.getElementById('bc-dmg').textContent=`💥 ${dmg} 데미지!`;
+    def.hp=Math.max(0,def.hp-dmg);
+  },600);
+  setTimeout(()=>{
+    el.style.display='none';
+    document.getElementById('bc-left-emoji').parentElement.classList.remove('hit-l');
+    document.getElementById('bc-right-emoji').parentElement.classList.remove('hit-r');
+    document.getElementById('bc-left-name').style.color='';
+    document.getElementById('bc-right-name').style.color='#e74c3c';
+    drawMap();
+    // check lose
+    if(units.filter(a=>a.team==='ally'&&a.hp>0).length===0){
+      phase='gameover';setTimeout(showGameOver,500);return;
+    }
+    phase='enemy_turn';
+    setTimeout(callback,300);
+  },1200);
+}
+
+// ── Victory / GameOver ──
+function showVictory(){
+  const c=CHAPTERS[chapterIdx];
+  document.getElementById('vic-reward').textContent='🎁 '+c.reward;
+  document.getElementById('vic-history').innerHTML=`<div style="color:#c4956a;font-weight:700;margin-bottom:6px">📖 역사 포인트</div>`+c.story[c.story.length-1];
+  const btn=document.getElementById('vic-btn');
+  if(chapterIdx<CHAPTERS.length-1){btn.textContent='다음 챕터 ▶';btn.onclick=()=>{chapterIdx++;document.getElementById('victory-screen').classList.remove('active');showStory();};}
+  else{btn.textContent='엔딩 ▶';btn.onclick=()=>{document.getElementById('victory-screen').classList.remove('active');showEndMsg();};}
+  document.getElementById('victory-screen').classList.add('active');
+}
+function showGameOver(){document.getElementById('gameover-screen').classList.add('active');}
+function retryChapter(){document.getElementById('gameover-screen').classList.remove('active');startBattle();}
+function showEndMsg(){
+  showMsg('🇰🇷 완결','단군(BC 2333)부터 이순신(1592)까지,\n약 4,000년의 역사를 함께 걸었습니다.\n\n"역사를 잊은 민족에게 미래는 없다"\n— 단재 신채호',()=>{
+    document.getElementById('title-screen').classList.add('active');phase='title';
+  });
+}
+
+// ── Msg popup ──
+let msgCallback=null;
+function showMsg(title,body,cb){
+  document.getElementById('msg-title').textContent=title;
+  document.getElementById('msg-body').textContent=body;
+  document.getElementById('msg-popup').style.display='block';
+  msgCallback=cb||null;
+}
+function closeMsg(){
+  document.getElementById('msg-popup').style.display='none';
+  if(msgCallback){const cb=msgCallback;msgCallback=null;cb();}
+  drawMap();
+}
+
+// ── Start ──
+function startGame(){
+  chapterIdx=0;
+  document.getElementById('title-screen').classList.remove('active');
+  showStory();
+}
+
+// initial draw
+drawMap();
+</script>
+</body>
+</html>

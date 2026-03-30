@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>한국사 영웅전 — EP.1 환웅의 하강</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+body{font-family:'Noto Serif KR',serif;background:#0a0a14;color:#e8dcc8;overflow:hidden;width:100vw;height:100vh;touch-action:none}
+canvas{display:block;position:absolute;top:0;left:0}
+
+/* HUD */
+#topbar{position:fixed;top:0;left:0;right:0;height:32px;background:linear-gradient(180deg,#0c0c18ee,#0c0c1800);display:flex;justify-content:space-between;align-items:center;padding:0 10px;z-index:30;font-size:10px;pointer-events:none}
+.tb-l{color:#c4956a;font-weight:700;letter-spacing:2px}.tb-r{color:#888}
+#guide{position:fixed;top:34px;left:0;right:0;text-align:center;font-size:11px;color:#c4956acc;z-index:30;pointer-events:none;text-shadow:0 1px 4px #000}
+#hud{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,#0c0c18fa 70%,#0c0c1800);padding:6px 8px 10px;z-index:30;display:none}
+#hud-top{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+#hud-portrait{width:42px;height:42px;border-radius:6px;border:2px solid #c4956a;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#hud-portrait canvas{width:42px;height:42px}
+#hud-nm{font-size:13px;font-weight:700}
+#hud-title{font-size:10px;color:#999;margin-top:1px}
+.hb{height:8px;background:#1a1a2e;border-radius:4px;overflow:hidden;margin-top:3px}
+.hf{height:100%;border-radius:4px;transition:width .3s}
+#hud-sub{font-size:10px;color:#777;margin-top:2px}
+#hud-btns{display:flex;gap:4px;flex-wrap:wrap}
+#hud-btns button{flex:1;min-width:55px;padding:9px 2px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;color:#e8dcc8;cursor:pointer}
+#hud-btns button:active{transform:scale(.95)}
+#hud-btns button:disabled{opacity:.3;pointer-events:none}
+.ba{background:#7a1a0a}.bs{background:#1a3a5c}.bw{background:#2a2a3e}.bi{background:#2a5a2a}
+
+/* cutin */
+#cutin{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:60}
+#cutin.on{display:flex}
+#cut-flash{position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;opacity:0;pointer-events:none}
+.cf{text-align:center}.cf canvas{width:64px;height:64px}.cf-n{font-size:14px;font-weight:700;margin-top:2px}.cf-hp{font-size:10px;color:#aaa}
+#cut-vs{font-size:24px;font-weight:900;color:#c4956a;margin:0 14px}
+#cut-msg{font-size:12px;color:#ddd;margin-top:10px;min-height:18px}
+#cut-dmg{font-size:22px;font-weight:900;color:#ff4444;margin-top:4px;min-height:28px}
+@keyframes hitL{0%{transform:translateX(0)}25%{transform:translateX(35px) scale(1.08)}60%{transform:translateX(-5px)}100%{transform:translateX(0)}}
+@keyframes hitR{0%{transform:translateX(0)}25%{transform:translateX(-35px) scale(1.08)}60%{transform:translateX(5px)}100%{transform:translateX(0)}}
+@keyframes flash{0%,100%{opacity:0}50%{opacity:.5}}
+@keyframes dmgPop{0%{opacity:0;transform:scale(.4)}40%{transform:scale(1.3)}100%{opacity:1;transform:scale(1)}}
+.hl{animation:hitL .4s ease}.hr{animation:hitR .4s ease}
+
+/* overlays */
+.ov{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:16px;text-align:center}
+.ov.on{display:flex}
+#title-ov{background:linear-gradient(180deg,#181008,#0a0a14)}
+#story-ov{background:linear-gradient(180deg,#1a150aee,#0a0a14ee)}
+#vic-ov{background:#0a0a14ee}
+#lose-ov{background:#0a0a14ee}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #c4956a33}50%{text-shadow:0 0 40px #c4956a88}}
+.au{animation:fadeUp .6s ease}
+.gt{font-size:clamp(24px,6vw,42px);font-weight:900;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s infinite}
+.gs{font-size:clamp(11px,2.5vw,14px);color:#8a7a6a;font-style:italic;margin-top:6px}
+.gb{padding:13px 34px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer;letter-spacing:2px;box-shadow:0 2px 10px #0006}
+.gb:active{transform:scale(.95)}.gb2{background:#2a2a3e;font-size:12px;padding:10px 22px}
+.sbox{background:#0a0a14cc;border:1px solid #c4956a33;border-radius:10px;padding:16px;max-width:400px;width:100%;margin:12px 0;min-height:50px;line-height:1.9;font-size:13px}
+.shl{color:#c4956a;font-weight:700}
+.dots{display:flex;gap:4px;justify-content:center;margin-top:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:#333}.dot.on{background:#c4956a}
+#popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#151520ee;border:2px solid #c4956a;border-radius:12px;padding:16px;z-index:80;display:none;text-align:center;max-width:280px;width:85%}
+#pop-t{font-size:14px;font-weight:700;color:#c4956a;margin-bottom:4px}
+#pop-b{font-size:11px;line-height:1.7;color:#ccc;white-space:pre-line}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="topbar"><span class="tb-l" id="tb-l"></span><span class="tb-r" id="tb-r"></span></div>
+<div id="guide"></div>
+<div id="hud">
+  <div id="hud-top">
+    <div id="hud-portrait"><canvas id="hud-pcv" width="64" height="64"></canvas></div>
+    <div style="flex:1">
+      <div id="hud-nm"></div><div id="hud-title"></div>
+      <div style="display:flex;align-items:center;gap:4px"><span style="color:#888;font-size:10px;width:16px">HP</span><div class="hb" style="flex:1"><div class="hf" id="hud-hp"></div></div><span style="color:#aaa;font-size:9px;width:44px;text-align:right" id="hud-hpn"></span></div>
+      <div id="hud-sub"></div>
+    </div>
+  </div>
+  <div id="hud-btns"></div>
+</div>
+<div id="cutin">
+  <div id="cut-flash"></div>
+  <div style="display:flex;align-items:center;justify-content:center">
+    <div class="cf" id="cf-l"><canvas id="cfl-cv" width="64" height="64"></canvas><div class="cf-n" id="cfl-n"></div><div class="cf-hp" id="cfl-hp"></div></div>
+    <div id="cut-vs">⚔️</div>
+    <div class="cf" id="cf-r"><canvas id="cfr-cv" width="64" height="64"></canvas><div class="cf-n" id="cfr-n"></div><div class="cf-hp" id="cfr-hp"></div></div>
+  </div>
+  <div id="cut-msg"></div>
+  <div id="cut-dmg"></div>
+</div>
+<div id="popup"><div id="pop-t"></div><div id="pop-b"></div><button class="gb gb2" style="margin-top:8px" onclick="closePop()">확인</button></div>
+
+<div id="title-ov" class="ov on">
+  <div class="au">
+    <div style="font-size:10px;letter-spacing:5px;color:#8a7a6a;margin-bottom:6px">TACTICAL RPG · EPISODE 1</div>
+    <h1 class="gt">한국사 영웅전</h1>
+    <div class="gs">에피소드 1 — 환웅의 하강, 천상의 시련</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <button class="gb" onclick="startGame()">⚔️ 출진</button>
+    </div>
+    <div style="margin-top:24px;font-size:10px;color:#555;line-height:2;max-width:260px;margin-left:auto;margin-right:auto">
+      ▸ 아군 터치 → 이동 → 행동 선택<br>
+      ▸ 맵을 드래그하여 스크롤<br>
+      ▸ 적 전멸 = 승리
+    </div>
+  </div>
+</div>
+
+<div id="story-ov" class="ov">
+  <div class="au" style="max-width:400px;width:100%">
+    <div style="font-size:10px;letter-spacing:4px;color:#8a7a6a">EPISODE 1 · 고조선 이전</div>
+    <div style="font-size:12px;font-weight:700;color:#4A6741;margin:4px 0">태고(太古)의 시대</div>
+    <h2 style="font-size:clamp(16px,4.5vw,22px);font-weight:900;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="s-title"></h2>
+    <div class="sbox"><span id="s-text"></span></div>
+    <button class="gb" id="s-btn" style="padding:10px 26px;font-size:13px">다음 ▶</button>
+    <div class="dots" id="s-dots"></div>
+  </div>
+</div>
+
+<div id="vic-ov" class="ov">
+  <div class="au" style="max-width:360px">
+    <div style="font-size:40px;margin-bottom:6px">🏆</div>
+    <h2 style="font-size:20px;font-weight:900;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">승리!</h2>
+    <div style="background:#151520;border:1px solid #c4956a44;border-radius:10px;padding:12px;margin:10px 0;font-size:14px;font-weight:700;color:#f4d03f" id="v-rw"></div>
+    <div style="background:#0a0a14;border:1px solid #fff1;border-radius:10px;padding:12px;text-align:left;font-size:11px;color:#aaa;line-height:1.8;margin-bottom:10px" id="v-hist"></div>
+    <button class="gb" onclick="location.reload()" style="padding:10px 26px;font-size:13px">다시 플레이</button>
+  </div>
+</div>
+
+<div id="lose-ov" class="ov">
+  <div class="au"><div style="font-size:40px;margin-bottom:6px">💀</div>
+  <h2 style="font-size:20px;font-weight:900;color:#e74c3c">패배...</h2>
+  <p style="font-size:11px;color:#888;margin:8px 0">하늘의 뜻은 아직 끝나지 않았다!</p>
+  <button class="gb" onclick="location.reload()">다시 도전</button></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STORY & DATA
+// ═══════════════════════════════════════
+const STORY_LINES=[
+  "환인(桓因)은 천제(天帝)로서 하늘 위 천상계를 다스렸다.",
+  "그의 아들 환웅(桓雄)은 인간 세상을 내려다보며 홍익인간의 뜻을 품었다.",
+  "환웅은 아버지에게 간청했다. \"인간 세상으로 내려가 다스리게 해주십시오.\"",
+  "환인은 말했다. \"네 뜻이 진정 굳은지 시험하겠다. 나의 천장(天將)들을 이기고 태백산에 이르러라.\"",
+  "환웅은 풍백(風伯), 우사(雨師), 운사(雲師)와 함께 천부인 세 개를 들고 하강을 시작했다.",
+  "태백산 신단수(神壇樹)를 향한 길 — 환인의 시련이 기다리고 있었다.",
+  "▶ 전투: 환인이 보낸 천장들을 물리치고 태백산 신단수에 도달하라!"
+];
+
+// MAP: 16x16 terrain - 태백산 일대 지형
+// 0=평원 1=숲 2=산 3=물 4=신단수(목표) 5=길 6=구름바다 7=높은산
+const MAPW=16,MAPH=16;
+const TERRAIN=[
+// 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+  [6, 6, 6, 6, 6, 6, 2, 7, 7, 2, 6, 6, 6, 6, 6, 6], // 0 천상 - 구름
+  [6, 6, 6, 5, 5, 5, 2, 7, 2, 1, 6, 6, 6, 6, 6, 6], // 1
+  [6, 6, 5, 0, 0, 1, 1, 2, 1, 0, 5, 6, 6, 6, 6, 6], // 2
+  [6, 5, 0, 0, 1, 0, 0, 1, 0, 0, 0, 5, 6, 6, 6, 6], // 3
+  [6, 5, 0, 1, 0, 0, 3, 3, 0, 1, 0, 0, 5, 6, 6, 6], // 4
+  [6, 0, 0, 0, 0, 1, 3, 3, 1, 0, 0, 0, 0, 6, 6, 6], // 5
+  [2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 6, 6], // 6
+  [7, 2, 1, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 6, 6], // 7
+  [2, 1, 0, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 1, 2, 6], // 8
+  [1, 0, 0, 1, 2, 1, 0, 5, 0, 1, 2, 1, 0, 0, 1, 6], // 9
+  [0, 0, 1, 2, 7, 2, 1, 5, 1, 2, 7, 2, 1, 0, 0, 2], //10
+  [1, 0, 0, 1, 2, 1, 0, 5, 0, 1, 2, 1, 0, 0, 1, 1], //11
+  [0, 0, 0, 0, 1, 0, 0, 5, 0, 0, 1, 0, 0, 0, 0, 0], //12
+  [1, 0, 0, 0, 0, 1, 5, 4, 5, 1, 0, 0, 0, 0, 1, 0], //13  ← 신단수
+  [0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0], //14
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], //15
+];
+
+const TILE_COLORS={
+  0:{base:'#5a7a3a',var:'#4d6d32',name:'평원'},
+  1:{base:'#2d5a1a',var:'#1f4a12',name:'숲',block:true},
+  2:{base:'#7a7a6a',var:'#6a6a5a',name:'산',block:true},
+  3:{base:'#2a5a8a',var:'#1a4a7a',name:'강',block:true},
+  4:{base:'#8a7a2a',var:'#9a8a3a',name:'신단수'},
+  5:{base:'#8a7a5a',var:'#7a6a4a',name:'길'},
+  6:{base:'#aabbdd',var:'#99aacc',name:'구름',block:true},
+  7:{base:'#9a9a8a',var:'#8a8a7a',name:'높은 산',block:true},
+};
+
+// UNITS
+const ALLIES=[
+  {name:"환웅",title:"환인의 아들, 천왕(天王)",hp:60,mhp:60,atk:18,def:7,mov:4,rng:1,
+   skills:[{n:"천부인·뇌",dmg:26,rng:2,d:"천부인의 번개"},{n:"홍익신광",heal:24,d:"HP 회복"}],
+   color:{army:'#DAA520',cape:'#FFD700',armor:'#8B6914',skin:'#DEB887'},sx:7,sy:1},
+  {name:"풍백",title:"바람의 신장, 선봉대장",hp:42,mhp:42,atk:14,def:4,mov:5,rng:1,
+   skills:[{n:"질풍참",dmg:20,rng:1,d:"바람의 칼날"}],
+   color:{army:'#3CB371',cape:'#2E8B57',armor:'#006400',skin:'#DEB887'},sx:6,sy:2},
+  {name:"우사",title:"비의 신장, 군의관",hp:36,mhp:36,atk:10,def:5,mov:3,rng:2,
+   skills:[{n:"치유의 비",heal:20,d:"HP 회복"},{n:"폭우격",dmg:16,rng:2,d:"비의 공격"}],
+   color:{army:'#4682B4',cape:'#4169E1',armor:'#1a3a6a',skin:'#DEB887'},sx:8,sy:2},
+  {name:"운사",title:"구름의 신장, 참모",hp:38,mhp:38,atk:12,def:5,mov:4,rng:1,
+   skills:[{n:"운무차폐",heal:16,d:"안개로 HP회복"}],
+   color:{army:'#9370DB',cape:'#8A2BE2',armor:'#4a2a6a',skin:'#DEB887'},sx:7,sy:3},
+];
+const ENEMIES=[
+  {name:"천무장",title:"환인의 제1천장",hp:50,mhp:50,atk:16,def:6,mov:3,rng:1,
+   color:{army:'#CD3333',cape:'#FF0000',armor:'#8B0000',skin:'#DEB887'},sx:7,sy:10},
+  {name:"뇌공",title:"천둥의 장수",hp:38,mhp:38,atk:14,def:4,mov:4,rng:2,
+   color:{army:'#CD6600',cape:'#FF8C00',armor:'#8B4500',skin:'#DEB887'},sx:5,sy:9},
+  {name:"화신",title:"불의 장수",hp:36,mhp:36,atk:15,def:3,mov:4,rng:1,
+   color:{army:'#EE3B3B',cape:'#FF4500',armor:'#8B1A1A',skin:'#DEB887'},sx:9,sy:9},
+  {name:"산령",title:"산의 수호자",hp:44,mhp:44,atk:12,def:8,mov:2,rng:1,
+   color:{army:'#8B7355',cape:'#A0522D',armor:'#5a4a3a',skin:'#DEB887'},sx:7,sy:12},
+  {name:"수장",title:"물의 장수",hp:34,mhp:34,atk:13,def:4,mov:3,rng:2,
+   color:{army:'#1C86EE',cape:'#1E90FF',armor:'#104E8B',skin:'#DEB887'},sx:6,sy:11},
+];
+
+// ═══════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+let W,H,CELL=48;
+let camX=0,camY=0; // camera offset in pixels
+let units=[],phase='title';
+let sel=null,mvR=[],atkR=[],atkMode=null,atkSk=null;
+let turn=1,items=3,popCb=null;
+let dragStart=null,dragCam=null,isDragging=false;
+
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  cv.width=W;cv.height=H;
+  // cell size: try to fit ~8 cells on screen width
+  CELL=Math.max(40,Math.min(64,Math.floor(W/7)));
+  draw();
+}
+window.addEventListener('resize',resize);
+resize();
+
+// ── helpers
+function showOv(id){document.getElementById(id).classList.add('on')}
+function hideOv(id){document.getElementById(id).classList.remove('on')}
+function guide(t){document.getElementById('guide').textContent=t}
+function dist(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y)}
+function tileAt(x,y){if(x<0||x>=MAPW||y<0||y>=MAPH)return 6;return TERRAIN[y][x];}
+function blocked(x,y){const t=TILE_COLORS[tileAt(x,y)];return t&&t.block;}
+
+// ═══════════════════════════════════════
+// DRAW ARMY SPRITE (5 soldiers in formation)
+// ═══════════════════════════════════════
+function drawArmy(dc,x,y,w,h,col,team,name,hpPct,acted,selected){
+  const c=col||{army:'#888',cape:'#aaa',armor:'#555',skin:'#DEB887'};
+  // ground shadow
+  dc.fillStyle='rgba(0,0,0,0.25)';
+  dc.beginPath();dc.ellipse(x+w/2,y+h-4,w*.4,h*.08,0,0,Math.PI*2);dc.fill();
+
+  // banner/flag
+  const flagX=x+w*.7,flagY=y+h*.08;
+  dc.fillStyle='#5a3a1a';dc.fillRect(flagX,flagY,2,h*.5); // pole
+  dc.fillStyle=c.army;
+  dc.beginPath();dc.moveTo(flagX+2,flagY);dc.lineTo(flagX+w*.25,flagY+h*.08);dc.lineTo(flagX+2,flagY+h*.16);dc.fill();
+
+  // soldiers (5 in 2-3 formation: back row 2, front row 3)
+  const positions=[
+    {r:-1,c:-1},{r:-1,c:1}, // back row
+    {r:0,c:-1.5},{r:0,c:0},{r:0,c:1.5}, // front row
+  ];
+  const sz=Math.max(4,w*.11); // soldier size
+  const cx0=x+w*.42,cy0=y+h*.38;
+  const sp=sz*1.8;
+
+  positions.forEach((p,i)=>{
+    const sx=cx0+p.c*sp;
+    const sy=cy0+p.r*sp*0.8;
+    // body/armor
+    dc.fillStyle=c.armor;
+    dc.fillRect(sx-sz*.5,sy,sz,sz*1.4);
+    // cape/top
+    dc.fillStyle=i===0?c.cape:c.army; // leader wears cape color
+    dc.fillRect(sx-sz*.6,sy-sz*.2,sz*1.2,sz*.6);
+    // head
+    dc.fillStyle=c.skin;
+    dc.beginPath();dc.arc(sx,sy-sz*.1,sz*.4,0,Math.PI*2);dc.fill();
+    // helmet
+    dc.fillStyle=c.armor;
+    dc.beginPath();dc.arc(sx,sy-sz*.2,sz*.35,Math.PI,0);dc.fill();
+    // spear/weapon (tiny line)
+    dc.strokeStyle='#aaa';dc.lineWidth=1;
+    dc.beginPath();dc.moveTo(sx+sz*.3,sy-sz*.4);dc.lineTo(sx+sz*.3,sy+sz*1.2);dc.stroke();
+  });
+
+  // HP bar
+  const bw=w*.8,bh=3,bx=x+(w-bw)/2,by=y+h-8;
+  dc.fillStyle='#000';dc.fillRect(bx-1,by-1,bw+2,bh+2);
+  dc.fillStyle='#222';dc.fillRect(bx,by,bw,bh);
+  dc.fillStyle=team==='ally'?'#2ecc71':'#e74c3c';
+  dc.fillRect(bx,by,bw*hpPct,bh);
+
+  // team color top bar
+  dc.fillStyle=team==='ally'?'rgba(39,174,96,0.5)':'rgba(231,76,60,0.5)';
+  dc.fillRect(x+2,y+2,w-4,3);
+
+  // name label
+  dc.font=`bold ${Math.max(9,CELL*.2)}px 'Noto Serif KR',serif`;
+  dc.textAlign='center';dc.textBaseline='top';
+  dc.fillStyle='#000';dc.fillText(name,x+w/2+1,y+h-1);
+  dc.fillStyle=team==='ally'?'#e8dcc8':'#ffaaaa';
+  dc.fillText(name,x+w/2,y+h-2);
+
+  // acted overlay
+  if(acted){dc.fillStyle='rgba(0,0,0,0.45)';dc.fillRect(x,y,w,h);}
+  // selected glow
+  if(selected){
+    dc.strokeStyle='#FFD700';dc.lineWidth=3;dc.strokeRect(x+1,y+1,w-2,h-2);dc.lineWidth=1;
+  }
+}
+
+// Draw army sprite on a small canvas (for HUD/cutin portrait)
+function drawArmyPortrait(canvasEl,col,team){
+  const c2=canvasEl.getContext('2d');
+  c2.clearRect(0,0,64,64);
+  drawArmy(c2,2,2,60,56,col,team,'',1,false,false);
+}
+
+// ═══════════════════════════════════════
+// TERRAIN RENDERING
+// ═══════════════════════════════════════
+function drawTerrain(){
+  // visible range
+  const sx=Math.max(0,Math.floor(camX/CELL)-1);
+  const sy=Math.max(0,Math.floor(camY/CELL)-1);
+  const ex=Math.min(MAPW,sx+Math.ceil(W/CELL)+3);
+  const ey=Math.min(MAPH,sy+Math.ceil(H/CELL)+3);
+
+  for(let ty=sy;ty<ey;ty++){
+    for(let tx=sx;tx<ex;tx++){
+      const px=tx*CELL-camX,py=ty*CELL-camY;
+      const t=tileAt(tx,ty);
+      const tc=TILE_COLORS[t];
+      // base color with subtle variation
+      const shade=((tx+ty)%2===0)?tc.base:tc.var;
+      cx.fillStyle=shade;
+      cx.fillRect(px,py,CELL+1,CELL+1);
+
+      // detail per terrain type
+      if(t===0){// grass dots
+        cx.fillStyle='#4a6a2a';
+        for(let i=0;i<3;i++){
+          const gx=px+((tx*7+ty*13+i*17)%CELL);
+          const gy=py+((tx*11+ty*7+i*23)%CELL);
+          cx.fillRect(gx,gy,1,3);
+        }
+      }
+      else if(t===1){// forest - little triangles
+        cx.fillStyle='#1a4a0a';
+        const fx=px+CELL/2,fy=py+CELL*.3;
+        cx.beginPath();cx.moveTo(fx,fy-CELL*.25);cx.lineTo(fx-CELL*.2,fy+CELL*.15);cx.lineTo(fx+CELL*.2,fy+CELL*.15);cx.fill();
+        cx.fillStyle='#2a5a1a';
+        cx.beginPath();cx.moveTo(fx,fy-CELL*.15);cx.lineTo(fx-CELL*.15,fy+CELL*.2);cx.lineTo(fx+CELL*.15,fy+CELL*.2);cx.fill();
+        // trunk
+        cx.fillStyle='#5a3a1a';cx.fillRect(fx-1,fy+CELL*.15,3,CELL*.15);
+      }
+      else if(t===2){// mountain
+        cx.fillStyle='#6a6a5a';
+        const mx=px+CELL/2,my=py+CELL*.6;
+        cx.beginPath();cx.moveTo(mx,my-CELL*.4);cx.lineTo(mx-CELL*.4,my+CELL*.15);cx.lineTo(mx+CELL*.4,my+CELL*.15);cx.fill();
+        cx.fillStyle='#eee';// snow cap
+        cx.beginPath();cx.moveTo(mx,my-CELL*.4);cx.lineTo(mx-CELL*.1,my-CELL*.2);cx.lineTo(mx+CELL*.1,my-CELL*.2);cx.fill();
+      }
+      else if(t===3){// water - waves
+        cx.strokeStyle='#4a8acc44';cx.lineWidth=1;
+        for(let w=0;w<2;w++){
+          cx.beginPath();
+          cx.moveTo(px,py+CELL*(.3+w*.35));
+          cx.quadraticCurveTo(px+CELL*.5,py+CELL*(.2+w*.35),px+CELL,py+CELL*(.3+w*.35));
+          cx.stroke();
+        }
+      }
+      else if(t===4){// 신단수 - sacred tree
+        cx.fillStyle='#5a3a1a';cx.fillRect(px+CELL*.42,py+CELL*.3,CELL*.16,CELL*.5);
+        cx.fillStyle='#2a7a1a';
+        cx.beginPath();cx.arc(px+CELL/2,py+CELL*.25,CELL*.3,0,Math.PI*2);cx.fill();
+        cx.fillStyle='#FFD70066';
+        cx.beginPath();cx.arc(px+CELL/2,py+CELL*.25,CELL*.38,0,Math.PI*2);cx.fill();
+        // glow
+        cx.fillStyle='#FFD70022';
+        cx.beginPath();cx.arc(px+CELL/2,py+CELL/2,CELL*.6,0,Math.PI*2);cx.fill();
+      }
+      else if(t===5){// path
+        cx.fillStyle='#9a8a6a33';
+        cx.fillRect(px+CELL*.2,py,CELL*.6,CELL);
+      }
+      else if(t===6){// clouds
+        cx.fillStyle='#ffffff22';
+        cx.beginPath();cx.arc(px+CELL*.3,py+CELL*.5,CELL*.25,0,Math.PI*2);cx.fill();
+        cx.beginPath();cx.arc(px+CELL*.7,py+CELL*.4,CELL*.2,0,Math.PI*2);cx.fill();
+      }
+      else if(t===7){// high mountain
+        cx.fillStyle='#5a5a4a';
+        const mx=px+CELL/2,my=py+CELL*.55;
+        cx.beginPath();cx.moveTo(mx,my-CELL*.5);cx.lineTo(mx-CELL*.45,my+CELL*.2);cx.lineTo(mx+CELL*.45,my+CELL*.2);cx.fill();
+        cx.fillStyle='#fff';
+        cx.beginPath();cx.moveTo(mx,my-CELL*.5);cx.lineTo(mx-CELL*.15,my-CELL*.28);cx.lineTo(mx+CELL*.15,my-CELL*.28);cx.fill();
+      }
+    }
+  }
+
+  // grid overlay (subtle)
+  cx.strokeStyle='rgba(0,0,0,0.15)';cx.lineWidth=1;
+  for(let tx=sx;tx<=ex;tx++){const px=tx*CELL-camX;cx.beginPath();cx.moveTo(px,sy*CELL-camY);cx.lineTo(px,ey*CELL-camY);cx.stroke();}
+  for(let ty=sy;ty<=ey;ty++){const py=ty*CELL-camY;cx.beginPath();cx.moveTo(sx*CELL-camX,py);cx.lineTo(ex*CELL-camX,py);cx.stroke();}
+}
+
+// ═══════════════════════════════════════
+// MAIN DRAW
+// ═══════════════════════════════════════
+function draw(){
+  cx.fillStyle='#2a3a2a';cx.fillRect(0,0,W,H);
+  if(phase==='title')return;
+  drawTerrain();
+  // move range
+  mvR.forEach(({x,y})=>{
+    const px=x*CELL-camX,py=y*CELL-camY;
+    cx.fillStyle='rgba(80,180,255,0.3)';cx.fillRect(px,py,CELL,CELL);
+    cx.strokeStyle='rgba(80,180,255,0.6)';cx.lineWidth=2;cx.strokeRect(px+1,py+1,CELL-2,CELL-2);cx.lineWidth=1;
+  });
+  // atk range
+  atkR.forEach(u=>{
+    const px=u.x*CELL-camX,py=u.y*CELL-camY;
+    cx.fillStyle='rgba(255,50,50,0.3)';cx.fillRect(px,py,CELL,CELL);
+    cx.strokeStyle='rgba(255,50,50,0.65)';cx.lineWidth=2;cx.strokeRect(px+1,py+1,CELL-2,CELL-2);cx.lineWidth=1;
+  });
+  // units
+  units.filter(u=>u.hp>0).forEach(u=>{
+    const px=u.x*CELL-camX,py=u.y*CELL-camY;
+    if(px<-CELL||px>W+CELL||py<-CELL||py>H+CELL)return; // cull
+    drawArmy(cx,px,py,CELL,CELL,u.color,u.team,u.name,u.hp/u.mhp,u.acted,sel&&sel.id===u.id);
+  });
+}
+
+// ═══════════════════════════════════════
+// INPUT (touch drag to scroll, tap to select)
+// ═══════════════════════════════════════
+function getPos(e){
+  if(e.touches)return{x:e.touches[0].clientX,y:e.touches[0].clientY};
+  return{x:e.clientX,y:e.clientY};
+}
+function clampCam(){
+  const maxX=MAPW*CELL-W,maxY=MAPH*CELL-H;
+  camX=Math.max(0,Math.min(maxX,camX));
+  camY=Math.max(0,Math.min(maxY,camY));
+}
+
+cv.addEventListener('mousedown',e=>{dragStart=getPos(e);dragCam={x:camX,y:camY};isDragging=false;});
+cv.addEventListener('mousemove',e=>{
+  if(!dragStart)return;
+  const p=getPos(e);
+  const dx=dragStart.x-p.x,dy=dragStart.y-p.y;
+  if(Math.abs(dx)>5||Math.abs(dy)>5)isDragging=true;
+  if(isDragging){camX=dragCam.x+dx;camY=dragCam.y+dy;clampCam();draw();}
+});
+cv.addEventListener('mouseup',e=>{
+  if(!isDragging&&dragStart)handleTap(getPos(e));
+  dragStart=null;
+});
+
+cv.addEventListener('touchstart',e=>{e.preventDefault();dragStart=getPos(e);dragCam={x:camX,y:camY};isDragging=false;},{passive:false});
+cv.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(!dragStart)return;
+  const p=getPos(e);
+  const dx=dragStart.x-p.x,dy=dragStart.y-p.y;
+  if(Math.abs(dx)>8||Math.abs(dy)>8)isDragging=true;
+  if(isDragging){camX=dragCam.x+dx;camY=dragCam.y+dy;clampCam();draw();}
+},{passive:false});
+cv.addEventListener('touchend',e=>{
+  e.preventDefault();
+  if(!isDragging&&dragStart){
+    const t=e.changedTouches[0];
+    handleTap({x:t.clientX,y:t.clientY});
+  }
+  dragStart=null;
+},{passive:false});
+
+function handleTap(pos){
+  const gx=Math.floor((pos.x+camX)/CELL),gy=Math.floor((pos.y+camY)/CELL);
+  if(gx<0||gx>=MAPW||gy<0||gy>=MAPH)return;
+
+  if(phase==='pselect'){
+    const u=aliveAt(gx,gy,'ally');
+    if(u&&!u.acted)selectUnit(u);
+  }
+  else if(phase==='pmove'){
+    if(mvR.some(m=>m.x===gx&&m.y===gy)){moveUnit(gx,gy);}
+    else{
+      const u=aliveAt(gx,gy,'ally');
+      if(u&&!u.acted)selectUnit(u);
+      else{sel=null;mvR=[];phase='pselect';hideHud();guide('아군을 터치하여 선택');draw();}
+    }
+  }
+  else if(phase==='patk'){
+    const tgt=atkR.find(u=>u.x===gx&&u.y===gy);
+    if(tgt)execAtk(tgt);
+  }
+}
+
+function aliveAt(x,y,team){return units.find(u=>u.hp>0&&u.x===x&&u.y===y&&(!team||u.team===team));}
+
+// ═══════════════════════════════════════
+// PLAYER ACTIONS
+// ═══════════════════════════════════════
+function selectUnit(u){
+  sel=u;phase='pmove';mvR=calcMvR(u);atkR=[];
+  showHud(u);
+  guide(`${u.name} (${u.title}) — 이동할 칸 터치`);
+  // center camera on unit
+  centerCam(u.x,u.y);
+  draw();
+}
+
+function calcMvR(u){
+  const range=[],vis=new Set();
+  const q=[{x:u.x,y:u.y,s:0}];vis.add(u.x+','+u.y);
+  while(q.length){
+    const c=q.shift();
+    if(c.s>0){
+      const occ=aliveAt(c.x,c.y);
+      const blk=blocked(c.x,c.y);
+      if(!occ&&!blk)range.push({x:c.x,y:c.y});
+      if(occ||blk)continue;
+    }
+    if(c.s<u.mov){
+      [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}].forEach(d=>{
+        const nx=c.x+d.dx,ny=c.y+d.dy;
+        if(nx>=0&&nx<MAPW&&ny>=0&&ny<MAPH&&!vis.has(nx+','+ny)){
+          if(!blocked(nx,ny)){
+            const blocker=aliveAt(nx,ny);
+            if(!blocker||blocker.team===u.team){vis.add(nx+','+ny);q.push({x:nx,y:ny,s:c.s+1});}
+          }
+        }
+      });
+    }
+  }
+  return range;
+}
+
+function moveUnit(tx,ty){
+  sel.x=tx;sel.y=ty;mvR=[];phase='paction';
+  const maxR=Math.max(sel.rng||1,...(sel.skills||[]).filter(s=>s.dmg).map(s=>s.rng||1));
+  const near=units.filter(e=>e.team==='enemy'&&e.hp>0&&dist(sel,e)<=maxR);
+  showHud(sel);showActBtns(near);
+  guide(near.length?'행동을 선택하세요':'대기/회복 선택');
+  draw();
+}
+
+function showActBtns(enemies){
+  let h='';
+  const adj=enemies.filter(e=>dist(sel,e)<=(sel.rng||1));
+  if(adj.length)h+=`<button class="ba" onclick="startAtk('basic')">⚔️공격</button>`;
+  (sel.skills||[]).forEach((sk,i)=>{
+    if(sk.heal)h+=`<button class="bs" onclick="useHeal(${i})">💚${sk.n}</button>`;
+    else{
+      const has=enemies.some(e=>dist(sel,e)<=(sk.rng||1));
+      h+=`<button class="bs" ${has?'':'disabled'} onclick="startAtk('skill',${i})">✨${sk.n}</button>`;
+    }
+  });
+  if(items>0)h+=`<button class="bi" onclick="useItem()">🧪약(${items})</button>`;
+  h+=`<button class="bw" onclick="doWait()">⏳대기</button>`;
+  document.getElementById('hud-btns').innerHTML=h;
+}
+
+function startAtk(mode,si){
+  atkMode=mode;atkSk=si!=null?si:null;
+  const rng=mode==='skill'?sel.skills[si].rng||1:sel.rng||1;
+  atkR=units.filter(e=>e.team==='enemy'&&e.hp>0&&dist(sel,e)<=rng);
+  if(atkR.length===1){execAtk(atkR[0]);return;}
+  if(atkR.length===0){guide('범위 내 적 없음');return;}
+  phase='patk';guide('공격할 적을 터치!');draw();
+}
+
+function execAtk(tgt){
+  phase='cut';atkR=[];
+  let dmg,skN;
+  if(atkMode==='skill'&&atkSk!=null){
+    const sk=sel.skills[atkSk];dmg=Math.max(1,sk.dmg-tgt.def)+Math.floor(Math.random()*5);skN=sk.n;
+  }else{dmg=Math.max(1,sel.atk-tgt.def)+Math.floor(Math.random()*4);skN='공격';}
+  showCutin(sel,tgt,dmg,skN,()=>{
+    if(tgt.hp>0&&dist(sel,tgt)<=(tgt.rng||1)){
+      const cd=Math.max(1,tgt.atk-sel.def-2)+Math.floor(Math.random()*3);
+      setTimeout(()=>showCutin(tgt,sel,cd,'반격',()=>finishAct()),200);
+    }else finishAct();
+  });
+}
+
+function useHeal(si){const sk=sel.skills[si];sel.hp=Math.min(sel.mhp,sel.hp+sk.heal);showPop('회복',`${sk.n}!\nHP ${sk.heal} 회복!`,()=>finishAct());}
+function useItem(){if(items<=0)return;items--;sel.hp=Math.min(sel.mhp,sel.hp+20);showPop('아이템',`회복약!\nHP 20 회복 (남은 ${items})`,()=>finishAct());}
+function doWait(){finishAct();}
+
+function finishAct(){
+  if(sel)sel.acted=true;sel=null;mvR=[];atkR=[];hideHud();draw();
+  if(!units.some(e=>e.team==='enemy'&&e.hp>0)){phase='vic';setTimeout(showVic,500);return;}
+  if(!units.some(a=>a.team==='ally'&&a.hp>0)){phase='lose';setTimeout(()=>showOv('lose-ov'),500);return;}
+  if(units.some(a=>a.team==='ally'&&a.hp>0&&!a.acted)){phase='pselect';guide('다음 아군을 선택');draw();}
+  else endPTurn();
+}
+
+// ═══════════════════════════════════════
+// ENEMY AI
+// ═══════════════════════════════════════
+function endPTurn(){
+  phase='enemy';guide('적 턴...');
+  document.getElementById('tb-r').textContent=`턴 ${turn} · 적군`;
+  hideHud();draw();
+  const elist=units.filter(u=>u.team==='enemy'&&u.hp>0);
+  let idx=0;
+  function next(){
+    if(idx>=elist.length){turn++;startPTurn();return;}
+    const e=elist[idx];idx++;
+    if(e.hp<=0){next();return;}
+    const als=units.filter(u=>u.team==='ally'&&u.hp>0);
+    if(!als.length){phase='lose';showOv('lose-ov');return;}
+    let nr=als[0],md=999;als.forEach(a=>{const d=dist(e,a);if(d<md){md=d;nr=a;}});
+    centerCam(e.x,e.y);draw();
+    if(md<=(e.rng||1)){
+      setTimeout(()=>eAtk(e,nr,next),300);
+    }else{
+      const mr=calcMvR(e);let best=null,bd=999;
+      mr.forEach(c=>{const d=Math.abs(c.x-nr.x)+Math.abs(c.y-nr.y);if(d<bd){bd=d;best=c;}});
+      if(best){e.x=best.x;e.y=best.y;}
+      centerCam(e.x,e.y);draw();
+      if(dist(e,nr)<=(e.rng||1))setTimeout(()=>eAtk(e,nr,next),350);
+      else setTimeout(next,250);
+    }
+  }
+  setTimeout(next,500);
+}
+
+function eAtk(atk,def,cb){
+  phase='cut';
+  const dmg=Math.max(1,atk.atk-def.def)+Math.floor(Math.random()*4);
+  showCutin(atk,def,dmg,atk.name+'의 공격',()=>{
+    draw();
+    if(!units.some(a=>a.team==='ally'&&a.hp>0)){phase='lose';showOv('lose-ov');return;}
+    phase='enemy';setTimeout(cb,200);
+  });
+}
+
+// ═══════════════════════════════════════
+// CUTIN
+// ═══════════════════════════════════════
+function showCutin(atk,def,dmg,label,cb){
+  const el=document.getElementById('cutin');el.classList.add('on');
+  drawArmyPortrait(document.getElementById('cfl-cv'),atk.color,atk.team);
+  drawArmyPortrait(document.getElementById('cfr-cv'),def.color,def.team);
+  document.getElementById('cfl-n').textContent=atk.name;
+  document.getElementById('cfl-n').style.color=atk.team==='ally'?'#e8dcc8':'#e74c3c';
+  document.getElementById('cfl-hp').textContent=`HP ${atk.hp}/${atk.mhp}`;
+  document.getElementById('cfr-n').textContent=def.name;
+  document.getElementById('cfr-n').style.color=def.team==='ally'?'#e8dcc8':'#e74c3c';
+  document.getElementById('cfr-hp').textContent=`HP ${def.hp}/${def.mhp}`;
+  document.getElementById('cut-msg').textContent=label+'!';
+  document.getElementById('cut-dmg').textContent='';
+  setTimeout(()=>{
+    document.getElementById('cf-l').classList.add('hl');
+    document.getElementById('cf-r').classList.add('hr');
+    const fl=document.getElementById('cut-flash');fl.style.animation='flash .3s ease';
+    setTimeout(()=>fl.style.animation='',300);
+  },350);
+  setTimeout(()=>{
+    def.hp=Math.max(0,def.hp-dmg);
+    document.getElementById('cut-dmg').textContent=`💥 ${dmg} 데미지!`;
+    document.getElementById('cut-dmg').style.animation='dmgPop .4s ease';
+    document.getElementById('cfr-hp').textContent=`HP ${def.hp}/${def.mhp}`;
+    if(def.hp<=0)document.getElementById('cut-msg').textContent=def.name+' 격파!';
+  },650);
+  setTimeout(()=>{
+    el.classList.remove('on');
+    document.getElementById('cf-l').classList.remove('hl');
+    document.getElementById('cf-r').classList.remove('hr');
+    document.getElementById('cut-dmg').style.animation='';
+    draw();cb();
+  },1500);
+}
+
+// ═══════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════
+function showHud(u){
+  document.getElementById('hud').style.display='block';
+  drawArmyPortrait(document.getElementById('hud-pcv'),u.color,u.team);
+  document.getElementById('hud-nm').textContent=u.name;
+  document.getElementById('hud-title').textContent=u.title;
+  document.getElementById('hud-hp').style.width=(u.hp/u.mhp*100)+'%';
+  document.getElementById('hud-hp').style.background=u.team==='ally'?'#2ecc71':'#e74c3c';
+  document.getElementById('hud-hpn').textContent=u.hp+'/'+u.mhp;
+  document.getElementById('hud-sub').textContent=`ATK ${u.atk} · DEF ${u.def} · MOV ${u.mov} · RNG ${u.rng||1}`;
+  document.getElementById('hud-btns').innerHTML='';
+}
+function hideHud(){document.getElementById('hud').style.display='none';}
+
+// ═══════════════════════════════════════
+// POPUP
+// ═══════════════════════════════════════
+function showPop(t,b,cb){document.getElementById('pop-t').textContent=t;document.getElementById('pop-b').textContent=b;document.getElementById('popup').style.display='block';popCb=cb;}
+function closePop(){document.getElementById('popup').style.display='none';if(popCb){const c=popCb;popCb=null;c();}draw();}
+
+// ═══════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════
+function centerCam(gx,gy){
+  camX=gx*CELL-W/2+CELL/2;
+  camY=gy*CELL-H/2+CELL/2;
+  clampCam();
+}
+
+// ═══════════════════════════════════════
+// STORY & START
+// ═══════════════════════════════════════
+let storyIdx=0;
+function showStory(){
+  storyIdx=0;
+  document.getElementById('s-title').textContent='환웅의 하강 — 천상의 시련';
+  renderSL();showOv('story-ov');
+}
+function renderSL(){
+  const t=STORY_LINES[storyIdx];
+  document.getElementById('s-text').textContent=t;
+  document.getElementById('s-text').className=t.startsWith('▶')?'shl':'';
+  const btn=document.getElementById('s-btn');
+  if(storyIdx>=STORY_LINES.length-1){btn.textContent='⚔️ 전투 개시!';btn.onclick=()=>{hideOv('story-ov');initBattle();};}
+  else{btn.textContent='다음 ▶';btn.onclick=()=>{storyIdx++;renderSL();};}
+  document.getElementById('s-dots').innerHTML=STORY_LINES.map((_,i)=>`<div class="dot${i<=storyIdx?' on':''}"></div>`).join('');
+}
+
+function initBattle(){
+  units=[];
+  ALLIES.forEach((a,i)=>units.push({...a,id:'a'+i,team:'ally',x:a.sx,y:a.sy,acted:false,skills:a.skills.map(s=>({...s}))}));
+  ENEMIES.forEach((e,i)=>units.push({...e,id:'e'+i,team:'enemy',x:e.sx,y:e.sy,acted:false}));
+  turn=1;items=3;sel=null;mvR=[];atkR=[];
+  document.getElementById('tb-l').textContent='EP.1 환웅의 하강';
+  centerCam(7,5);
+  startPTurn();
+}
+
+function startPTurn(){
+  units.filter(u=>u.team==='ally'&&u.hp>0).forEach(u=>u.acted=false);
+  document.getElementById('tb-r').textContent=`턴 ${turn} · 아군`;
+  phase='pselect';sel=null;mvR=[];atkR=[];hideHud();
+  guide('아군을 터치하여 선택 (드래그로 맵 스크롤)');
+  draw();
+  if(!units.some(u=>u.team==='ally'&&u.hp>0&&!u.acted))endPTurn();
+}
+
+function showVic(){
+  document.getElementById('v-rw').textContent='🎁 천부인(天符印) 세 개 완전 각성!';
+  document.getElementById('v-hist').innerHTML='<span style="color:#c4956a;font-weight:700">📖 역사 포인트</span><br>환인의 시련을 통과한 환웅은 천부인 세 개(거울·칼·방울)를 가지고 태백산 신단수 아래로 내려왔다. 풍백·우사·운사와 3,000의 무리를 이끌고 신시(神市)를 열어 인간 세상을 다스렸다. 이것이 고조선 건국의 서막이다.';
+  showOv('vic-ov');
+}
+
+function startGame(){hideOv('title-ov');showStory();}
+draw();
+</script>
+</body>
+</html>

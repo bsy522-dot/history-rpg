@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>한국사 영웅전 — EP.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;overflow:hidden;width:100vw;height:100vh;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Noto Serif KR',serif}
+#game-container{width:100%;height:100%}
+#game-container canvas{display:block}
+</style>
+</head>
+<body>
+<div id="game-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+// ============================================================
+// 📜 data.js — 게임 데이터 (스토리, 맵, 유닛)
+// ============================================================
+// 이 파일만 수정하면 스토리·캐릭터·맵을 바꿀 수 있어요!
+// ============================================================
+
+// ── 에피소드 1 스토리 ─────────────────────────────
+const STORY_LINES = [
+  { speaker: "해설", text: "아득한 옛날, 하늘 위 천상계를 환인(桓因) 천제가 다스리고 있었다." },
+  { speaker: "해설", text: "환인에게는 서자(庶子) 환웅이 있었는데, 자꾸 인간 세상을 내려다보며 탐을 냈다." },
+  { speaker: "환웅", text: "\"아버지, 저 아래 인간들은 고통 속에 살고 있습니다. 제가 내려가 널리 이롭게 하고 싶습니다.\"" },
+  { speaker: "환인", text: "\"네 뜻이 그러하다면... 태백산 신단수까지 내려가 보아라. 다만 쉽지 않을 것이다.\"" },
+  { speaker: "환인", text: "\"내 천장(天將)들을 보내 네 의지를 시험하겠다. 이겨낸다면 천부인 세 개를 주마.\"" },
+  { speaker: "해설", text: "환웅은 풍백(風伯)·우사(雨師)·운사(雲師) 세 신장을 이끌고 하강을 시작했다." },
+  { speaker: "해설", text: "태백산 꼭대기의 신단수(神壇樹)를 향해 — 환인의 시련이 기다리고 있었다." },
+  { speaker: "역사", text: "▶ 환웅의 하강은 고조선 건국 신화의 시작입니다. '홍익인간(弘益人間)' — 널리 인간을 이롭게 하라는 건국 이념은 지금도 대한민국 교육이념의 뿌리입니다." },
+];
+
+// ── 지형 타일 종류 ────────────────────────────────
+// 각 숫자가 맵에서 어떤 땅인지 정의
+const TILE = {
+  PLAIN:  0,  // 평원 (이동 가능)
+  FOREST: 1,  // 숲 (이동 불가, 장애물)
+  MOUNT:  2,  // 산 (이동 불가)
+  WATER:  3,  // 강/물 (이동 불가)
+  SACRED: 4,  // 신단수 (목표지점)
+  PATH:   5,  // 길 (이동 가능, 보너스)
+  CLOUD:  6,  // 구름바다 (이동 불가)
+  PEAK:   7,  // 높은 산봉우리 (이동 불가)
+};
+
+// 타일별 색상과 정보
+const TILE_INFO = {
+  [TILE.PLAIN]:  { name: '평원',   colors: ['#5a8a3a','#4d7a32'], passable: true },
+  [TILE.FOREST]: { name: '숲',     colors: ['#2d5a1a','#1f4a12'], passable: false },
+  [TILE.MOUNT]:  { name: '산',     colors: ['#7a7a6a','#6a6a5a'], passable: false },
+  [TILE.WATER]:  { name: '강',     colors: ['#2a5a8a','#1a4a7a'], passable: false },
+  [TILE.SACRED]: { name: '신단수', colors: ['#8a8a2a','#9a9a3a'], passable: true },
+  [TILE.PATH]:   { name: '길',     colors: ['#8a7a5a','#7a6a4a'], passable: true },
+  [TILE.CLOUD]:  { name: '구름',   colors: ['#aabbdd','#99aacc'], passable: false },
+  [TILE.PEAK]:   { name: '높은산', colors: ['#9a9a8a','#8a8a7a'], passable: false },
+};
+
+// ── 맵 데이터 (20×20 태백산 일대) ─────────────────
+// 위(천상) → 아래(태백산 신단수) 구조
+// 환웅 부대는 위쪽(천상)에서 시작, 환인의 천장들은 중간~아래에 배치
+const MAP_DATA = [
+  [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
+  [6,6,6,6,6,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6],
+  [6,6,6,5,5,0,0,0,0,0,0,0,0,0,5,5,6,6,6,6],
+  [6,6,5,0,0,0,0,1,0,0,0,1,0,0,0,0,5,6,6,6],
+  [6,5,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,5,6,6],
+  [6,0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,6,6],
+  [2,1,0,0,0,0,1,0,5,0,0,1,0,0,0,0,1,0,2,6],
+  [7,2,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,2,7],
+  [2,0,0,1,0,0,0,0,5,0,0,0,0,1,0,0,0,0,0,2],
+  [0,0,0,0,0,3,3,0,5,0,3,3,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,3,3,0,5,0,3,3,0,0,0,1,0,0,0,0],
+  [0,0,0,1,0,0,0,0,5,0,0,0,0,0,0,0,0,1,0,0],
+  [0,0,0,0,0,0,0,0,5,0,0,0,1,0,0,0,0,0,0,0],
+  [1,0,0,0,0,1,0,5,5,5,0,1,0,0,0,0,0,0,0,1],
+  [0,0,0,0,0,0,0,5,0,5,0,0,0,0,1,0,0,0,0,0],
+  [0,0,1,0,0,0,5,0,0,0,5,0,0,0,0,0,1,0,0,0],
+  [1,0,0,0,0,1,0,0,4,0,0,1,0,0,0,0,0,0,1,0],
+  [0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,0,0,0],
+  [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0],
+  [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+];
+
+// ── 유닛 데이터 ───────────────────────────────────
+// 아군 (환웅 진영)
+const ALLY_UNITS = [
+  {
+    id: 'hwanwoong',
+    name: '환웅',
+    title: '환인의 아들, 천왕(天王)',
+    hp: 65, maxHp: 65,
+    atk: 18, def: 7, mov: 4, rng: 1,
+    skills: [
+      { name: '천부인·뇌격', type: 'attack', dmg: 28, rng: 2, desc: '천부인의 번개를 내린다' },
+      { name: '홍익신광', type: 'heal', amount: 25, desc: '홍익의 빛으로 회복' },
+    ],
+    // 군대 색상 (갑옷, 깃발, 망토)
+    colors: { armor: '#8B6914', cape: '#FFD700', flag: '#DAA520', skin: '#DEB887' },
+    startX: 8, startY: 2,  // 맵에서 시작 위치
+  },
+  {
+    id: 'pungbaek',
+    name: '풍백',
+    title: '바람의 신장, 선봉대장',
+    hp: 45, maxHp: 45,
+    atk: 15, def: 4, mov: 5, rng: 1,
+    skills: [
+      { name: '질풍참', type: 'attack', dmg: 22, rng: 1, desc: '바람의 칼날로 베어낸다' },
+    ],
+    colors: { armor: '#006400', cape: '#2E8B57', flag: '#3CB371', skin: '#DEB887' },
+    startX: 7, startY: 3,
+  },
+  {
+    id: 'wusa',
+    name: '우사',
+    title: '비의 신장, 군의관',
+    hp: 38, maxHp: 38,
+    atk: 10, def: 5, mov: 3, rng: 2,
+    skills: [
+      { name: '치유의 비', type: 'heal', amount: 22, desc: '비의 축복으로 회복' },
+      { name: '폭우격', type: 'attack', dmg: 18, rng: 2, desc: '폭우를 쏟아붓는다' },
+    ],
+    colors: { armor: '#1a3a6a', cape: '#4169E1', flag: '#4682B4', skin: '#DEB887' },
+    startX: 9, startY: 3,
+  },
+  {
+    id: 'wunsa',
+    name: '운사',
+    title: '구름의 신장, 참모',
+    hp: 40, maxHp: 40,
+    atk: 13, def: 5, mov: 4, rng: 1,
+    skills: [
+      { name: '운무차폐', type: 'heal', amount: 18, desc: '안개로 아군을 숨겨 회복' },
+      { name: '뇌운격', type: 'attack', dmg: 20, rng: 1, desc: '번개구름을 떨어뜨린다' },
+    ],
+    colors: { armor: '#4a2a6a', cape: '#8A2BE2', flag: '#9370DB', skin: '#DEB887' },
+    startX: 8, startY: 4,
+  },
+];
+
+// 적군 (환인의 천장들)
+const ENEMY_UNITS = [
+  {
+    id: 'chunmu',
+    name: '천무장',
+    title: '환인의 제1천장, 총사령관',
+    hp: 55, maxHp: 55,
+    atk: 17, def: 6, mov: 3, rng: 1,
+    skills: [],
+    colors: { armor: '#8B0000', cape: '#FF0000', flag: '#CD3333', skin: '#DEB887' },
+    startX: 8, startY: 12,
+  },
+  {
+    id: 'noegong',
+    name: '뇌공',
+    title: '천둥의 장수',
+    hp: 40, maxHp: 40,
+    atk: 15, def: 4, mov: 4, rng: 2,
+    skills: [],
+    colors: { armor: '#8B4500', cape: '#FF8C00', flag: '#CD6600', skin: '#DEB887' },
+    startX: 6, startY: 10,
+  },
+  {
+    id: 'hwasin',
+    name: '화신',
+    title: '불의 장수',
+    hp: 38, maxHp: 38,
+    atk: 16, def: 3, mov: 4, rng: 1,
+    skills: [],
+    colors: { armor: '#8B1A1A', cape: '#FF4500', flag: '#EE3B3B', skin: '#DEB887' },
+    startX: 10, startY: 10,
+  },
+  {
+    id: 'sanryeong',
+    name: '산령',
+    title: '산의 수호자',
+    hp: 48, maxHp: 48,
+    atk: 13, def: 9, mov: 2, rng: 1,
+    skills: [],
+    colors: { armor: '#5a4a3a', cape: '#A0522D', flag: '#8B7355', skin: '#DEB887' },
+    startX: 8, startY: 14,
+  },
+  {
+    id: 'sujang',
+    name: '수장',
+    title: '물의 장수',
+    hp: 36, maxHp: 36,
+    atk: 14, def: 4, mov: 3, rng: 2,
+    skills: [],
+    colors: { armor: '#104E8B', cape: '#1E90FF', flag: '#1C86EE', skin: '#DEB887' },
+    startX: 7, startY: 11,
+  },
+];
+
+// ── 승리 보상 ─────────────────────────────────────
+const VICTORY_DATA = {
+  reward: '천부인(天符印) 세 개 — 거울·칼·방울 각성!',
+  historyNote: '환인의 시련을 통과한 환웅은 천부인 세 개를 가지고 태백산 신단수 아래로 내려왔다. 풍백·우사·운사와 3,000의 무리를 이끌고 신시(神市)를 열어 인간 세상을 다스렸다. 이것이 고조선 건국의 서막이다. (BC 2333년)',
+};
+// ============================================================
+// ⚔️ game.js — 게임 엔진 (Phaser 3)
+// ============================================================
+
+// ── 전역 설정 ─────────────────────────────────────
+const CELL = 48;         // 타일 한 칸 크기 (픽셀)
+const MAP_W = 20;        // 맵 가로 칸 수
+const MAP_H = 20;        // 맵 세로 칸 수
+
+// ══════════════════════════════════════════════════
+// 🎨 BootScene — 텍스처(그림) 생성
+// ══════════════════════════════════════════════════
+class BootScene extends Phaser.Scene {
+  constructor() { super('Boot'); }
+
+  create() {
+    // 타일 텍스처 생성
+    this.generateTileTextures();
+    // 다음 씬으로
+    this.scene.start('Title');
+  }
+
+  generateTileTextures() {
+    // 각 타일 종류별 텍스처
+    for (const [key, info] of Object.entries(TILE_INFO)) {
+      const g = this.add.graphics();
+      g.fillStyle(Phaser.Display.Color.HexStringToColor(info.colors[0]).color);
+      g.fillRect(0, 0, CELL, CELL);
+      // 패턴 추가
+      g.fillStyle(Phaser.Display.Color.HexStringToColor(info.colors[1]).color, 0.5);
+      for (let i = 0; i < 6; i++) {
+        g.fillRect(
+          Phaser.Math.Between(2, CELL-8),
+          Phaser.Math.Between(2, CELL-8),
+          Phaser.Math.Between(3, 8),
+          Phaser.Math.Between(3, 8)
+        );
+      }
+      g.generateTexture('tile_' + key, CELL, CELL);
+      g.destroy();
+    }
+
+    // 타일 디테일 (나무, 산 등)은 BattleScene에서 직접 그림
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 🏠 TitleScene — 타이틀 화면
+// ══════════════════════════════════════════════════
+class TitleScene extends Phaser.Scene {
+  constructor() { super('Title'); }
+
+  create() {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+
+    // 배경
+    this.cameras.main.setBackgroundColor('#0a0a14');
+
+    // 제목
+    this.add.text(w/2, h*0.18, 'TACTICAL RPG · EPISODE 1', {
+      fontSize: '12px', fill: '#8a7a6a', letterSpacing: 4
+    }).setOrigin(0.5);
+
+    this.add.text(w/2, h*0.28, '한국사 영웅전', {
+      fontSize: '36px', fill: '#c4956a', fontStyle: 'bold',
+      fontFamily: 'Noto Serif KR, serif',
+      shadow: { offsetX: 0, offsetY: 0, blur: 20, color: '#c4956a66', fill: true }
+    }).setOrigin(0.5);
+
+    this.add.text(w/2, h*0.36, '에피소드 1 — 환웅의 하강, 천상의 시련', {
+      fontSize: '13px', fill: '#8a7a6a', fontStyle: 'italic'
+    }).setOrigin(0.5);
+
+    // 시작 버튼
+    const startBtn = this.add.text(w/2, h*0.52, '⚔️  출 진  ⚔️', {
+      fontSize: '20px', fill: '#e8dcc8', fontStyle: 'bold',
+      backgroundColor: '#6B1A0A', padding: { x: 28, y: 14 },
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    startBtn.on('pointerdown', () => {
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.time.delayedCall(500, () => this.scene.start('Story'));
+    });
+
+    // 조작법
+    const helpText = [
+      '▸ 아군 터치 → 파란 범위로 이동',
+      '▸ 이동 후 → 공격/스킬/대기',
+      '▸ 맵을 드래그하여 스크롤',
+      '▸ 적 전멸 = 승리!',
+    ].join('\n');
+    this.add.text(w/2, h*0.74, helpText, {
+      fontSize: '11px', fill: '#555555', lineSpacing: 8, align: 'center'
+    }).setOrigin(0.5);
+
+    this.cameras.main.fadeIn(800);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 📖 StoryScene — 스토리 화면
+// ══════════════════════════════════════════════════
+class StoryScene extends Phaser.Scene {
+  constructor() { super('Story'); }
+
+  create() {
+    this.lineIndex = 0;
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    this.cameras.main.setBackgroundColor('#0e0e14');
+
+    // 제목
+    this.add.text(w/2, 30, 'EPISODE 1 · 환웅의 하강', {
+      fontSize: '11px', fill: '#8a7a6a', letterSpacing: 3
+    }).setOrigin(0.5);
+
+    this.add.text(w/2, 52, '천상의 시련', {
+      fontSize: '22px', fill: '#c4956a', fontStyle: 'bold',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5);
+
+    // 화자 표시
+    this.speakerText = this.add.text(w/2, h*0.3, '', {
+      fontSize: '12px', fill: '#DAA520', fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    // 대사 박스
+    const boxY = h*0.35;
+    this.add.rectangle(w/2, boxY + 50, w*0.88, 120, 0x0a0a14, 0.8)
+      .setStrokeStyle(1, 0xc4956a, 0.3);
+
+    this.storyText = this.add.text(w/2, boxY + 50, '', {
+      fontSize: '14px', fill: '#e8dcc8', wordWrap: { width: w*0.8 },
+      lineSpacing: 10, align: 'center',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5);
+
+    // 다음 버튼
+    this.nextBtn = this.add.text(w/2, h*0.72, '다음 ▶', {
+      fontSize: '16px', fill: '#e8dcc8', fontStyle: 'bold',
+      backgroundColor: '#6B1A0A', padding: { x: 24, y: 12 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    this.nextBtn.on('pointerdown', () => this.advance());
+
+    // 진행 점
+    this.dotsContainer = this.add.container(w/2, h*0.82);
+
+    this.showLine();
+    this.cameras.main.fadeIn(500);
+  }
+
+  showLine() {
+    const line = STORY_LINES[this.lineIndex];
+    const isHistory = line.text.startsWith('▶');
+
+    this.speakerText.setText(line.speaker === '해설' ? '' : `— ${line.speaker} —`);
+    this.storyText.setText(line.text);
+    this.storyText.setColor(isHistory ? '#c4956a' : '#e8dcc8');
+
+    // 마지막 줄이면 버튼 변경
+    if (this.lineIndex >= STORY_LINES.length - 1) {
+      this.nextBtn.setText('⚔️ 전투 개시!');
+    } else {
+      this.nextBtn.setText('다음 ▶');
+    }
+
+    // 점 업데이트
+    this.dotsContainer.removeAll(true);
+    for (let i = 0; i < STORY_LINES.length; i++) {
+      const dot = this.add.circle(
+        (i - STORY_LINES.length/2) * 12, 0,
+        3, i <= this.lineIndex ? 0xc4956a : 0x333333
+      );
+      this.dotsContainer.add(dot);
+    }
+  }
+
+  advance() {
+    if (this.lineIndex < STORY_LINES.length - 1) {
+      this.lineIndex++;
+      this.showLine();
+    } else {
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.time.delayedCall(500, () => this.scene.start('Battle'));
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// ⚔️ BattleScene — 전술 전투 (메인!)
+// ══════════════════════════════════════════════════
+class BattleScene extends Phaser.Scene {
+  constructor() { super('Battle'); }
+
+  create() {
+    this.cameras.main.setBackgroundColor('#2a3a2a');
+
+    // ── 상태 초기화
+    this.turnCount = 1;
+    this.phase = 'playerSelect'; // playerSelect, playerMove, playerAction, playerAttackTarget, enemyTurn, cutscene
+    this.selectedUnit = null;
+    this.moveRange = [];
+    this.attackTargets = [];
+    this.attackMode = null;
+    this.attackSkillIdx = null;
+    this.itemCount = 3;
+
+    // ── 타일맵 그리기
+    this.drawTilemap();
+
+    // ── 유닛 생성
+    this.units = [];
+    this.createUnits();
+
+    // ── 카메라 설정 (드래그 스크롤)
+    this.cameras.main.setBounds(0, 0, MAP_W * CELL, MAP_H * CELL);
+    this.cameras.main.centerOn(8 * CELL, 5 * CELL);
+
+    // 드래그 스크롤
+    this.input.on('pointermove', (pointer) => {
+      if (pointer.isDown && this.dragPrev) {
+        const dx = this.dragPrev.x - pointer.x;
+        const dy = this.dragPrev.y - pointer.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          this.isDragging = true;
+          this.cameras.main.scrollX += dx;
+          this.cameras.main.scrollY += dy;
+        }
+      }
+      this.dragPrev = { x: pointer.x, y: pointer.y };
+    });
+    this.input.on('pointerdown', (pointer) => {
+      this.dragPrev = { x: pointer.x, y: pointer.y };
+      this.isDragging = false;
+    });
+    this.input.on('pointerup', (pointer) => {
+      if (!this.isDragging) {
+        this.handleTap(pointer);
+      }
+      this.isDragging = false;
+      this.dragPrev = null;
+    });
+
+    // ── 이동범위/공격범위 오버레이
+    this.moveOverlays = this.add.group();
+    this.atkOverlays = this.add.group();
+    this.selectionBox = this.add.rectangle(0, 0, CELL, CELL)
+      .setStrokeStyle(3, 0xFFD700).setFillStyle(0xFFD700, 0.1).setVisible(false).setDepth(15);
+
+    // ── HUD (화면 하단 UI)
+    this.createHUD();
+
+    // ── 가이드 텍스트
+    this.guideText = this.add.text(
+      this.cameras.main.width / 2, 36,
+      '아군을 터치하여 선택 (드래그로 맵 이동)',
+      { fontSize: '11px', fill: '#c4956a', align: 'center' }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+
+    // ── 턴 표시
+    this.turnText = this.add.text(
+      this.cameras.main.width - 10, 10,
+      '턴 1 · 아군',
+      { fontSize: '10px', fill: '#888' }
+    ).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
+
+    this.eraText = this.add.text(
+      10, 10, 'EP.1 환웅의 하강',
+      { fontSize: '10px', fill: '#c4956a', fontStyle: 'bold' }
+    ).setOrigin(0, 0).setScrollFactor(0).setDepth(100);
+
+    this.cameras.main.fadeIn(800);
+  }
+
+  // ── 타일맵 생성 ──────────────────────────
+  drawTilemap() {
+    this.tileContainer = this.add.container(0, 0).setDepth(0);
+
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        const t = MAP_DATA[y][x];
+        const info = TILE_INFO[t];
+        const px = x * CELL, py = y * CELL;
+
+        // 기본 타일
+        const color = (x + y) % 2 === 0 ? info.colors[0] : info.colors[1];
+        const rect = this.add.rectangle(px + CELL/2, py + CELL/2, CELL, CELL,
+          Phaser.Display.Color.HexStringToColor(color).color);
+        this.tileContainer.add(rect);
+
+        // 디테일
+        if (t === TILE.FOREST) {
+          // 나무 (삼각형)
+          const tree = this.add.triangle(px+CELL/2, py+CELL*.35, 0,CELL*.3, CELL*.2,0, CELL*.4,CELL*.3, 0x1a4a0a).setOrigin(0.5);
+          const trunk = this.add.rectangle(px+CELL/2, py+CELL*.65, 3, CELL*.2, 0x5a3a1a);
+          this.tileContainer.add([tree, trunk]);
+        }
+        else if (t === TILE.MOUNT) {
+          const mt = this.add.triangle(px+CELL/2, py+CELL*.3, 0,CELL*.35, CELL*.22,0, CELL*.44,CELL*.35, 0x6a6a5a).setOrigin(0.5);
+          const snow = this.add.triangle(px+CELL/2, py+CELL*.18, 0,CELL*.1, CELL*.06,0, CELL*.12,CELL*.1, 0xeeeeee).setOrigin(0.5);
+          this.tileContainer.add([mt, snow]);
+        }
+        else if (t === TILE.PEAK) {
+          const mt = this.add.triangle(px+CELL/2, py+CELL*.25, 0,CELL*.45, CELL*.25,0, CELL*.5,CELL*.45, 0x5a5a4a).setOrigin(0.5);
+          const snow = this.add.triangle(px+CELL/2, py+CELL*.1, 0,CELL*.15, CELL*.1,0, CELL*.2,CELL*.15, 0xffffff).setOrigin(0.5);
+          this.tileContainer.add([mt, snow]);
+        }
+        else if (t === TILE.WATER) {
+          for (let w = 0; w < 2; w++) {
+            const wave = this.add.rectangle(px+CELL/2, py+CELL*(.35+w*.3), CELL*.7, 1.5, 0x4a8acc, 0.3);
+            this.tileContainer.add(wave);
+          }
+        }
+        else if (t === TILE.SACRED) {
+          // 신단수 — 빛나는 나무
+          const glow = this.add.circle(px+CELL/2, py+CELL/2, CELL*.5, 0xFFD700, 0.15);
+          const trk = this.add.rectangle(px+CELL/2, py+CELL*.55, CELL*.12, CELL*.4, 0x5a3a1a);
+          const crown = this.add.circle(px+CELL/2, py+CELL*.28, CELL*.25, 0x2a7a1a);
+          const glow2 = this.add.circle(px+CELL/2, py+CELL*.28, CELL*.3, 0xFFD700, 0.2);
+          this.tileContainer.add([glow, trk, crown, glow2]);
+        }
+        else if (t === TILE.PATH) {
+          const path = this.add.rectangle(px+CELL/2, py+CELL/2, CELL*.5, CELL, 0x9a8a6a, 0.2);
+          this.tileContainer.add(path);
+        }
+        else if (t === TILE.CLOUD) {
+          const c1 = this.add.circle(px+CELL*.3, py+CELL*.5, CELL*.2, 0xffffff, 0.15);
+          const c2 = this.add.circle(px+CELL*.7, py+CELL*.4, CELL*.15, 0xffffff, 0.1);
+          this.tileContainer.add([c1, c2]);
+        }
+      }
+    }
+
+    // 격자선
+    const gridG = this.add.graphics().setDepth(1);
+    gridG.lineStyle(1, 0x000000, 0.15);
+    for (let x = 0; x <= MAP_W; x++) {
+      gridG.moveTo(x * CELL, 0);
+      gridG.lineTo(x * CELL, MAP_H * CELL);
+    }
+    for (let y = 0; y <= MAP_H; y++) {
+      gridG.moveTo(0, y * CELL);
+      gridG.lineTo(MAP_W * CELL, y * CELL);
+    }
+    gridG.strokePath();
+  }
+
+  // ── 유닛 생성 ────────────────────────────
+  createUnits() {
+    ALLY_UNITS.forEach((data, i) => {
+      this.units.push(this.createUnitSprite(data, 'ally'));
+    });
+    ENEMY_UNITS.forEach((data, i) => {
+      this.units.push(this.createUnitSprite(data, 'enemy'));
+    });
+  }
+
+  createUnitSprite(data, team) {
+    const unit = {
+      ...data,
+      team: team,
+      hp: data.hp,
+      x: data.startX,
+      y: data.startY,
+      acted: false,
+      alive: true,
+    };
+
+    const px = unit.x * CELL, py = unit.y * CELL;
+    const container = this.add.container(px, py).setDepth(10);
+    unit.container = container;
+
+    // 군대 그리기 (5명 병사)
+    this.drawArmyInContainer(container, unit);
+
+    return unit;
+  }
+
+  drawArmyInContainer(container, unit) {
+    container.removeAll(true);
+    const c = unit.colors;
+    const w = CELL, h = CELL;
+
+    // 팀 색상 상단바
+    const teamBar = this.add.rectangle(w/2, 2.5, w-4, 4,
+      unit.team === 'ally' ? 0x27ae60 : 0xe74c3c, 0.6);
+    container.add(teamBar);
+
+    // 깃발
+    const pole = this.add.rectangle(w*0.72, h*0.2, 1.5, h*0.4,
+      Phaser.Display.Color.HexStringToColor('#5a3a1a').color);
+    container.add(pole);
+
+    const flagPts = [0, 0, w*0.2, h*0.06, 0, h*0.12];
+    const flag = this.add.triangle(w*0.72+w*0.1, h*0.1,
+      flagPts[0],flagPts[1],flagPts[2],flagPts[3],flagPts[4],flagPts[5],
+      Phaser.Display.Color.HexStringToColor(c.flag).color);
+    container.add(flag);
+
+    // 병사 5명 (2열 진형)
+    const positions = [
+      {r:-1,c:-1},{r:-1,c:1},     // 후열
+      {r:0,c:-1.5},{r:0,c:0},{r:0,c:1.5}, // 전열
+    ];
+    const sz = Math.max(3, w*0.09);
+    const cx0 = w*0.4, cy0 = h*0.38;
+    const sp = sz*2;
+
+    positions.forEach((p, i) => {
+      const sx = cx0 + p.c * sp;
+      const sy = cy0 + p.r * sp * 0.8;
+
+      // 갑옷(몸통)
+      const body = this.add.rectangle(sx, sy+sz*0.6, sz, sz*1.3,
+        Phaser.Display.Color.HexStringToColor(c.armor).color);
+      container.add(body);
+
+      // 어깨/망토
+      const cape = this.add.rectangle(sx, sy-sz*0.1, sz*1.1, sz*0.5,
+        Phaser.Display.Color.HexStringToColor(i===0 ? c.cape : c.flag).color);
+      container.add(cape);
+
+      // 머리
+      const head = this.add.circle(sx, sy-sz*0.15, sz*0.35,
+        Phaser.Display.Color.HexStringToColor(c.skin).color);
+      container.add(head);
+
+      // 투구
+      const helmet = this.add.arc(sx, sy-sz*0.25, sz*0.3, 180, 0, false,
+        Phaser.Display.Color.HexStringToColor(c.armor).color);
+      container.add(helmet);
+
+      // 무기 (창)
+      const spear = this.add.rectangle(sx+sz*0.35, sy, 1, sz*1.8, 0xaaaaaa);
+      container.add(spear);
+    });
+
+    // HP 바
+    const hpPct = Math.max(0, unit.hp / unit.maxHp);
+    const barBg = this.add.rectangle(w/2, h-6, w-8, 4, 0x111111);
+    const barFg = this.add.rectangle(4, h-6, (w-8)*hpPct, 4,
+      unit.team === 'ally' ? 0x2ecc71 : 0xe74c3c).setOrigin(0, 0.5);
+    container.add([barBg, barFg]);
+    unit.hpBar = barFg;
+
+    // 이름
+    const nameText = this.add.text(w/2, h+1, unit.name, {
+      fontSize: `${Math.max(9, CELL*0.2)}px`, fill: unit.team === 'ally' ? '#e8dcc8' : '#ffaaaa',
+      fontStyle: 'bold', fontFamily: 'Noto Serif KR, serif',
+      shadow: { offsetX: 1, offsetY: 1, blur: 2, color: '#000', fill: true }
+    }).setOrigin(0.5, 0);
+    container.add(nameText);
+
+    // 행동완료 오버레이
+    unit.actedOverlay = this.add.rectangle(w/2, h/2, w, h, 0x000000, 0).setDepth(1);
+    container.add(unit.actedOverlay);
+  }
+
+  // ── 유닛 위치 업데이트 ────────────────────
+  updateUnitPosition(unit) {
+    unit.container.setPosition(unit.x * CELL, unit.y * CELL);
+  }
+
+  updateUnitHP(unit) {
+    const pct = Math.max(0, unit.hp / unit.maxHp);
+    if (unit.hpBar) {
+      unit.hpBar.setDisplaySize((CELL-8)*pct, 4);
+    }
+  }
+
+  setUnitActed(unit, acted) {
+    unit.acted = acted;
+    if (unit.actedOverlay) {
+      unit.actedOverlay.setFillStyle(0x000000, acted ? 0.45 : 0);
+    }
+  }
+
+  // ── 탭 처리 ──────────────────────────────
+  handleTap(pointer) {
+    const worldX = pointer.x + this.cameras.main.scrollX;
+    const worldY = pointer.y + this.cameras.main.scrollY;
+    const gx = Math.floor(worldX / CELL);
+    const gy = Math.floor(worldY / CELL);
+
+    if (gx < 0 || gx >= MAP_W || gy < 0 || gy >= MAP_H) return;
+
+    switch (this.phase) {
+      case 'playerSelect':
+        const ally = this.getAliveUnit(gx, gy, 'ally');
+        if (ally && !ally.acted) this.selectUnit(ally);
+        break;
+
+      case 'playerMove':
+        if (this.moveRange.some(m => m.x === gx && m.y === gy)) {
+          this.moveSelectedUnit(gx, gy);
+        } else {
+          const otherAlly = this.getAliveUnit(gx, gy, 'ally');
+          if (otherAlly && !otherAlly.acted) {
+            this.selectUnit(otherAlly);
+          } else {
+            this.deselectUnit();
+          }
+        }
+        break;
+
+      case 'playerAttackTarget':
+        const target = this.attackTargets.find(u => u.x === gx && u.y === gy);
+        if (target) this.executeAttack(target);
+        break;
+    }
+  }
+
+  // ── 유닛 선택 ────────────────────────────
+  selectUnit(unit) {
+    this.selectedUnit = unit;
+    this.phase = 'playerMove';
+    this.moveRange = this.calcMoveRange(unit);
+    this.attackTargets = [];
+
+    this.drawMoveRange();
+    this.clearAtkRange();
+    this.selectionBox.setPosition(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2).setVisible(true);
+
+    this.showHUD(unit);
+    this.hideActionButtons();
+    this.setGuide(`${unit.name} (${unit.title}) — 이동할 칸을 터치`);
+
+    // 카메라 부드럽게 이동
+    this.cameras.main.pan(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2, 300);
+  }
+
+  deselectUnit() {
+    this.selectedUnit = null;
+    this.phase = 'playerSelect';
+    this.moveRange = [];
+    this.clearMoveRange();
+    this.clearAtkRange();
+    this.selectionBox.setVisible(false);
+    this.hideHUD();
+    this.setGuide('아군을 터치하여 선택');
+  }
+
+  // ── 이동범위 계산 (BFS) ──────────────────
+  calcMoveRange(unit) {
+    const range = [];
+    const visited = new Set();
+    const queue = [{ x: unit.x, y: unit.y, steps: 0 }];
+    visited.add(`${unit.x},${unit.y}`);
+
+    while (queue.length > 0) {
+      const cur = queue.shift();
+
+      if (cur.steps > 0) {
+        const occupant = this.getAliveUnit(cur.x, cur.y);
+        const passable = TILE_INFO[MAP_DATA[cur.y][cur.x]].passable;
+        if (!occupant && passable) {
+          range.push({ x: cur.x, y: cur.y });
+        }
+        if (occupant || !passable) continue;
+      }
+
+      if (cur.steps < unit.mov) {
+        const dirs = [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}];
+        for (const d of dirs) {
+          const nx = cur.x + d.dx, ny = cur.y + d.dy;
+          const key = `${nx},${ny}`;
+          if (nx >= 0 && nx < MAP_W && ny >= 0 && ny < MAP_H && !visited.has(key)) {
+            if (TILE_INFO[MAP_DATA[ny][nx]].passable) {
+              const blocker = this.getAliveUnit(nx, ny);
+              if (!blocker || blocker.team === unit.team) {
+                visited.add(key);
+                queue.push({ x: nx, y: ny, steps: cur.steps + 1 });
+              }
+            }
+          }
+        }
+      }
+    }
+    return range;
+  }
+
+  // ── 이동실행 ──────────────────────────────
+  moveSelectedUnit(tx, ty) {
+    const unit = this.selectedUnit;
+    unit.x = tx; unit.y = ty;
+    this.updateUnitPosition(unit);
+
+    this.clearMoveRange();
+    this.phase = 'playerAction';
+
+    // 공격 가능 적 탐색
+    const maxRng = Math.max(
+      unit.rng || 1,
+      ...unit.skills.filter(s => s.type === 'attack').map(s => s.rng || 1)
+    );
+    const nearEnemies = this.units.filter(e =>
+      e.team === 'enemy' && e.alive &&
+      this.manhattanDist(unit, e) <= maxRng
+    );
+
+    this.selectionBox.setPosition(tx*CELL+CELL/2, ty*CELL+CELL/2);
+    this.showHUD(unit);
+    this.showActionButtons(unit, nearEnemies);
+    this.setGuide(nearEnemies.length > 0 ? '행동을 선택하세요' : '대기/회복 선택');
+  }
+
+  // ── 공격 시작 ─────────────────────────────
+  startAttack(mode, skillIdx) {
+    this.attackMode = mode;
+    this.attackSkillIdx = skillIdx;
+
+    const unit = this.selectedUnit;
+    const rng = mode === 'skill' ? unit.skills[skillIdx].rng || 1 : unit.rng || 1;
+
+    this.attackTargets = this.units.filter(e =>
+      e.team === 'enemy' && e.alive &&
+      this.manhattanDist(unit, e) <= rng
+    );
+
+    if (this.attackTargets.length === 0) {
+      this.setGuide('범위 내 적 없음');
+      return;
+    }
+    if (this.attackTargets.length === 1) {
+      this.executeAttack(this.attackTargets[0]);
+      return;
+    }
+
+    // 여러 적이 있으면 선택
+    this.phase = 'playerAttackTarget';
+    this.drawAtkRange();
+    this.setGuide('공격할 적을 터치!');
+  }
+
+  // ── 공격 실행 (컷인) ──────────────────────
+  executeAttack(target) {
+    this.phase = 'cutscene';
+    this.clearAtkRange();
+    this.hideActionButtons();
+
+    const unit = this.selectedUnit;
+    let dmg, skillName;
+
+    if (this.attackMode === 'skill' && this.attackSkillIdx != null) {
+      const sk = unit.skills[this.attackSkillIdx];
+      dmg = Math.max(1, sk.dmg - target.def) + Phaser.Math.Between(0, 5);
+      skillName = sk.name;
+    } else {
+      dmg = Math.max(1, unit.atk - target.def) + Phaser.Math.Between(0, 4);
+      skillName = '공격';
+    }
+
+    this.showCutin(unit, target, dmg, skillName, () => {
+      // 반격 체크
+      if (target.alive && this.manhattanDist(unit, target) <= (target.rng || 1)) {
+        const counterDmg = Math.max(1, target.atk - unit.def - 2) + Phaser.Math.Between(0, 3);
+        this.time.delayedCall(200, () => {
+          this.showCutin(target, unit, counterDmg, '반격', () => {
+            this.finishAction();
+          });
+        });
+      } else {
+        this.finishAction();
+      }
+    });
+  }
+
+  // ── 회복/아이템/대기 ──────────────────────
+  useHealSkill(skillIdx) {
+    const unit = this.selectedUnit;
+    const sk = unit.skills[skillIdx];
+    unit.hp = Math.min(unit.maxHp, unit.hp + sk.amount);
+    this.updateUnitHP(unit);
+    this.showPopup('회복', `${sk.name}!\nHP ${sk.amount} 회복!`, () => this.finishAction());
+  }
+
+  useItem() {
+    if (this.itemCount <= 0) return;
+    this.itemCount--;
+    const unit = this.selectedUnit;
+    unit.hp = Math.min(unit.maxHp, unit.hp + 20);
+    this.updateUnitHP(unit);
+    this.showPopup('아이템', `회복약!\nHP 20 회복! (남은 ${this.itemCount})`, () => this.finishAction());
+  }
+
+  doWait() {
+    this.finishAction();
+  }
+
+  // ── 행동 완료 ─────────────────────────────
+  finishAction() {
+    if (this.selectedUnit) {
+      this.setUnitActed(this.selectedUnit, true);
+    }
+    this.selectedUnit = null;
+    this.moveRange = [];
+    this.attackTargets = [];
+    this.clearMoveRange();
+    this.clearAtkRange();
+    this.selectionBox.setVisible(false);
+    this.hideHUD();
+    this.hideActionButtons();
+
+    // 승리 체크
+    if (!this.units.some(e => e.team === 'enemy' && e.alive)) {
+      this.time.delayedCall(500, () => {
+        this.cameras.main.fadeOut(500);
+        this.time.delayedCall(500, () => this.scene.start('Victory'));
+      });
+      return;
+    }
+    // 패배 체크
+    if (!this.units.some(a => a.team === 'ally' && a.alive)) {
+      this.time.delayedCall(500, () => this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart()));
+      return;
+    }
+    // 다음 아군 또는 적 턴
+    if (this.units.some(a => a.team === 'ally' && a.alive && !a.acted)) {
+      this.phase = 'playerSelect';
+      this.setGuide('다음 아군을 선택');
+    } else {
+      this.startEnemyTurn();
+    }
+  }
+
+  // ── 적 턴 AI ──────────────────────────────
+  startEnemyTurn() {
+    this.phase = 'enemyTurn';
+    this.setGuide('적 턴...');
+    this.turnText.setText(`턴 ${this.turnCount} · 적군`);
+
+    const enemies = this.units.filter(u => u.team === 'enemy' && u.alive);
+    let idx = 0;
+
+    const nextEnemy = () => {
+      if (idx >= enemies.length) {
+        this.turnCount++;
+        this.startPlayerTurn();
+        return;
+      }
+      const e = enemies[idx]; idx++;
+      if (!e.alive) { nextEnemy(); return; }
+
+      // 가장 가까운 아군 찾기
+      const allies = this.units.filter(u => u.team === 'ally' && u.alive);
+      if (allies.length === 0) {
+        this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart());
+        return;
+      }
+
+      let nearest = allies[0], minDist = 999;
+      allies.forEach(a => {
+        const d = this.manhattanDist(e, a);
+        if (d < minDist) { minDist = d; nearest = a; }
+      });
+
+      // 카메라 이동
+      this.cameras.main.pan(e.x*CELL+CELL/2, e.y*CELL+CELL/2, 200);
+
+      if (minDist <= (e.rng || 1)) {
+        // 인접하면 공격
+        this.time.delayedCall(300, () => this.enemyAttack(e, nearest, nextEnemy));
+      } else {
+        // 이동
+        const moveR = this.calcMoveRange(e);
+        let bestCell = null, bestDist = 999;
+        moveR.forEach(c => {
+          const d = Math.abs(c.x - nearest.x) + Math.abs(c.y - nearest.y);
+          if (d < bestDist) { bestDist = d; bestCell = c; }
+        });
+        if (bestCell) {
+          e.x = bestCell.x; e.y = bestCell.y;
+          this.updateUnitPosition(e);
+        }
+
+        // 이동 후 공격 가능?
+        if (this.manhattanDist(e, nearest) <= (e.rng || 1)) {
+          this.time.delayedCall(350, () => this.enemyAttack(e, nearest, nextEnemy));
+        } else {
+          this.time.delayedCall(250, nextEnemy);
+        }
+      }
+    };
+
+    this.time.delayedCall(500, nextEnemy);
+  }
+
+  enemyAttack(attacker, defender, callback) {
+    this.phase = 'cutscene';
+    const dmg = Math.max(1, attacker.atk - defender.def) + Phaser.Math.Between(0, 4);
+
+    this.showCutin(attacker, defender, dmg, attacker.name + '의 공격', () => {
+      if (!this.units.some(a => a.team === 'ally' && a.alive)) {
+        this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart());
+        return;
+      }
+      this.phase = 'enemyTurn';
+      this.time.delayedCall(200, callback);
+    });
+  }
+
+  startPlayerTurn() {
+    this.units.filter(u => u.team === 'ally' && u.alive).forEach(u => {
+      this.setUnitActed(u, false);
+    });
+    this.turnText.setText(`턴 ${this.turnCount} · 아군`);
+    this.phase = 'playerSelect';
+    this.setGuide('아군을 터치하여 선택');
+  }
+
+  // ── 전투 컷인 애니메이션 ──────────────────
+  showCutin(attacker, defender, dmg, label, callback) {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+
+    // 어두운 배경
+    const bg = this.add.rectangle(w/2, h/2, w, h, 0x000000, 0.85)
+      .setScrollFactor(0).setDepth(200);
+
+    // 공격자 (왼쪽)
+    const lName = this.add.text(w*0.25, h*0.35, attacker.name, {
+      fontSize: '16px', fontStyle: 'bold',
+      fill: attacker.team === 'ally' ? '#e8dcc8' : '#ff6666',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    const lHp = this.add.text(w*0.25, h*0.42, `HP ${attacker.hp}/${attacker.maxHp}`, {
+      fontSize: '10px', fill: '#aaa'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    // VS
+    const vsText = this.add.text(w*0.5, h*0.38, '⚔️', {
+      fontSize: '28px'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    // 방어자 (오른쪽)
+    const rName = this.add.text(w*0.75, h*0.35, defender.name, {
+      fontSize: '16px', fontStyle: 'bold',
+      fill: defender.team === 'ally' ? '#e8dcc8' : '#ff6666',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    const rHp = this.add.text(w*0.75, h*0.42, `HP ${defender.hp}/${defender.maxHp}`, {
+      fontSize: '10px', fill: '#aaa'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    // 스킬명
+    const msgText = this.add.text(w*0.5, h*0.52, label + '!', {
+      fontSize: '13px', fill: '#ddd'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+
+    // 데미지 텍스트 (나중에 표시)
+    const dmgText = this.add.text(w*0.5, h*0.6, '', {
+      fontSize: '24px', fontStyle: 'bold', fill: '#ff4444',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(201).setAlpha(0);
+
+    // 플래시
+    const flash = this.add.rectangle(w/2, h/2, w, h, 0xffffff, 0)
+      .setScrollFactor(0).setDepth(202);
+
+    // 히트 애니메이션
+    this.time.delayedCall(350, () => {
+      this.tweens.add({ targets: lName, x: w*0.25+30, duration: 150, yoyo: true });
+      this.tweens.add({ targets: rName, x: w*0.75-30, duration: 150, yoyo: true });
+      this.tweens.add({ targets: flash, alpha: 0.4, duration: 100, yoyo: true });
+    });
+
+    // 데미지 표시
+    this.time.delayedCall(600, () => {
+      defender.hp = Math.max(0, defender.hp - dmg);
+      if (defender.hp <= 0) defender.alive = false;
+      this.updateUnitHP(defender);
+      if (!defender.alive) defender.container.setVisible(false);
+
+      dmgText.setText(`💥 ${dmg} 데미지!`);
+      this.tweens.add({ targets: dmgText, alpha: 1, scale: { from: 0.5, to: 1 }, duration: 300, ease: 'Back.easeOut' });
+      rHp.setText(`HP ${defender.hp}/${defender.maxHp}`);
+
+      if (!defender.alive) {
+        msgText.setText(defender.name + ' 격파!');
+      }
+    });
+
+    // 종료
+    this.time.delayedCall(1500, () => {
+      [bg, lName, lHp, vsText, rName, rHp, msgText, dmgText, flash].forEach(o => o.destroy());
+      callback();
+    });
+  }
+
+  // ── 팝업 메시지 ───────────────────────────
+  showPopup(title, body, callback) {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+
+    const bg = this.add.rectangle(w/2, h/2, w*0.8, 160, 0x151520, 0.95)
+      .setStrokeStyle(2, 0xc4956a).setScrollFactor(0).setDepth(250);
+    const tText = this.add.text(w/2, h/2-40, title, {
+      fontSize: '15px', fontStyle: 'bold', fill: '#c4956a'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(251);
+    const bText = this.add.text(w/2, h/2, body, {
+      fontSize: '12px', fill: '#ccc', align: 'center', lineSpacing: 6
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(251);
+    const btn = this.add.text(w/2, h/2+50, '확인', {
+      fontSize: '13px', fill: '#e8dcc8', fontStyle: 'bold',
+      backgroundColor: '#2a2a3e', padding: { x: 18, y: 8 }
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(251).setInteractive();
+
+    btn.on('pointerdown', () => {
+      [bg, tText, bText, btn].forEach(o => o.destroy());
+      if (callback) callback();
+    });
+  }
+
+  // ── 오버레이 표시 ─────────────────────────
+  drawMoveRange() {
+    this.clearMoveRange();
+    this.moveRange.forEach(({ x, y }) => {
+      const px = x * CELL + CELL/2, py = y * CELL + CELL/2;
+      const rect = this.add.rectangle(px, py, CELL-2, CELL-2, 0x50B4FF, 0.28)
+        .setStrokeStyle(2, 0x50B4FF, 0.6).setDepth(5);
+      this.moveOverlays.add(rect);
+    });
+  }
+  clearMoveRange() { this.moveOverlays.clear(true, true); }
+
+  drawAtkRange() {
+    this.clearAtkRange();
+    this.attackTargets.forEach(u => {
+      const px = u.x * CELL + CELL/2, py = u.y * CELL + CELL/2;
+      const rect = this.add.rectangle(px, py, CELL-2, CELL-2, 0xFF3333, 0.3)
+        .setStrokeStyle(2, 0xFF3333, 0.65).setDepth(5);
+      this.atkOverlays.add(rect);
+    });
+  }
+  clearAtkRange() { this.atkOverlays.clear(true, true); }
+
+  // ── HUD (화면 하단) ───────────────────────
+  createHUD() {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+
+    this.hudContainer = this.add.container(0, h).setScrollFactor(0).setDepth(150);
+    this.hudBg = this.add.rectangle(w/2, -50, w, 110, 0x0c0c18, 0.95);
+    this.hudContainer.add(this.hudBg);
+
+    this.hudName = this.add.text(60, -90, '', { fontSize: '13px', fontStyle: 'bold', fill: '#e8dcc8' });
+    this.hudTitle = this.add.text(60, -76, '', { fontSize: '10px', fill: '#999' });
+    this.hudHpBg = this.add.rectangle(60, -60, 150, 8, 0x1a1a2e).setOrigin(0, 0.5);
+    this.hudHpFill = this.add.rectangle(60, -60, 150, 8, 0x2ecc71).setOrigin(0, 0.5);
+    this.hudHpText = this.add.text(215, -60, '', { fontSize: '9px', fill: '#aaa' }).setOrigin(0, 0.5);
+    this.hudSub = this.add.text(60, -48, '', { fontSize: '9px', fill: '#777' });
+    this.hudContainer.add([this.hudName, this.hudTitle, this.hudHpBg, this.hudHpFill, this.hudHpText, this.hudSub]);
+
+    // 액션 버튼 컨테이너
+    this.hudBtnContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(151);
+    this.hudBtnContainer.setVisible(false);
+
+    this.hudContainer.setVisible(false);
+  }
+
+  showHUD(unit) {
+    this.hudContainer.setVisible(true);
+    this.hudName.setText(unit.name);
+    this.hudTitle.setText(unit.title);
+    const pct = unit.hp / unit.maxHp;
+    this.hudHpFill.setDisplaySize(150 * pct, 8);
+    this.hudHpFill.setFillStyle(unit.team === 'ally' ? 0x2ecc71 : 0xe74c3c);
+    this.hudHpText.setText(`${unit.hp}/${unit.maxHp}`);
+    this.hudSub.setText(`ATK ${unit.atk} · DEF ${unit.def} · MOV ${unit.mov} · RNG ${unit.rng||1}`);
+  }
+
+  hideHUD() {
+    this.hudContainer.setVisible(false);
+    this.hideActionButtons();
+  }
+
+  showActionButtons(unit, enemies) {
+    this.hideActionButtons();
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    const btns = [];
+    let bx = 8;
+    const by = h - 28;
+    const bw = Math.min(80, (w - 16) / 4 - 4);
+
+    const makeBtn = (label, color, cb) => {
+      const btn = this.add.text(bx, by, label, {
+        fontSize: '11px', fontStyle: 'bold', fill: '#e8dcc8',
+        backgroundColor: color, padding: { x: 6, y: 8 },
+        fixedWidth: bw, align: 'center'
+      }).setScrollFactor(0).setDepth(155).setInteractive();
+      btn.on('pointerdown', cb);
+      btns.push(btn);
+      bx += bw + 4;
+    };
+
+    const hasAdj = enemies.some(e => this.manhattanDist(unit, e) <= (unit.rng || 1));
+    if (hasAdj) makeBtn('⚔️공격', '#7a1a0a', () => this.startAttack('basic'));
+
+    unit.skills.forEach((sk, i) => {
+      if (sk.type === 'heal') {
+        makeBtn(`💚${sk.name}`, '#1a3a5c', () => this.useHealSkill(i));
+      } else {
+        const has = enemies.some(e => this.manhattanDist(unit, e) <= (sk.rng||1));
+        if (has) makeBtn(`✨${sk.name}`, '#1a3a5c', () => this.startAttack('skill', i));
+      }
+    });
+
+    if (this.itemCount > 0) makeBtn(`🧪약(${this.itemCount})`, '#2a5a2a', () => this.useItem());
+    makeBtn('⏳대기', '#2a2a3e', () => this.doWait());
+
+    this.actionBtns = btns;
+  }
+
+  hideActionButtons() {
+    if (this.actionBtns) {
+      this.actionBtns.forEach(b => b.destroy());
+      this.actionBtns = [];
+    }
+  }
+
+  // ── 유틸리티 ──────────────────────────────
+  getAliveUnit(x, y, team) {
+    return this.units.find(u => u.alive && u.x === x && u.y === y && (!team || u.team === team));
+  }
+
+  manhattanDist(a, b) {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  }
+
+  setGuide(text) {
+    if (this.guideText) this.guideText.setText(text);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 🏆 VictoryScene — 승리 화면
+// ══════════════════════════════════════════════════
+class VictoryScene extends Phaser.Scene {
+  constructor() { super('Victory'); }
+
+  create() {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    this.cameras.main.setBackgroundColor('#0a0a14');
+
+    this.add.text(w/2, h*0.15, '🏆', { fontSize: '48px' }).setOrigin(0.5);
+    this.add.text(w/2, h*0.25, '전투 승리!', {
+      fontSize: '24px', fontStyle: 'bold', fill: '#f4d03f',
+      fontFamily: 'Noto Serif KR, serif'
+    }).setOrigin(0.5);
+
+    // 보상
+    this.add.rectangle(w/2, h*0.36, w*0.85, 50, 0x151520)
+      .setStrokeStyle(1, 0xc4956a, 0.3);
+    this.add.text(w/2, h*0.36, '🎁 ' + VICTORY_DATA.reward, {
+      fontSize: '14px', fontStyle: 'bold', fill: '#f4d03f'
+    }).setOrigin(0.5);
+
+    // 역사 노트
+    this.add.rectangle(w/2, h*0.56, w*0.88, 130, 0x0a0a14)
+      .setStrokeStyle(1, 0xffffff, 0.07);
+    this.add.text(w/2, h*0.47, '📖 역사 포인트', {
+      fontSize: '12px', fontStyle: 'bold', fill: '#c4956a'
+    }).setOrigin(0.5);
+    this.add.text(w/2, h*0.58, VICTORY_DATA.historyNote, {
+      fontSize: '11px', fill: '#aaa', wordWrap: { width: w*0.8 },
+      lineSpacing: 6, align: 'center'
+    }).setOrigin(0.5);
+
+    // 다시하기
+    const btn = this.add.text(w/2, h*0.8, '🔄 다시 플레이', {
+      fontSize: '16px', fill: '#e8dcc8', fontStyle: 'bold',
+      backgroundColor: '#6B1A0A', padding: { x: 24, y: 12 }
+    }).setOrigin(0.5).setInteractive();
+    btn.on('pointerdown', () => this.scene.start('Title'));
+
+    this.cameras.main.fadeIn(800);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 🎮 게임 실행
+// ══════════════════════════════════════════════════
+const config = {
+  type: Phaser.AUTO,
+  width: window.innerWidth,
+  height: window.innerHeight,
+  parent: 'game-container',
+  backgroundColor: '#0a0a14',
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+  scene: [BootScene, TitleScene, StoryScene, BattleScene, VictoryScene],
+};
+
+const game = new Phaser.Game(config);
+</script></body></html>
