@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>한국사 영웅전 — EP.1</title>
+<title>한국사 영웅전 v2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -17,233 +17,439 @@ body{background:#0a0a14;overflow:hidden;width:100vw;height:100vh;touch-action:no
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script>
 // ============================================================
-// 📜 data.js — 게임 데이터 (스토리, 맵, 유닛)
+// 🔊 AudioManager — Web Audio API 사운드 시스템
 // ============================================================
-// 이 파일만 수정하면 스토리·캐릭터·맵을 바꿀 수 있어요!
+class AudioManager {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+    this.bgmGain = null;
+    this.sfxGain = null;
+    this.currentBGM = null;
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.bgmGain = this.ctx.createGain();
+      this.bgmGain.gain.value = 0.12;
+      this.bgmGain.connect(this.ctx.destination);
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.value = 0.25;
+      this.sfxGain.connect(this.ctx.destination);
+      this.initialized = true;
+    } catch(e) { console.warn('Audio not available'); }
+  }
+
+  toggle() {
+    this.muted = !this.muted;
+    if (this.bgmGain) this.bgmGain.gain.value = this.muted ? 0 : 0.12;
+    if (this.sfxGain) this.sfxGain.gain.value = this.muted ? 0 : 0.25;
+    return this.muted;
+  }
+
+  // 한국 전통 펜타토닉 스케일 (궁상각치우)
+  pentatonic(base, idx) {
+    const intervals = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
+    return base * Math.pow(2, intervals[idx % intervals.length] / 12);
+  }
+
+  playBGM(type) {
+    if (!this.ctx) return;
+    this.stopBGM();
+    const play = () => {
+      if (this.muted || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const baseFreq = type === 'battle' ? 220 : type === 'title' ? 261.63 : 329.63;
+      const tempo = type === 'battle' ? 0.25 : 0.5;
+      const melodyLen = type === 'battle' ? 16 : 8;
+      const melody = [];
+      
+      for (let i = 0; i < melodyLen; i++) {
+        const noteIdx = type === 'battle' 
+          ? [0,2,4,3,1,4,2,0,3,1,4,2,0,3,4,1][i]
+          : [0,2,4,3,2,4,3,0][i];
+        melody.push(this.pentatonic(baseFreq, noteIdx));
+      }
+
+      melody.forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        osc.type = type === 'battle' ? 'sawtooth' : 'sine';
+        osc.frequency.value = freq;
+        env.gain.setValueAtTime(0, now + i * tempo);
+        env.gain.linearRampToValueAtTime(0.3, now + i * tempo + 0.05);
+        env.gain.linearRampToValueAtTime(0, now + i * tempo + tempo * 0.9);
+        osc.connect(env);
+        env.connect(this.bgmGain);
+        osc.start(now + i * tempo);
+        osc.stop(now + i * tempo + tempo);
+      });
+
+      this.currentBGM = setTimeout(() => play(), melodyLen * tempo * 1000);
+    };
+    play();
+  }
+
+  stopBGM() {
+    if (this.currentBGM) { clearTimeout(this.currentBGM); this.currentBGM = null; }
+  }
+
+  playSFX(type) {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const env = this.ctx.createGain();
+    
+    switch(type) {
+      case 'hit':
+        osc.type = 'square'; osc.frequency.value = 150;
+        osc.frequency.linearRampToValueAtTime(80, now + 0.1);
+        env.gain.setValueAtTime(0.4, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.15);
+        break;
+      case 'skill':
+        osc.type = 'sine'; osc.frequency.value = 400;
+        osc.frequency.linearRampToValueAtTime(800, now + 0.2);
+        env.gain.setValueAtTime(0.3, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.3);
+        break;
+      case 'heal':
+        osc.type = 'sine'; osc.frequency.value = 523;
+        osc.frequency.linearRampToValueAtTime(784, now + 0.15);
+        osc.frequency.linearRampToValueAtTime(1047, now + 0.3);
+        env.gain.setValueAtTime(0.2, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.4);
+        break;
+      case 'death':
+        osc.type = 'sawtooth'; osc.frequency.value = 200;
+        osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+        env.gain.setValueAtTime(0.3, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.4);
+        break;
+      case 'click':
+        osc.type = 'sine'; osc.frequency.value = 600;
+        env.gain.setValueAtTime(0.15, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.05);
+        break;
+      case 'levelup':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.1);
+        osc.frequency.setValueAtTime(784, now + 0.2);
+        osc.frequency.setValueAtTime(1047, now + 0.3);
+        env.gain.setValueAtTime(0.3, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.5);
+        break;
+      case 'victory':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.15);
+        osc.frequency.setValueAtTime(784, now + 0.3);
+        osc.frequency.setValueAtTime(1047, now + 0.45);
+        env.gain.setValueAtTime(0.3, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.7);
+        break;
+      case 'crit':
+        osc.type = 'square'; osc.frequency.value = 300;
+        osc.frequency.linearRampToValueAtTime(600, now + 0.05);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        env.gain.setValueAtTime(0.5, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.25);
+        break;
+      default:
+        osc.type = 'sine'; osc.frequency.value = 440;
+        env.gain.setValueAtTime(0.2, now);
+        env.gain.linearRampToValueAtTime(0, now + 0.1);
+    }
+    osc.connect(env);
+    env.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.7);
+  }
+}
+
+const audioMgr = new AudioManager();
+
+// ============================================================
+// 💾 SaveManager — localStorage 세이브/로드
+// ============================================================
+class SaveManager {
+  static save(data) {
+    try {
+      data.date = new Date().toLocaleDateString('ko-KR');
+      localStorage.setItem('history-rpg-save', JSON.stringify(data));
+    } catch(e) {}
+  }
+  static load() {
+    try {
+      const d = localStorage.getItem('history-rpg-save');
+      return d ? JSON.parse(d) : null;
+    } catch(e) { return null; }
+  }
+  static clear() {
+    try { localStorage.removeItem('history-rpg-save'); } catch(e) {}
+  }
+}
+
+// ============================================================
+// 📜 게임 데이터
 // ============================================================
 
-// ── 에피소드 1 스토리 ─────────────────────────────
-const STORY_LINES = [
-  { speaker: "해설", text: "아득한 옛날, 하늘 위 천상계를 환인(桓因) 천제가 다스리고 있었다." },
-  { speaker: "해설", text: "환인에게는 서자(庶子) 환웅이 있었는데, 자꾸 인간 세상을 내려다보며 탐을 냈다." },
-  { speaker: "환웅", text: "\"아버지, 저 아래 인간들은 고통 속에 살고 있습니다. 제가 내려가 널리 이롭게 하고 싶습니다.\"" },
-  { speaker: "환인", text: "\"네 뜻이 그러하다면... 태백산 신단수까지 내려가 보아라. 다만 쉽지 않을 것이다.\"" },
-  { speaker: "환인", text: "\"내 천장(天將)들을 보내 네 의지를 시험하겠다. 이겨낸다면 천부인 세 개를 주마.\"" },
-  { speaker: "해설", text: "환웅은 풍백(風伯)·우사(雨師)·운사(雲師) 세 신장을 이끌고 하강을 시작했다." },
-  { speaker: "해설", text: "태백산 꼭대기의 신단수(神壇樹)를 향해 — 환인의 시련이 기다리고 있었다." },
-  { speaker: "역사", text: "▶ 환웅의 하강은 고조선 건국 신화의 시작입니다. '홍익인간(弘益人間)' — 널리 인간을 이롭게 하라는 건국 이념은 지금도 대한민국 교육이념의 뿌리입니다." },
-];
-
-// ── 지형 타일 종류 ────────────────────────────────
-// 각 숫자가 맵에서 어떤 땅인지 정의
-const TILE = {
-  PLAIN:  0,  // 평원 (이동 가능)
-  FOREST: 1,  // 숲 (이동 불가, 장애물)
-  MOUNT:  2,  // 산 (이동 불가)
-  WATER:  3,  // 강/물 (이동 불가)
-  SACRED: 4,  // 신단수 (목표지점)
-  PATH:   5,  // 길 (이동 가능, 보너스)
-  CLOUD:  6,  // 구름바다 (이동 불가)
-  PEAK:   7,  // 높은 산봉우리 (이동 불가)
+// ── 에피소드 1: 환웅의 하강 ─────────────────────────
+const EPISODES = {
+  1: {
+    title: 'EP.1 환웅의 하강',
+    subtitle: '천상의 시련',
+    era: 'BC 2333 고조선 건국 신화',
+    storyLines: [
+      { speaker: "해설", text: "아득한 옛날, 하늘 위 천상계를 환인(桓因) 천제가 다스리고 있었다." },
+      { speaker: "해설", text: "환인에게는 서자(庶子) 환웅이 있었는데, 자꾸 인간 세상을 내려다보며 탐을 냈다." },
+      { speaker: "환웅", text: "아버지, 저 아래 인간들은 고통 속에 살고 있습니다. 제가 내려가 널리 이롭게 하고 싶습니다." },
+      { speaker: "환인", text: "네 뜻이 그러하다면... 태백산 신단수까지 내려가 보아라. 다만 쉽지 않을 것이다." },
+      { speaker: "환인", text: "내 천장(天將)들을 보내 네 의지를 시험하겠다. 이겨낸다면 천부인 세 개를 주마." },
+      { speaker: "해설", text: "환웅은 풍백(風伯)·우사(雨師)·운사(雲師) 세 신장을 이끌고 하강을 시작했다." },
+      { speaker: "해설", text: "태백산 꼭대기의 신단수(神壇樹)를 향해 — 환인의 시련이 기다리고 있었다." },
+      { speaker: "역사", text: "▶ 환웅의 하강은 고조선 건국 신화의 시작입니다. 홍익인간(弘益人間) — 널리 인간을 이롭게 하라는 건국 이념은 지금도 대한민국 교육이념의 뿌리입니다." },
+    ],
+    mapData: [
+      [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
+      [6,6,6,6,6,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6],
+      [6,6,6,5,5,0,0,0,0,0,0,0,0,0,5,5,6,6,6,6],
+      [6,6,5,0,0,0,0,1,0,0,0,1,0,0,0,0,5,6,6,6],
+      [6,5,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,5,6,6],
+      [6,0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,6,6],
+      [2,1,0,0,0,0,1,0,5,0,0,1,0,0,0,0,1,0,2,6],
+      [7,2,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,2,7],
+      [2,0,0,1,0,0,0,0,5,0,0,0,0,1,0,0,0,0,0,2],
+      [0,0,0,0,0,3,3,0,5,0,3,3,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,3,3,0,5,0,3,3,0,0,0,1,0,0,0,0],
+      [0,0,0,1,0,0,0,0,5,0,0,0,0,0,0,0,0,1,0,0],
+      [0,0,0,0,0,0,0,0,5,0,0,0,1,0,0,0,0,0,0,0],
+      [1,0,0,0,0,1,0,5,5,5,0,1,0,0,0,0,0,0,0,1],
+      [0,0,0,0,0,0,0,5,0,5,0,0,0,0,1,0,0,0,0,0],
+      [0,0,1,0,0,0,5,0,0,0,5,0,0,0,0,0,1,0,0,0],
+      [1,0,0,0,0,1,0,0,4,0,0,1,0,0,0,0,0,0,1,0],
+      [0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,0,0,0],
+      [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0],
+      [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+    ],
+    allies: [
+      { id:'hwanwoong', name:'환웅', title:'환인의 아들, 천왕(天王)',
+        hp:65, maxHp:65, atk:18, def:7, mov:4, rng:1, level:1, xp:0,
+        skills: [
+          { name:'천부인·뇌격', type:'attack', dmg:28, rng:2, desc:'천부인의 번개를 내린다', element:'thunder' },
+          { name:'홍익신광', type:'heal', amount:25, desc:'홍익의 빛으로 회복' },
+        ],
+        colors: { armor:'#8B6914', cape:'#FFD700', flag:'#DAA520', skin:'#DEB887' },
+        startX:8, startY:2 },
+      { id:'pungbaek', name:'풍백', title:'바람의 신장, 선봉대장',
+        hp:45, maxHp:45, atk:15, def:4, mov:5, rng:1, level:1, xp:0,
+        skills: [
+          { name:'질풍참', type:'attack', dmg:22, rng:1, desc:'바람의 칼날로 베어낸다', element:'wind' },
+        ],
+        colors: { armor:'#006400', cape:'#2E8B57', flag:'#3CB371', skin:'#DEB887' },
+        startX:7, startY:3 },
+      { id:'wusa', name:'우사', title:'비의 신장, 군의관',
+        hp:38, maxHp:38, atk:10, def:5, mov:3, rng:2, level:1, xp:0,
+        skills: [
+          { name:'치유의 비', type:'heal', amount:22, desc:'비의 축복으로 회복' },
+          { name:'폭우격', type:'attack', dmg:18, rng:2, desc:'폭우를 쏟아붓는다', element:'water' },
+        ],
+        colors: { armor:'#1a3a6a', cape:'#4169E1', flag:'#4682B4', skin:'#DEB887' },
+        startX:9, startY:3 },
+      { id:'wunsa', name:'운사', title:'구름의 신장, 참모',
+        hp:40, maxHp:40, atk:13, def:5, mov:4, rng:1, level:1, xp:0,
+        skills: [
+          { name:'운무차폐', type:'heal', amount:18, desc:'안개로 아군을 숨겨 회복' },
+          { name:'뇌운격', type:'attack', dmg:20, rng:1, desc:'번개구름을 떨어뜨린다', element:'thunder' },
+        ],
+        colors: { armor:'#4a2a6a', cape:'#8A2BE2', flag:'#9370DB', skin:'#DEB887' },
+        startX:8, startY:4 },
+    ],
+    enemies: [
+      { id:'chunmu', name:'천무장', title:'환인의 제1천장, 총사령관',
+        hp:55, maxHp:55, atk:17, def:6, mov:3, rng:1,
+        skills: [{ name:'천벌격', type:'attack', dmg:24, rng:1, desc:'하늘의 벌을 내린다', element:'thunder' }],
+        colors: { armor:'#8B0000', cape:'#FF0000', flag:'#CD3333', skin:'#DEB887' },
+        startX:8, startY:12 },
+      { id:'noegong', name:'뇌공', title:'천둥의 장수',
+        hp:40, maxHp:40, atk:15, def:4, mov:4, rng:2,
+        skills: [{ name:'낙뢰', type:'attack', dmg:20, rng:2, desc:'번개를 떨어뜨린다', element:'thunder' }],
+        colors: { armor:'#8B4500', cape:'#FF8C00', flag:'#CD6600', skin:'#DEB887' },
+        startX:6, startY:10 },
+      { id:'hwasin', name:'화신', title:'불의 장수',
+        hp:38, maxHp:38, atk:16, def:3, mov:4, rng:1,
+        skills: [{ name:'화염선풍', type:'attack', dmg:22, rng:1, desc:'불의 소용돌이', element:'fire' }],
+        colors: { armor:'#8B1A1A', cape:'#FF4500', flag:'#EE3B3B', skin:'#DEB887' },
+        startX:10, startY:10 },
+      { id:'sanryeong', name:'산령', title:'산의 수호자',
+        hp:48, maxHp:48, atk:13, def:9, mov:2, rng:1,
+        skills: [{ name:'대지의 축복', type:'heal', amount:20, desc:'대지의 힘으로 회복' }],
+        colors: { armor:'#5a4a3a', cape:'#A0522D', flag:'#8B7355', skin:'#DEB887' },
+        startX:8, startY:14 },
+      { id:'sujang', name:'수장', title:'물의 장수',
+        hp:36, maxHp:36, atk:14, def:4, mov:3, rng:2,
+        skills: [{ name:'해일', type:'attack', dmg:18, rng:2, desc:'물의 파도를 일으킨다', element:'water' }],
+        colors: { armor:'#104E8B', cape:'#1E90FF', flag:'#1C86EE', skin:'#DEB887' },
+        startX:7, startY:11 },
+    ],
+    victory: {
+      reward: '천부인(天符印) 세 개 — 거울·칼·방울 각성!',
+      historyNote: '환인의 시련을 통과한 환웅은 천부인 세 개를 가지고 태백산 신단수 아래로 내려왔다. 풍백·우사·운사와 3,000의 무리를 이끌고 신시(神市)를 열어 인간 세상을 다스렸다. 이것이 고조선 건국의 서막이다. (BC 2333년)',
+    },
+  },
+  2: {
+    title: 'EP.2 살수대첩',
+    subtitle: '을지문덕의 지략',
+    era: 'AD 612 고구려 vs 수나라',
+    storyLines: [
+      { speaker: "해설", text: "612년, 수나라 양제가 113만 대군을 이끌고 고구려를 침공했다." },
+      { speaker: "해설", text: "고구려의 대신 을지문덕은 적장 우중문의 30만 별동대를 상대해야 했다." },
+      { speaker: "을지문덕", text: "적의 수가 많으나 두려워할 것 없다. 물과 산을 아군으로 삼으면 된다." },
+      { speaker: "강이식", text: "장군, 살수(청천강)에 둑을 쌓아 물을 막아두었습니다. 명만 내리십시오!" },
+      { speaker: "을지문덕", text: "좋다. 거짓 후퇴로 적을 살수까지 끌어들여라. 강을 건널 때 둑을 터뜨린다!" },
+      { speaker: "해설", text: "을지문덕은 일곱 번 싸워 일곱 번 져주며 수나라군을 깊이 유인했다." },
+      { speaker: "해설", text: "지친 수나라군이 살수를 건너려는 순간 — 결전의 때가 왔다." },
+      { speaker: "역사", text: "▶ 살수대첩(612)은 고구려 을지문덕 장군이 수나라 30만 대군을 살수(청천강)에서 대파한 전투입니다. 30만 중 살아 돌아간 것은 겨우 2,700명. 세계 전쟁사에 남는 대승이었습니다." },
+    ],
+    mapData: [
+      [0,0,0,1,0,0,0,2,2,2,2,2,0,0,0,1,0,0,0,0],
+      [0,0,1,0,0,0,0,2,7,7,7,2,0,0,0,0,1,0,0,0],
+      [0,0,0,0,0,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0],
+      [1,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+      [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+      [0,0,0,0,5,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0],
+      [0,0,1,0,5,0,0,1,0,0,0,1,0,5,0,1,0,0,0,0],
+      [0,0,0,0,5,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0],
+      [1,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,1,0,0],
+      [0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
+      [0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+      [2,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,2,0,0],
+      [2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0],
+      [7,2,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,2,7,0],
+      [7,2,2,0,0,0,0,0,1,0,1,0,0,0,0,0,2,2,7,0],
+      [7,7,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,7,7,0],
+    ],
+    allies: [
+      { id:'eulji', name:'을지문덕', title:'고구려 대신, 살수의 영웅',
+        hp:60, maxHp:60, atk:16, def:8, mov:4, rng:1, level:1, xp:0,
+        skills: [
+          { name:'칠종칠금', type:'attack', dmg:26, rng:1, desc:'7전7기의 비책으로 강타', element:'wind' },
+          { name:'지략: 수공', type:'attack', dmg:30, rng:3, desc:'물길을 터뜨려 광역 공격', element:'water' },
+        ],
+        colors: { armor:'#2F4F4F', cape:'#00CED1', flag:'#20B2AA', skin:'#DEB887' },
+        startX:9, startY:10 },
+      { id:'gangisik', name:'강이식', title:'고구려 기병대장',
+        hp:50, maxHp:50, atk:17, def:5, mov:5, rng:1, level:1, xp:0,
+        skills: [
+          { name:'기마돌격', type:'attack', dmg:24, rng:1, desc:'기병의 돌격으로 적을 꿰뚫는다', element:'wind' },
+        ],
+        colors: { armor:'#4a3728', cape:'#8B4513', flag:'#A0522D', skin:'#DEB887' },
+        startX:7, startY:9 },
+      { id:'gogunmu', name:'고건무', title:'고구려 궁병대장',
+        hp:35, maxHp:35, atk:14, def:3, mov:3, rng:3, level:1, xp:0,
+        skills: [
+          { name:'화살비', type:'attack', dmg:20, rng:3, desc:'화살 세례를 퍼붓는다', element:'fire' },
+        ],
+        colors: { armor:'#556B2F', cape:'#6B8E23', flag:'#808000', skin:'#DEB887' },
+        startX:11, startY:9 },
+      { id:'eulpaso', name:'을파소', title:'고구려 참모',
+        hp:38, maxHp:38, atk:11, def:6, mov:3, rng:2, level:1, xp:0,
+        skills: [
+          { name:'전술지원', type:'heal', amount:22, desc:'아군 사기를 북돋워 회복' },
+          { name:'화공', type:'attack', dmg:18, rng:2, desc:'불화살을 날린다', element:'fire' },
+        ],
+        colors: { armor:'#483D8B', cape:'#6A5ACD', flag:'#7B68EE', skin:'#DEB887' },
+        startX:9, startY:11 },
+    ],
+    enemies: [
+      { id:'umunsu', name:'우문술', title:'수나라 대장군',
+        hp:58, maxHp:58, atk:18, def:7, mov:3, rng:1,
+        skills: [{ name:'제국의 일격', type:'attack', dmg:26, rng:1, desc:'수나라 대장군의 일격', element:'fire' }],
+        colors: { armor:'#8B0000', cape:'#FF0000', flag:'#DC143C', skin:'#F5DEB3' },
+        startX:9, startY:3 },
+      { id:'ujungmun', name:'우중문', title:'수나라 선봉장',
+        hp:45, maxHp:45, atk:16, def:5, mov:4, rng:1,
+        skills: [{ name:'돌격진', type:'attack', dmg:22, rng:1, desc:'선봉대의 돌격', element:'wind' }],
+        colors: { armor:'#8B4500', cape:'#FF6347', flag:'#FF4500', skin:'#F5DEB3' },
+        startX:7, startY:4 },
+      { id:'suCav', name:'수나라 기병', title:'수나라 기병대',
+        hp:38, maxHp:38, atk:15, def:3, mov:5, rng:1,
+        skills: [],
+        colors: { armor:'#A52A2A', cape:'#CD5C5C', flag:'#B22222', skin:'#F5DEB3' },
+        startX:11, startY:4 },
+      { id:'suArch', name:'수나라 궁병', title:'수나라 궁병대',
+        hp:32, maxHp:32, atk:13, def:2, mov:3, rng:3,
+        skills: [{ name:'연사', type:'attack', dmg:16, rng:3, desc:'연속 사격', element:'fire' }],
+        colors: { armor:'#8B6914', cape:'#DAA520', flag:'#B8860B', skin:'#F5DEB3' },
+        startX:9, startY:1 },
+      { id:'suInf', name:'수나라 보병', title:'수나라 보병대',
+        hp:42, maxHp:42, atk:14, def:6, mov:3, rng:1,
+        skills: [],
+        colors: { armor:'#800000', cape:'#CD5555', flag:'#8B3A3A', skin:'#F5DEB3' },
+        startX:5, startY:3 },
+    ],
+    victory: {
+      reward: '살수대첩 승전보! 고구려의 영광!',
+      historyNote: '을지문덕의 살수대첩으로 수나라 30만 별동대 중 겨우 2,700명만 살아 돌아갔다. 이 패배로 수나라는 급격히 쇠퇴하여 멸망의 길을 걷게 된다. 을지문덕은 한국사 최고의 명장 중 한 명으로 기억된다.',
+    },
+  },
 };
 
-// 타일별 색상과 정보
+// ── 타일 정의 ─────────────────────────────────
+const TILE = { PLAIN:0, FOREST:1, MOUNT:2, WATER:3, SACRED:4, PATH:5, CLOUD:6, PEAK:7 };
 const TILE_INFO = {
-  [TILE.PLAIN]:  { name: '평원',   colors: ['#5a8a3a','#4d7a32'], passable: true },
-  [TILE.FOREST]: { name: '숲',     colors: ['#2d5a1a','#1f4a12'], passable: false },
-  [TILE.MOUNT]:  { name: '산',     colors: ['#7a7a6a','#6a6a5a'], passable: false },
-  [TILE.WATER]:  { name: '강',     colors: ['#2a5a8a','#1a4a7a'], passable: false },
-  [TILE.SACRED]: { name: '신단수', colors: ['#8a8a2a','#9a9a3a'], passable: true },
-  [TILE.PATH]:   { name: '길',     colors: ['#8a7a5a','#7a6a4a'], passable: true },
-  [TILE.CLOUD]:  { name: '구름',   colors: ['#aabbdd','#99aacc'], passable: false },
-  [TILE.PEAK]:   { name: '높은산', colors: ['#9a9a8a','#8a8a7a'], passable: false },
+  [TILE.PLAIN]:  { name:'평원',   colors:['#5a8a3a','#4d7a32'], passable:true, defBonus:0 },
+  [TILE.FOREST]: { name:'숲',     colors:['#2d5a1a','#1f4a12'], passable:false, defBonus:2 },
+  [TILE.MOUNT]:  { name:'산',     colors:['#7a7a6a','#6a6a5a'], passable:false, defBonus:0 },
+  [TILE.WATER]:  { name:'강',     colors:['#2a5a8a','#1a4a7a'], passable:false, defBonus:0 },
+  [TILE.SACRED]: { name:'신단수', colors:['#8a8a2a','#9a9a3a'], passable:true, defBonus:0, healBonus:5 },
+  [TILE.PATH]:   { name:'길',     colors:['#8a7a5a','#7a6a4a'], passable:true, defBonus:0, movBonus:1 },
+  [TILE.CLOUD]:  { name:'구름',   colors:['#aabbdd','#99aacc'], passable:false, defBonus:0 },
+  [TILE.PEAK]:   { name:'높은산', colors:['#9a9a8a','#8a8a7a'], passable:false, defBonus:0 },
 };
 
-// ── 맵 데이터 (20×20 태백산 일대) ─────────────────
-// 위(천상) → 아래(태백산 신단수) 구조
-// 환웅 부대는 위쪽(천상)에서 시작, 환인의 천장들은 중간~아래에 배치
-const MAP_DATA = [
-  [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
-  [6,6,6,6,6,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6],
-  [6,6,6,5,5,0,0,0,0,0,0,0,0,0,5,5,6,6,6,6],
-  [6,6,5,0,0,0,0,1,0,0,0,1,0,0,0,0,5,6,6,6],
-  [6,5,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,5,6,6],
-  [6,0,0,0,0,0,0,0,5,5,0,0,0,0,0,0,0,0,6,6],
-  [2,1,0,0,0,0,1,0,5,0,0,1,0,0,0,0,1,0,2,6],
-  [7,2,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,2,7],
-  [2,0,0,1,0,0,0,0,5,0,0,0,0,1,0,0,0,0,0,2],
-  [0,0,0,0,0,3,3,0,5,0,3,3,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,3,3,0,5,0,3,3,0,0,0,1,0,0,0,0],
-  [0,0,0,1,0,0,0,0,5,0,0,0,0,0,0,0,0,1,0,0],
-  [0,0,0,0,0,0,0,0,5,0,0,0,1,0,0,0,0,0,0,0],
-  [1,0,0,0,0,1,0,5,5,5,0,1,0,0,0,0,0,0,0,1],
-  [0,0,0,0,0,0,0,5,0,5,0,0,0,0,1,0,0,0,0,0],
-  [0,0,1,0,0,0,5,0,0,0,5,0,0,0,0,0,1,0,0,0],
-  [1,0,0,0,0,1,0,0,4,0,0,1,0,0,0,0,0,0,1,0],
-  [0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,0,0,0],
-  [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0],
-  [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+// ── 날씨 시스템 ───────────────────────────────
+const WEATHERS = [
+  { id:'clear', name:'맑음', icon:'☀️', movMod:0, atkMod:0, desc:'화창한 날씨' },
+  { id:'rain', name:'비', icon:'🌧️', movMod:-1, atkMod:0, desc:'이동력 -1' },
+  { id:'snow', name:'눈', icon:'🌨️', movMod:0, atkMod:-2, desc:'공격력 -2' },
+  { id:'fog', name:'안개', icon:'🌫️', movMod:0, atkMod:0, desc:'시야 감소', fogOfWar:true },
 ];
 
-// ── 유닛 데이터 ───────────────────────────────────
-// 아군 (환웅 진영)
-const ALLY_UNITS = [
-  {
-    id: 'hwanwoong',
-    name: '환웅',
-    title: '환인의 아들, 천왕(天王)',
-    hp: 65, maxHp: 65,
-    atk: 18, def: 7, mov: 4, rng: 1,
-    skills: [
-      { name: '천부인·뇌격', type: 'attack', dmg: 28, rng: 2, desc: '천부인의 번개를 내린다' },
-      { name: '홍익신광', type: 'heal', amount: 25, desc: '홍익의 빛으로 회복' },
-    ],
-    // 군대 색상 (갑옷, 깃발, 망토)
-    colors: { armor: '#8B6914', cape: '#FFD700', flag: '#DAA520', skin: '#DEB887' },
-    startX: 8, startY: 2,  // 맵에서 시작 위치
-  },
-  {
-    id: 'pungbaek',
-    name: '풍백',
-    title: '바람의 신장, 선봉대장',
-    hp: 45, maxHp: 45,
-    atk: 15, def: 4, mov: 5, rng: 1,
-    skills: [
-      { name: '질풍참', type: 'attack', dmg: 22, rng: 1, desc: '바람의 칼날로 베어낸다' },
-    ],
-    colors: { armor: '#006400', cape: '#2E8B57', flag: '#3CB371', skin: '#DEB887' },
-    startX: 7, startY: 3,
-  },
-  {
-    id: 'wusa',
-    name: '우사',
-    title: '비의 신장, 군의관',
-    hp: 38, maxHp: 38,
-    atk: 10, def: 5, mov: 3, rng: 2,
-    skills: [
-      { name: '치유의 비', type: 'heal', amount: 22, desc: '비의 축복으로 회복' },
-      { name: '폭우격', type: 'attack', dmg: 18, rng: 2, desc: '폭우를 쏟아붓는다' },
-    ],
-    colors: { armor: '#1a3a6a', cape: '#4169E1', flag: '#4682B4', skin: '#DEB887' },
-    startX: 9, startY: 3,
-  },
-  {
-    id: 'wunsa',
-    name: '운사',
-    title: '구름의 신장, 참모',
-    hp: 40, maxHp: 40,
-    atk: 13, def: 5, mov: 4, rng: 1,
-    skills: [
-      { name: '운무차폐', type: 'heal', amount: 18, desc: '안개로 아군을 숨겨 회복' },
-      { name: '뇌운격', type: 'attack', dmg: 20, rng: 1, desc: '번개구름을 떨어뜨린다' },
-    ],
-    colors: { armor: '#4a2a6a', cape: '#8A2BE2', flag: '#9370DB', skin: '#DEB887' },
-    startX: 8, startY: 4,
-  },
-];
-
-// 적군 (환인의 천장들)
-const ENEMY_UNITS = [
-  {
-    id: 'chunmu',
-    name: '천무장',
-    title: '환인의 제1천장, 총사령관',
-    hp: 55, maxHp: 55,
-    atk: 17, def: 6, mov: 3, rng: 1,
-    skills: [],
-    colors: { armor: '#8B0000', cape: '#FF0000', flag: '#CD3333', skin: '#DEB887' },
-    startX: 8, startY: 12,
-  },
-  {
-    id: 'noegong',
-    name: '뇌공',
-    title: '천둥의 장수',
-    hp: 40, maxHp: 40,
-    atk: 15, def: 4, mov: 4, rng: 2,
-    skills: [],
-    colors: { armor: '#8B4500', cape: '#FF8C00', flag: '#CD6600', skin: '#DEB887' },
-    startX: 6, startY: 10,
-  },
-  {
-    id: 'hwasin',
-    name: '화신',
-    title: '불의 장수',
-    hp: 38, maxHp: 38,
-    atk: 16, def: 3, mov: 4, rng: 1,
-    skills: [],
-    colors: { armor: '#8B1A1A', cape: '#FF4500', flag: '#EE3B3B', skin: '#DEB887' },
-    startX: 10, startY: 10,
-  },
-  {
-    id: 'sanryeong',
-    name: '산령',
-    title: '산의 수호자',
-    hp: 48, maxHp: 48,
-    atk: 13, def: 9, mov: 2, rng: 1,
-    skills: [],
-    colors: { armor: '#5a4a3a', cape: '#A0522D', flag: '#8B7355', skin: '#DEB887' },
-    startX: 8, startY: 14,
-  },
-  {
-    id: 'sujang',
-    name: '수장',
-    title: '물의 장수',
-    hp: 36, maxHp: 36,
-    atk: 14, def: 4, mov: 3, rng: 2,
-    skills: [],
-    colors: { armor: '#104E8B', cape: '#1E90FF', flag: '#1C86EE', skin: '#DEB887' },
-    startX: 7, startY: 11,
-  },
-];
-
-// ── 승리 보상 ─────────────────────────────────────
-const VICTORY_DATA = {
-  reward: '천부인(天符印) 세 개 — 거울·칼·방울 각성!',
-  historyNote: '환인의 시련을 통과한 환웅은 천부인 세 개를 가지고 태백산 신단수 아래로 내려왔다. 풍백·우사·운사와 3,000의 무리를 이끌고 신시(神市)를 열어 인간 세상을 다스렸다. 이것이 고조선 건국의 서막이다. (BC 2333년)',
-};
-// ============================================================
-// ⚔️ game.js — 게임 엔진 (Phaser 3)
-// ============================================================
-
-// ── 전역 설정 ─────────────────────────────────────
-const CELL = 48;         // 타일 한 칸 크기 (픽셀)
-const MAP_W = 20;        // 맵 가로 칸 수
-const MAP_H = 20;        // 맵 세로 칸 수
+// ── 전역 설정 ─────────────────────────────────
+const CELL = 48;
+const MAP_W = 20;
+const MAP_H = 20;
+let currentEpisode = 1;
+let gameState = { unitLevels: {}, currentEp: 1 };
 
 // ══════════════════════════════════════════════════
-// 🎨 BootScene — 텍스처(그림) 생성
+// 🎨 BootScene
 // ══════════════════════════════════════════════════
 class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
-
   create() {
-    // 타일 텍스처 생성
-    this.generateTileTextures();
-    // 다음 씬으로
-    this.scene.start('Title');
-  }
-
-  generateTileTextures() {
-    // 각 타일 종류별 텍스처
     for (const [key, info] of Object.entries(TILE_INFO)) {
       const g = this.add.graphics();
       g.fillStyle(Phaser.Display.Color.HexStringToColor(info.colors[0]).color);
       g.fillRect(0, 0, CELL, CELL);
-      // 패턴 추가
       g.fillStyle(Phaser.Display.Color.HexStringToColor(info.colors[1]).color, 0.5);
       for (let i = 0; i < 6; i++) {
-        g.fillRect(
-          Phaser.Math.Between(2, CELL-8),
-          Phaser.Math.Between(2, CELL-8),
-          Phaser.Math.Between(3, 8),
-          Phaser.Math.Between(3, 8)
-        );
+        g.fillRect(Phaser.Math.Between(2,CELL-8), Phaser.Math.Between(2,CELL-8),
+          Phaser.Math.Between(3,8), Phaser.Math.Between(3,8));
       }
-      g.generateTexture('tile_' + key, CELL, CELL);
+      g.generateTexture('tile_'+key, CELL, CELL);
       g.destroy();
     }
-
-    // 타일 디테일 (나무, 산 등)은 BattleScene에서 직접 그림
+    this.scene.start('Title');
   }
 }
 
@@ -254,156 +460,178 @@ class TitleScene extends Phaser.Scene {
   constructor() { super('Title'); }
 
   create() {
+    audioMgr.init();
+    audioMgr.playBGM('title');
     const w = this.cameras.main.width;
     const h = this.cameras.main.height;
-
-    // 배경
     this.cameras.main.setBackgroundColor('#0a0a14');
 
-    // 제목
-    this.add.text(w/2, h*0.18, 'TACTICAL RPG · EPISODE 1', {
-      fontSize: '12px', fill: '#8a7a6a', letterSpacing: 4
+    // 파티클 배경
+    this.particles = [];
+    for (let i = 0; i < 30; i++) {
+      const p = this.add.circle(
+        Phaser.Math.Between(0, w), Phaser.Math.Between(0, h),
+        Phaser.Math.Between(1, 3), 0xc4956a, Phaser.Math.FloatBetween(0.05, 0.2)
+      );
+      this.particles.push({ obj: p, vy: -Phaser.Math.FloatBetween(0.1, 0.4), vx: Phaser.Math.FloatBetween(-0.1, 0.1) });
+    }
+
+    this.add.text(w/2, h*0.12, '택티컬 RPG', { fontSize:'11px', fill:'#8a7a6a', letterSpacing:4 }).setOrigin(0.5);
+    this.add.text(w/2, h*0.22, '한국사 영웅전', {
+      fontSize:'34px', fill:'#c4956a', fontStyle:'bold',
+      fontFamily:'Noto Serif KR, serif',
+      shadow:{offsetX:0,offsetY:0,blur:20,color:'#c4956a66',fill:true}
     }).setOrigin(0.5);
+    this.add.text(w/2, h*0.30, 'v2.0 — 오디오 · 레벨업 · 2에피소드', { fontSize:'11px', fill:'#5a5a5a' }).setOrigin(0.5);
 
-    this.add.text(w/2, h*0.28, '한국사 영웅전', {
-      fontSize: '36px', fill: '#c4956a', fontStyle: 'bold',
-      fontFamily: 'Noto Serif KR, serif',
-      shadow: { offsetX: 0, offsetY: 0, blur: 20, color: '#c4956a66', fill: true }
-    }).setOrigin(0.5);
+    // 에피소드 선택
+    const ep1Btn = this.add.text(w/2, h*0.44, '⚔️  EP.1 환웅의 하강  ⚔️', {
+      fontSize:'16px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#6B1A0A', padding:{x:20,y:12}, fontFamily:'Noto Serif KR, serif'
+    }).setOrigin(0.5).setInteractive({useHandCursor:true});
+    ep1Btn.on('pointerdown', () => { audioMgr.playSFX('click'); this.startEpisode(1); });
 
-    this.add.text(w/2, h*0.36, '에피소드 1 — 환웅의 하강, 천상의 시련', {
-      fontSize: '13px', fill: '#8a7a6a', fontStyle: 'italic'
-    }).setOrigin(0.5);
+    const ep2Btn = this.add.text(w/2, h*0.56, '🏹  EP.2 살수대첩  🏹', {
+      fontSize:'16px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#104E8B', padding:{x:20,y:12}, fontFamily:'Noto Serif KR, serif'
+    }).setOrigin(0.5).setInteractive({useHandCursor:true});
+    ep2Btn.on('pointerdown', () => { audioMgr.playSFX('click'); this.startEpisode(2); });
 
-    // 시작 버튼
-    const startBtn = this.add.text(w/2, h*0.52, '⚔️  출 진  ⚔️', {
-      fontSize: '20px', fill: '#e8dcc8', fontStyle: 'bold',
-      backgroundColor: '#6B1A0A', padding: { x: 28, y: 14 },
-      fontFamily: 'Noto Serif KR, serif'
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    // 이어하기
+    const saveData = SaveManager.load();
+    if (saveData) {
+      const contBtn = this.add.text(w/2, h*0.68, '💾 이어하기 (EP.' + (saveData.currentEp||1) + ')', {
+        fontSize:'13px', fill:'#27ae60', fontStyle:'bold',
+        backgroundColor:'#1a2e1a', padding:{x:16,y:10}
+      }).setOrigin(0.5).setInteractive({useHandCursor:true});
+      contBtn.on('pointerdown', () => {
+        audioMgr.playSFX('click');
+        gameState = saveData;
+        currentEpisode = saveData.currentEp || 1;
+        this.cameras.main.fadeOut(500);
+        this.time.delayedCall(500, () => this.scene.start('Story'));
+      });
+    }
 
-    startBtn.on('pointerdown', () => {
-      this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.time.delayedCall(500, () => this.scene.start('Story'));
+    // 음소거 토글
+    this.muteBtn = this.add.text(w-10, 10, audioMgr.muted ? '🔇' : '🔊', {
+      fontSize:'20px'
+    }).setOrigin(1,0).setInteractive({useHandCursor:true});
+    this.muteBtn.on('pointerdown', () => {
+      const muted = audioMgr.toggle();
+      this.muteBtn.setText(muted ? '🔇' : '🔊');
+      if (!muted) audioMgr.playBGM('title');
     });
 
     // 조작법
-    const helpText = [
-      '▸ 아군 터치 → 파란 범위로 이동',
-      '▸ 이동 후 → 공격/스킬/대기',
-      '▸ 맵을 드래그하여 스크롤',
-      '▸ 적 전멸 = 승리!',
-    ].join('\n');
-    this.add.text(w/2, h*0.74, helpText, {
-      fontSize: '11px', fill: '#555555', lineSpacing: 8, align: 'center'
+    this.add.text(w/2, h*0.82, '▸ 아군 터치 → 이동 → 공격/스킬/대기\n▸ 맵 드래그로 스크롤\n▸ 적 전멸 = 승리!', {
+      fontSize:'10px', fill:'#444', lineSpacing:6, align:'center'
     }).setOrigin(0.5);
 
     this.cameras.main.fadeIn(800);
   }
+
+  startEpisode(ep) {
+    currentEpisode = ep;
+    gameState.currentEp = ep;
+    this.cameras.main.fadeOut(500);
+    this.time.delayedCall(500, () => this.scene.start('Story'));
+  }
+
+  update() {
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
+    this.particles.forEach(p => {
+      p.obj.y += p.vy;
+      p.obj.x += p.vx;
+      if (p.obj.y < -10) { p.obj.y = h+10; p.obj.x = Phaser.Math.Between(0,w); }
+    });
+  }
 }
 
 // ══════════════════════════════════════════════════
-// 📖 StoryScene — 스토리 화면
+// 📖 StoryScene
 // ══════════════════════════════════════════════════
 class StoryScene extends Phaser.Scene {
   constructor() { super('Story'); }
 
   create() {
+    audioMgr.stopBGM();
     this.lineIndex = 0;
+    const ep = EPISODES[currentEpisode];
+    this.lines = ep.storyLines;
     const w = this.cameras.main.width;
     const h = this.cameras.main.height;
     this.cameras.main.setBackgroundColor('#0e0e14');
 
-    // 제목
-    this.add.text(w/2, 30, 'EPISODE 1 · 환웅의 하강', {
-      fontSize: '11px', fill: '#8a7a6a', letterSpacing: 3
+    this.add.text(w/2, 30, ep.title, { fontSize:'11px', fill:'#8a7a6a', letterSpacing:3 }).setOrigin(0.5);
+    this.add.text(w/2, 52, ep.subtitle, {
+      fontSize:'22px', fill:'#c4956a', fontStyle:'bold', fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5);
+    this.add.text(w/2, 72, ep.era, { fontSize:'10px', fill:'#5a5a5a' }).setOrigin(0.5);
 
-    this.add.text(w/2, 52, '천상의 시련', {
-      fontSize: '22px', fill: '#c4956a', fontStyle: 'bold',
-      fontFamily: 'Noto Serif KR, serif'
-    }).setOrigin(0.5);
-
-    // 화자 표시
-    this.speakerText = this.add.text(w/2, h*0.3, '', {
-      fontSize: '12px', fill: '#DAA520', fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    // 대사 박스
+    this.speakerText = this.add.text(w/2, h*0.3, '', { fontSize:'12px', fill:'#DAA520', fontStyle:'bold' }).setOrigin(0.5);
     const boxY = h*0.35;
-    this.add.rectangle(w/2, boxY + 50, w*0.88, 120, 0x0a0a14, 0.8)
-      .setStrokeStyle(1, 0xc4956a, 0.3);
-
-    this.storyText = this.add.text(w/2, boxY + 50, '', {
-      fontSize: '14px', fill: '#e8dcc8', wordWrap: { width: w*0.8 },
-      lineSpacing: 10, align: 'center',
-      fontFamily: 'Noto Serif KR, serif'
+    this.add.rectangle(w/2, boxY+50, w*0.88, 120, 0x0a0a14, 0.8).setStrokeStyle(1, 0xc4956a, 0.3);
+    this.storyText = this.add.text(w/2, boxY+50, '', {
+      fontSize:'14px', fill:'#e8dcc8', wordWrap:{width:w*0.8}, lineSpacing:10, align:'center',
+      fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5);
 
-    // 다음 버튼
     this.nextBtn = this.add.text(w/2, h*0.72, '다음 ▶', {
-      fontSize: '16px', fill: '#e8dcc8', fontStyle: 'bold',
-      backgroundColor: '#6B1A0A', padding: { x: 24, y: 12 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      fontSize:'16px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#6B1A0A', padding:{x:24,y:12}
+    }).setOrigin(0.5).setInteractive({useHandCursor:true});
+    this.nextBtn.on('pointerdown', () => { audioMgr.playSFX('click'); this.advance(); });
 
-    this.nextBtn.on('pointerdown', () => this.advance());
-
-    // 진행 점
     this.dotsContainer = this.add.container(w/2, h*0.82);
-
     this.showLine();
     this.cameras.main.fadeIn(500);
   }
 
   showLine() {
-    const line = STORY_LINES[this.lineIndex];
+    const line = this.lines[this.lineIndex];
     const isHistory = line.text.startsWith('▶');
-
-    this.speakerText.setText(line.speaker === '해설' ? '' : `— ${line.speaker} —`);
+    this.speakerText.setText(line.speaker === '해설' ? '' : '— ' + line.speaker + ' —');
     this.storyText.setText(line.text);
     this.storyText.setColor(isHistory ? '#c4956a' : '#e8dcc8');
-
-    // 마지막 줄이면 버튼 변경
-    if (this.lineIndex >= STORY_LINES.length - 1) {
-      this.nextBtn.setText('⚔️ 전투 개시!');
-    } else {
-      this.nextBtn.setText('다음 ▶');
-    }
-
-    // 점 업데이트
+    this.nextBtn.setText(this.lineIndex >= this.lines.length - 1 ? '⚔️ 전투 개시!' : '다음 ▶');
     this.dotsContainer.removeAll(true);
-    for (let i = 0; i < STORY_LINES.length; i++) {
-      const dot = this.add.circle(
-        (i - STORY_LINES.length/2) * 12, 0,
-        3, i <= this.lineIndex ? 0xc4956a : 0x333333
-      );
+    for (let i = 0; i < this.lines.length; i++) {
+      const dot = this.add.circle((i - this.lines.length/2)*12, 0, 3, i <= this.lineIndex ? 0xc4956a : 0x333333);
       this.dotsContainer.add(dot);
     }
   }
 
   advance() {
-    if (this.lineIndex < STORY_LINES.length - 1) {
+    if (this.lineIndex < this.lines.length - 1) {
       this.lineIndex++;
       this.showLine();
     } else {
-      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.fadeOut(500);
       this.time.delayedCall(500, () => this.scene.start('Battle'));
     }
   }
 }
 
 // ══════════════════════════════════════════════════
-// ⚔️ BattleScene — 전술 전투 (메인!)
+// ⚔️ BattleScene — 전술 전투 (메인)
 // ══════════════════════════════════════════════════
 class BattleScene extends Phaser.Scene {
   constructor() { super('Battle'); }
 
   create() {
+    audioMgr.playBGM('battle');
+    const ep = EPISODES[currentEpisode];
+    this.mapData = ep.mapData;
     this.cameras.main.setBackgroundColor('#2a3a2a');
 
-    // ── 상태 초기화
+    // 날씨 결정
+    this.weather = WEATHERS[Phaser.Math.Between(0, WEATHERS.length - 1)];
+
+    // 상태 초기화
     this.turnCount = 1;
-    this.phase = 'playerSelect'; // playerSelect, playerMove, playerAction, playerAttackTarget, enemyTurn, cutscene
+    this.phase = 'playerSelect';
     this.selectedUnit = null;
     this.moveRange = [];
     this.attackTargets = [];
@@ -411,174 +639,260 @@ class BattleScene extends Phaser.Scene {
     this.attackSkillIdx = null;
     this.itemCount = 3;
 
-    // ── 타일맵 그리기
+    // 타일맵
     this.drawTilemap();
 
-    // ── 유닛 생성
+    // 유닛 생성
     this.units = [];
-    this.createUnits();
+    this.createUnits(ep);
 
-    // ── 카메라 설정 (드래그 스크롤)
-    this.cameras.main.setBounds(0, 0, MAP_W * CELL, MAP_H * CELL);
-    this.cameras.main.centerOn(8 * CELL, 5 * CELL);
+    // 카메라
+    this.cameras.main.setBounds(0, 0, MAP_W*CELL, MAP_H*CELL);
+    const startUnit = this.units.find(u => u.team === 'ally');
+    if (startUnit) this.cameras.main.centerOn(startUnit.x*CELL, startUnit.y*CELL);
 
     // 드래그 스크롤
-    this.input.on('pointermove', (pointer) => {
-      if (pointer.isDown && this.dragPrev) {
-        const dx = this.dragPrev.x - pointer.x;
-        const dy = this.dragPrev.y - pointer.y;
+    this.input.on('pointermove', (ptr) => {
+      if (ptr.isDown && this.dragPrev) {
+        const dx = this.dragPrev.x - ptr.x, dy = this.dragPrev.y - ptr.y;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
           this.isDragging = true;
           this.cameras.main.scrollX += dx;
           this.cameras.main.scrollY += dy;
         }
       }
-      this.dragPrev = { x: pointer.x, y: pointer.y };
+      this.dragPrev = { x: ptr.x, y: ptr.y };
     });
-    this.input.on('pointerdown', (pointer) => {
-      this.dragPrev = { x: pointer.x, y: pointer.y };
-      this.isDragging = false;
-    });
-    this.input.on('pointerup', (pointer) => {
-      if (!this.isDragging) {
-        this.handleTap(pointer);
-      }
-      this.isDragging = false;
-      this.dragPrev = null;
+    this.input.on('pointerdown', (ptr) => { this.dragPrev = {x:ptr.x,y:ptr.y}; this.isDragging = false; });
+    this.input.on('pointerup', (ptr) => {
+      if (!this.isDragging) this.handleTap(ptr);
+      this.isDragging = false; this.dragPrev = null;
     });
 
-    // ── 이동범위/공격범위 오버레이
+    // 오버레이
     this.moveOverlays = this.add.group();
     this.atkOverlays = this.add.group();
-    this.selectionBox = this.add.rectangle(0, 0, CELL, CELL)
-      .setStrokeStyle(3, 0xFFD700).setFillStyle(0xFFD700, 0.1).setVisible(false).setDepth(15);
+    this.selectionBox = this.add.rectangle(0,0,CELL,CELL).setStrokeStyle(3,0xFFD700).setFillStyle(0xFFD700,0.1).setVisible(false).setDepth(15);
 
-    // ── HUD (화면 하단 UI)
+    // HUD
     this.createHUD();
 
-    // ── 가이드 텍스트
+    // 가이드
     this.guideText = this.add.text(
-      this.cameras.main.width / 2, 36,
-      '아군을 터치하여 선택 (드래그로 맵 이동)',
-      { fontSize: '11px', fill: '#c4956a', align: 'center' }
+      this.cameras.main.width/2, 36, '아군을 터치하여 선택',
+      {fontSize:'11px', fill:'#c4956a', align:'center'}
     ).setOrigin(0.5).setScrollFactor(0).setDepth(100);
 
-    // ── 턴 표시
+    // 턴/날씨 표시
     this.turnText = this.add.text(
-      this.cameras.main.width - 10, 10,
-      '턴 1 · 아군',
-      { fontSize: '10px', fill: '#888' }
-    ).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
+      this.cameras.main.width-10, 10, '턴 1 · 아군',
+      {fontSize:'10px', fill:'#888'}
+    ).setOrigin(1,0).setScrollFactor(0).setDepth(100);
+
+    this.weatherText = this.add.text(
+      this.cameras.main.width-10, 24, this.weather.icon + ' ' + this.weather.name + ' — ' + this.weather.desc,
+      {fontSize:'9px', fill:'#6a8aaa'}
+    ).setOrigin(1,0).setScrollFactor(0).setDepth(100);
 
     this.eraText = this.add.text(
-      10, 10, 'EP.1 환웅의 하강',
-      { fontSize: '10px', fill: '#c4956a', fontStyle: 'bold' }
-    ).setOrigin(0, 0).setScrollFactor(0).setDepth(100);
+      10, 10, ep.title, {fontSize:'10px', fill:'#c4956a', fontStyle:'bold'}
+    ).setOrigin(0,0).setScrollFactor(0).setDepth(100);
 
+    // 음소거 버튼
+    this.muteBtn = this.add.text(10, 24, audioMgr.muted ? '🔇' : '🔊', {fontSize:'16px'})
+      .setScrollFactor(0).setDepth(100).setInteractive();
+    this.muteBtn.on('pointerdown', () => {
+      const m = audioMgr.toggle();
+      this.muteBtn.setText(m ? '🔇' : '🔊');
+      if (!m) audioMgr.playBGM('battle');
+    });
+
+    // 미니맵
+    this.createMinimap();
+
+    // 날씨 파티클
+    this.weatherParticles = [];
+    if (this.weather.id === 'rain' || this.weather.id === 'snow') {
+      for (let i = 0; i < 40; i++) {
+        const w2 = this.cameras.main.width, h2 = this.cameras.main.height;
+        const p = this.add.circle(
+          Phaser.Math.Between(0, w2), Phaser.Math.Between(0, h2),
+          this.weather.id === 'rain' ? 1 : 2,
+          this.weather.id === 'rain' ? 0x5588cc : 0xffffff,
+          0.3
+        ).setScrollFactor(0).setDepth(90);
+        this.weatherParticles.push({ obj: p,
+          vy: this.weather.id === 'rain' ? Phaser.Math.FloatBetween(3, 6) : Phaser.Math.FloatBetween(0.5, 1.5),
+          vx: this.weather.id === 'rain' ? 1 : Phaser.Math.FloatBetween(-0.5, 0.5)
+        });
+      }
+    }
+
+    // 안개 오버레이
+    if (this.weather.id === 'fog') {
+      this.fogOverlay = this.add.rectangle(
+        this.cameras.main.width/2, this.cameras.main.height/2,
+        this.cameras.main.width, this.cameras.main.height,
+        0x888888, 0.15
+      ).setScrollFactor(0).setDepth(89);
+    }
+
+    // 턴 배너
+    this.showTurnBanner('아군 턴');
     this.cameras.main.fadeIn(800);
   }
 
-  // ── 타일맵 생성 ──────────────────────────
-  drawTilemap() {
-    this.tileContainer = this.add.container(0, 0).setDepth(0);
+  update() {
+    // 날씨 파티클 업데이트
+    const w = this.cameras.main.width, h = this.cameras.main.height;
+    this.weatherParticles.forEach(p => {
+      p.obj.y += p.vy;
+      p.obj.x += p.vx;
+      if (p.obj.y > h) { p.obj.y = -5; p.obj.x = Phaser.Math.Between(0, w); }
+      if (p.obj.x > w) p.obj.x = 0;
+      if (p.obj.x < 0) p.obj.x = w;
+    });
+  }
 
+  // ── 턴 배너 ──────────────────────────────
+  showTurnBanner(text) {
+    const w = this.cameras.main.width, h = this.cameras.main.height;
+    const banner = this.add.text(w/2, h/2, text, {
+      fontSize:'22px', fill:'#FFD700', fontStyle:'bold', fontFamily:'Noto Serif KR, serif',
+      shadow:{offsetX:0,offsetY:0,blur:10,color:'#FFD70066',fill:true}
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(300).setAlpha(0);
+    this.tweens.add({
+      targets: banner, alpha:1, duration:400, yoyo:true, hold:600,
+      onComplete: () => banner.destroy()
+    });
+  }
+
+  // ── 미니맵 ───────────────────────────────
+  createMinimap() {
+    const mw = 80, mh = 80;
+    const w = this.cameras.main.width;
+    const mx = w - mw - 8, my = 40;
+    this.minimapContainer = this.add.container(mx, my).setScrollFactor(0).setDepth(95);
+
+    const bg = this.add.rectangle(mw/2, mh/2, mw, mh, 0x000000, 0.6).setStrokeStyle(1, 0xc4956a, 0.5);
+    this.minimapContainer.add(bg);
+
+    // 지형
+    const scale = mw / MAP_W;
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
-        const t = MAP_DATA[y][x];
+        const t = this.mapData[y][x];
         const info = TILE_INFO[t];
-        const px = x * CELL, py = y * CELL;
+        const c = Phaser.Display.Color.HexStringToColor(info.colors[0]).color;
+        const dot = this.add.rectangle(x*scale+scale/2, y*scale+scale/2, scale, scale, c, 0.7);
+        this.minimapContainer.add(dot);
+      }
+    }
 
-        // 기본 타일
-        const color = (x + y) % 2 === 0 ? info.colors[0] : info.colors[1];
-        const rect = this.add.rectangle(px + CELL/2, py + CELL/2, CELL, CELL,
+    // 유닛 점 (업데이트용)
+    this.minimapDots = [];
+    this.updateMinimap();
+
+    // 미니맵 클릭으로 카메라 이동
+    bg.setInteractive();
+    bg.on('pointerdown', (ptr) => {
+      const lx = ptr.x - mx, ly = ptr.y - my;
+      const gx = Math.floor(lx / scale), gy = Math.floor(ly / scale);
+      this.cameras.main.pan(gx*CELL+CELL/2, gy*CELL+CELL/2, 300);
+    });
+  }
+
+  updateMinimap() {
+    this.minimapDots.forEach(d => d.destroy());
+    this.minimapDots = [];
+    const scale = 80 / MAP_W;
+    this.units.filter(u => u.alive).forEach(u => {
+      const color = u.team === 'ally' ? 0x2ecc71 : 0xe74c3c;
+      const dot = this.add.circle(u.x*scale+scale/2, u.y*scale+scale/2, 2, color);
+      this.minimapContainer.add(dot);
+      this.minimapDots.push(dot);
+    });
+  }
+
+  // ── 타일맵 ───────────────────────────────
+  drawTilemap() {
+    this.tileContainer = this.add.container(0, 0).setDepth(0);
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        const t = this.mapData[y][x];
+        const info = TILE_INFO[t];
+        const px = x*CELL, py = y*CELL;
+        const color = (x+y)%2===0 ? info.colors[0] : info.colors[1];
+        const rect = this.add.rectangle(px+CELL/2, py+CELL/2, CELL, CELL,
           Phaser.Display.Color.HexStringToColor(color).color);
         this.tileContainer.add(rect);
 
-        // 디테일
         if (t === TILE.FOREST) {
-          // 나무 (삼각형)
-          const tree = this.add.triangle(px+CELL/2, py+CELL*.35, 0,CELL*.3, CELL*.2,0, CELL*.4,CELL*.3, 0x1a4a0a).setOrigin(0.5);
-          const trunk = this.add.rectangle(px+CELL/2, py+CELL*.65, 3, CELL*.2, 0x5a3a1a);
+          const tree = this.add.triangle(px+CELL/2,py+CELL*.35,0,CELL*.3,CELL*.2,0,CELL*.4,CELL*.3,0x1a4a0a).setOrigin(0.5);
+          const trunk = this.add.rectangle(px+CELL/2,py+CELL*.65,3,CELL*.2,0x5a3a1a);
           this.tileContainer.add([tree, trunk]);
-        }
-        else if (t === TILE.MOUNT) {
-          const mt = this.add.triangle(px+CELL/2, py+CELL*.3, 0,CELL*.35, CELL*.22,0, CELL*.44,CELL*.35, 0x6a6a5a).setOrigin(0.5);
-          const snow = this.add.triangle(px+CELL/2, py+CELL*.18, 0,CELL*.1, CELL*.06,0, CELL*.12,CELL*.1, 0xeeeeee).setOrigin(0.5);
+        } else if (t === TILE.MOUNT) {
+          const mt = this.add.triangle(px+CELL/2,py+CELL*.3,0,CELL*.35,CELL*.22,0,CELL*.44,CELL*.35,0x6a6a5a).setOrigin(0.5);
+          const snow = this.add.triangle(px+CELL/2,py+CELL*.18,0,CELL*.1,CELL*.06,0,CELL*.12,CELL*.1,0xeeeeee).setOrigin(0.5);
           this.tileContainer.add([mt, snow]);
-        }
-        else if (t === TILE.PEAK) {
-          const mt = this.add.triangle(px+CELL/2, py+CELL*.25, 0,CELL*.45, CELL*.25,0, CELL*.5,CELL*.45, 0x5a5a4a).setOrigin(0.5);
-          const snow = this.add.triangle(px+CELL/2, py+CELL*.1, 0,CELL*.15, CELL*.1,0, CELL*.2,CELL*.15, 0xffffff).setOrigin(0.5);
+        } else if (t === TILE.PEAK) {
+          const mt = this.add.triangle(px+CELL/2,py+CELL*.25,0,CELL*.45,CELL*.25,0,CELL*.5,CELL*.45,0x5a5a4a).setOrigin(0.5);
+          const snow = this.add.triangle(px+CELL/2,py+CELL*.1,0,CELL*.15,CELL*.1,0,CELL*.2,CELL*.15,0xffffff).setOrigin(0.5);
           this.tileContainer.add([mt, snow]);
-        }
-        else if (t === TILE.WATER) {
+        } else if (t === TILE.WATER) {
           for (let w = 0; w < 2; w++) {
-            const wave = this.add.rectangle(px+CELL/2, py+CELL*(.35+w*.3), CELL*.7, 1.5, 0x4a8acc, 0.3);
+            const wave = this.add.rectangle(px+CELL/2,py+CELL*(.35+w*.3),CELL*.7,1.5,0x4a8acc,0.3);
             this.tileContainer.add(wave);
           }
-        }
-        else if (t === TILE.SACRED) {
-          // 신단수 — 빛나는 나무
-          const glow = this.add.circle(px+CELL/2, py+CELL/2, CELL*.5, 0xFFD700, 0.15);
-          const trk = this.add.rectangle(px+CELL/2, py+CELL*.55, CELL*.12, CELL*.4, 0x5a3a1a);
-          const crown = this.add.circle(px+CELL/2, py+CELL*.28, CELL*.25, 0x2a7a1a);
-          const glow2 = this.add.circle(px+CELL/2, py+CELL*.28, CELL*.3, 0xFFD700, 0.2);
+        } else if (t === TILE.SACRED) {
+          const glow = this.add.circle(px+CELL/2,py+CELL/2,CELL*.5,0xFFD700,0.15);
+          const trk = this.add.rectangle(px+CELL/2,py+CELL*.55,CELL*.12,CELL*.4,0x5a3a1a);
+          const crown = this.add.circle(px+CELL/2,py+CELL*.28,CELL*.25,0x2a7a1a);
+          const glow2 = this.add.circle(px+CELL/2,py+CELL*.28,CELL*.3,0xFFD700,0.2);
           this.tileContainer.add([glow, trk, crown, glow2]);
-        }
-        else if (t === TILE.PATH) {
-          const path = this.add.rectangle(px+CELL/2, py+CELL/2, CELL*.5, CELL, 0x9a8a6a, 0.2);
+        } else if (t === TILE.PATH) {
+          const path = this.add.rectangle(px+CELL/2,py+CELL/2,CELL*.5,CELL,0x9a8a6a,0.2);
           this.tileContainer.add(path);
-        }
-        else if (t === TILE.CLOUD) {
-          const c1 = this.add.circle(px+CELL*.3, py+CELL*.5, CELL*.2, 0xffffff, 0.15);
-          const c2 = this.add.circle(px+CELL*.7, py+CELL*.4, CELL*.15, 0xffffff, 0.1);
+        } else if (t === TILE.CLOUD) {
+          const c1 = this.add.circle(px+CELL*.3,py+CELL*.5,CELL*.2,0xffffff,0.15);
+          const c2 = this.add.circle(px+CELL*.7,py+CELL*.4,CELL*.15,0xffffff,0.1);
           this.tileContainer.add([c1, c2]);
         }
       }
     }
-
-    // 격자선
+    // 격자
     const gridG = this.add.graphics().setDepth(1);
     gridG.lineStyle(1, 0x000000, 0.15);
-    for (let x = 0; x <= MAP_W; x++) {
-      gridG.moveTo(x * CELL, 0);
-      gridG.lineTo(x * CELL, MAP_H * CELL);
-    }
-    for (let y = 0; y <= MAP_H; y++) {
-      gridG.moveTo(0, y * CELL);
-      gridG.lineTo(MAP_W * CELL, y * CELL);
-    }
+    for (let x = 0; x <= MAP_W; x++) { gridG.moveTo(x*CELL,0); gridG.lineTo(x*CELL,MAP_H*CELL); }
+    for (let y = 0; y <= MAP_H; y++) { gridG.moveTo(0,y*CELL); gridG.lineTo(MAP_W*CELL,y*CELL); }
     gridG.strokePath();
   }
 
   // ── 유닛 생성 ────────────────────────────
-  createUnits() {
-    ALLY_UNITS.forEach((data, i) => {
-      this.units.push(this.createUnitSprite(data, 'ally'));
+  createUnits(ep) {
+    ep.allies.forEach(data => {
+      const saved = gameState.unitLevels && gameState.unitLevels[data.id];
+      const unitData = {...data};
+      if (saved) {
+        unitData.level = saved.level || 1;
+        unitData.xp = saved.xp || 0;
+        const lvlBonus = (saved.level - 1);
+        unitData.hp += lvlBonus * 3; unitData.maxHp += lvlBonus * 3;
+        unitData.atk += lvlBonus * 2; unitData.def += lvlBonus;
+      }
+      this.units.push(this.createUnitSprite(unitData, 'ally'));
     });
-    ENEMY_UNITS.forEach((data, i) => {
-      this.units.push(this.createUnitSprite(data, 'enemy'));
+    ep.enemies.forEach(data => {
+      this.units.push(this.createUnitSprite({...data, level:1, xp:0}, 'enemy'));
     });
   }
 
   createUnitSprite(data, team) {
-    const unit = {
-      ...data,
-      team: team,
-      hp: data.hp,
-      x: data.startX,
-      y: data.startY,
-      acted: false,
-      alive: true,
-    };
-
-    const px = unit.x * CELL, py = unit.y * CELL;
+    const unit = { ...data, team, hp:data.hp, x:data.startX, y:data.startY, acted:false, alive:true };
+    const px = unit.x*CELL, py = unit.y*CELL;
     const container = this.add.container(px, py).setDepth(10);
     unit.container = container;
-
-    // 군대 그리기 (5명 병사)
     this.drawArmyInContainer(container, unit);
-
     return unit;
   }
 
@@ -587,132 +901,109 @@ class BattleScene extends Phaser.Scene {
     const c = unit.colors;
     const w = CELL, h = CELL;
 
-    // 팀 색상 상단바
-    const teamBar = this.add.rectangle(w/2, 2.5, w-4, 4,
-      unit.team === 'ally' ? 0x27ae60 : 0xe74c3c, 0.6);
-    container.add(teamBar);
+    // 팀바
+    container.add(this.add.rectangle(w/2, 2.5, w-4, 4,
+      unit.team==='ally' ? 0x27ae60 : 0xe74c3c, 0.6));
+
+    // 레벨 표시
+    if (unit.level && unit.level > 1) {
+      container.add(this.add.text(3, 0, 'Lv'+unit.level, {
+        fontSize:'7px', fill:'#FFD700', fontStyle:'bold'
+      }));
+    }
 
     // 깃발
-    const pole = this.add.rectangle(w*0.72, h*0.2, 1.5, h*0.4,
-      Phaser.Display.Color.HexStringToColor('#5a3a1a').color);
-    container.add(pole);
+    container.add(this.add.rectangle(w*0.72, h*0.2, 1.5, h*0.4,
+      Phaser.Display.Color.HexStringToColor('#5a3a1a').color));
+    container.add(this.add.triangle(w*0.72+w*0.1, h*0.1,
+      0,0, w*0.2,h*0.06, 0,h*0.12,
+      Phaser.Display.Color.HexStringToColor(c.flag).color));
 
-    const flagPts = [0, 0, w*0.2, h*0.06, 0, h*0.12];
-    const flag = this.add.triangle(w*0.72+w*0.1, h*0.1,
-      flagPts[0],flagPts[1],flagPts[2],flagPts[3],flagPts[4],flagPts[5],
-      Phaser.Display.Color.HexStringToColor(c.flag).color);
-    container.add(flag);
-
-    // 병사 5명 (2열 진형)
-    const positions = [
-      {r:-1,c:-1},{r:-1,c:1},     // 후열
-      {r:0,c:-1.5},{r:0,c:0},{r:0,c:1.5}, // 전열
-    ];
+    // 병사 5명
+    const positions = [{r:-1,c:-1},{r:-1,c:1},{r:0,c:-1.5},{r:0,c:0},{r:0,c:1.5}];
     const sz = Math.max(3, w*0.09);
-    const cx0 = w*0.4, cy0 = h*0.38;
-    const sp = sz*2;
+    const cx0 = w*0.4, cy0 = h*0.38, sp = sz*2;
 
     positions.forEach((p, i) => {
-      const sx = cx0 + p.c * sp;
-      const sy = cy0 + p.r * sp * 0.8;
-
-      // 갑옷(몸통)
-      const body = this.add.rectangle(sx, sy+sz*0.6, sz, sz*1.3,
-        Phaser.Display.Color.HexStringToColor(c.armor).color);
-      container.add(body);
-
-      // 어깨/망토
-      const cape = this.add.rectangle(sx, sy-sz*0.1, sz*1.1, sz*0.5,
-        Phaser.Display.Color.HexStringToColor(i===0 ? c.cape : c.flag).color);
-      container.add(cape);
-
-      // 머리
-      const head = this.add.circle(sx, sy-sz*0.15, sz*0.35,
-        Phaser.Display.Color.HexStringToColor(c.skin).color);
-      container.add(head);
-
-      // 투구
-      const helmet = this.add.arc(sx, sy-sz*0.25, sz*0.3, 180, 0, false,
-        Phaser.Display.Color.HexStringToColor(c.armor).color);
-      container.add(helmet);
-
-      // 무기 (창)
-      const spear = this.add.rectangle(sx+sz*0.35, sy, 1, sz*1.8, 0xaaaaaa);
-      container.add(spear);
+      const sx = cx0 + p.c*sp, sy = cy0 + p.r*sp*0.8;
+      container.add(this.add.rectangle(sx, sy+sz*0.6, sz, sz*1.3,
+        Phaser.Display.Color.HexStringToColor(c.armor).color));
+      container.add(this.add.rectangle(sx, sy-sz*0.1, sz*1.1, sz*0.5,
+        Phaser.Display.Color.HexStringToColor(i===0?c.cape:c.flag).color));
+      container.add(this.add.circle(sx, sy-sz*0.15, sz*0.35,
+        Phaser.Display.Color.HexStringToColor(c.skin).color));
+      container.add(this.add.arc(sx, sy-sz*0.25, sz*0.3, 180, 0, false,
+        Phaser.Display.Color.HexStringToColor(c.armor).color));
+      container.add(this.add.rectangle(sx+sz*0.35, sy, 1, sz*1.8, 0xaaaaaa));
     });
 
-    // HP 바
+    // HP바
     const hpPct = Math.max(0, unit.hp / unit.maxHp);
-    const barBg = this.add.rectangle(w/2, h-6, w-8, 4, 0x111111);
+    container.add(this.add.rectangle(w/2, h-6, w-8, 4, 0x111111));
     const barFg = this.add.rectangle(4, h-6, (w-8)*hpPct, 4,
-      unit.team === 'ally' ? 0x2ecc71 : 0xe74c3c).setOrigin(0, 0.5);
-    container.add([barBg, barFg]);
+      unit.team==='ally' ? 0x2ecc71 : 0xe74c3c).setOrigin(0, 0.5);
+    container.add(barFg);
     unit.hpBar = barFg;
 
     // 이름
-    const nameText = this.add.text(w/2, h+1, unit.name, {
-      fontSize: `${Math.max(9, CELL*0.2)}px`, fill: unit.team === 'ally' ? '#e8dcc8' : '#ffaaaa',
-      fontStyle: 'bold', fontFamily: 'Noto Serif KR, serif',
-      shadow: { offsetX: 1, offsetY: 1, blur: 2, color: '#000', fill: true }
-    }).setOrigin(0.5, 0);
-    container.add(nameText);
+    container.add(this.add.text(w/2, h+1, unit.name, {
+      fontSize: Math.max(9,CELL*0.2)+'px', fill: unit.team==='ally' ? '#e8dcc8' : '#ffaaaa',
+      fontStyle:'bold', fontFamily:'Noto Serif KR, serif',
+      shadow:{offsetX:1,offsetY:1,blur:2,color:'#000',fill:true}
+    }).setOrigin(0.5, 0));
 
     // 행동완료 오버레이
     unit.actedOverlay = this.add.rectangle(w/2, h/2, w, h, 0x000000, 0).setDepth(1);
     container.add(unit.actedOverlay);
   }
 
-  // ── 유닛 위치 업데이트 ────────────────────
-  updateUnitPosition(unit) {
-    unit.container.setPosition(unit.x * CELL, unit.y * CELL);
-  }
-
+  updateUnitPosition(unit) { unit.container.setPosition(unit.x*CELL, unit.y*CELL); }
   updateUnitHP(unit) {
     const pct = Math.max(0, unit.hp / unit.maxHp);
-    if (unit.hpBar) {
-      unit.hpBar.setDisplaySize((CELL-8)*pct, 4);
-    }
+    if (unit.hpBar) unit.hpBar.setDisplaySize((CELL-8)*pct, 4);
   }
-
   setUnitActed(unit, acted) {
     unit.acted = acted;
-    if (unit.actedOverlay) {
-      unit.actedOverlay.setFillStyle(0x000000, acted ? 0.45 : 0);
-    }
+    if (unit.actedOverlay) unit.actedOverlay.setFillStyle(0x000000, acted ? 0.45 : 0);
   }
 
   // ── 탭 처리 ──────────────────────────────
   handleTap(pointer) {
     const worldX = pointer.x + this.cameras.main.scrollX;
     const worldY = pointer.y + this.cameras.main.scrollY;
-    const gx = Math.floor(worldX / CELL);
-    const gy = Math.floor(worldY / CELL);
-
+    const gx = Math.floor(worldX / CELL), gy = Math.floor(worldY / CELL);
     if (gx < 0 || gx >= MAP_W || gy < 0 || gy >= MAP_H) return;
 
-    switch (this.phase) {
-      case 'playerSelect':
-        const ally = this.getAliveUnit(gx, gy, 'ally');
-        if (ally && !ally.acted) this.selectUnit(ally);
-        break;
+    // 지형 정보 표시 (항상)
+    const tile = this.mapData[gy][gx];
+    const tInfo = TILE_INFO[tile];
+    let terrainMsg = tInfo.name;
+    if (tInfo.defBonus) terrainMsg += ' (방어+' + tInfo.defBonus + ')';
+    if (tInfo.healBonus) terrainMsg += ' (턴당 HP+' + tInfo.healBonus + ')';
+    if (tInfo.movBonus) terrainMsg += ' (이동+' + tInfo.movBonus + ')';
 
+    switch(this.phase) {
+      case 'playerSelect': {
+        const ally = this.getAliveUnit(gx, gy, 'ally');
+        if (ally && !ally.acted) { audioMgr.playSFX('click'); this.selectUnit(ally); }
+        else this.setGuide(terrainMsg);
+        break;
+      }
       case 'playerMove':
-        if (this.moveRange.some(m => m.x === gx && m.y === gy)) {
+        if (this.moveRange.some(m => m.x===gx && m.y===gy)) {
+          audioMgr.playSFX('click');
           this.moveSelectedUnit(gx, gy);
         } else {
           const otherAlly = this.getAliveUnit(gx, gy, 'ally');
-          if (otherAlly && !otherAlly.acted) {
-            this.selectUnit(otherAlly);
-          } else {
-            this.deselectUnit();
-          }
+          if (otherAlly && !otherAlly.acted) this.selectUnit(otherAlly);
+          else this.deselectUnit();
         }
         break;
-
-      case 'playerAttackTarget':
-        const target = this.attackTargets.find(u => u.x === gx && u.y === gy);
+      case 'playerAttackTarget': {
+        const target = this.attackTargets.find(u => u.x===gx && u.y===gy);
         if (target) this.executeAttack(target);
         break;
+      }
     }
   }
 
@@ -722,16 +1013,13 @@ class BattleScene extends Phaser.Scene {
     this.phase = 'playerMove';
     this.moveRange = this.calcMoveRange(unit);
     this.attackTargets = [];
-
     this.drawMoveRange();
     this.clearAtkRange();
     this.selectionBox.setPosition(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2).setVisible(true);
-
     this.showHUD(unit);
     this.hideActionButtons();
-    this.setGuide(`${unit.name} (${unit.title}) — 이동할 칸을 터치`);
-
-    // 카메라 부드럽게 이동
+    const lvlStr = unit.level ? ' Lv.' + unit.level : '';
+    this.setGuide(unit.name + lvlStr + ' (' + unit.title + ') — 이동할 칸을 터치');
     this.cameras.main.pan(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2, 300);
   }
 
@@ -739,70 +1027,61 @@ class BattleScene extends Phaser.Scene {
     this.selectedUnit = null;
     this.phase = 'playerSelect';
     this.moveRange = [];
-    this.clearMoveRange();
-    this.clearAtkRange();
+    this.clearMoveRange(); this.clearAtkRange();
     this.selectionBox.setVisible(false);
     this.hideHUD();
     this.setGuide('아군을 터치하여 선택');
   }
 
-  // ── 이동범위 계산 (BFS) ──────────────────
+  // ── 이동범위 (BFS) + 날씨/지형 보너스 ─────
   calcMoveRange(unit) {
     const range = [];
     const visited = new Set();
-    const queue = [{ x: unit.x, y: unit.y, steps: 0 }];
-    visited.add(`${unit.x},${unit.y}`);
+    const baseMov = unit.mov + (this.weather.movMod || 0);
+    const mov = Math.max(1, baseMov);
+    const queue = [{x:unit.x, y:unit.y, steps:0}];
+    visited.add(unit.x+','+unit.y);
 
     while (queue.length > 0) {
       const cur = queue.shift();
-
       if (cur.steps > 0) {
         const occupant = this.getAliveUnit(cur.x, cur.y);
-        const passable = TILE_INFO[MAP_DATA[cur.y][cur.x]].passable;
-        if (!occupant && passable) {
-          range.push({ x: cur.x, y: cur.y });
-        }
+        const passable = TILE_INFO[this.mapData[cur.y][cur.x]].passable;
+        if (!occupant && passable) range.push({x:cur.x, y:cur.y});
         if (occupant || !passable) continue;
       }
-
-      if (cur.steps < unit.mov) {
-        const dirs = [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}];
-        for (const d of dirs) {
-          const nx = cur.x + d.dx, ny = cur.y + d.dy;
-          const key = `${nx},${ny}`;
+      if (cur.steps < mov) {
+        [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}].forEach(d => {
+          const nx = cur.x+d.dx, ny = cur.y+d.dy, key = nx+','+ny;
           if (nx >= 0 && nx < MAP_W && ny >= 0 && ny < MAP_H && !visited.has(key)) {
-            if (TILE_INFO[MAP_DATA[ny][nx]].passable) {
+            if (TILE_INFO[this.mapData[ny][nx]].passable) {
               const blocker = this.getAliveUnit(nx, ny);
               if (!blocker || blocker.team === unit.team) {
                 visited.add(key);
-                queue.push({ x: nx, y: ny, steps: cur.steps + 1 });
+                const movBonus = TILE_INFO[this.mapData[ny][nx]].movBonus || 0;
+                queue.push({x:nx, y:ny, steps: cur.steps + 1 - Math.min(movBonus, 0.5)});
               }
             }
           }
-        }
+        });
       }
     }
     return range;
   }
 
-  // ── 이동실행 ──────────────────────────────
+  // ── 이동 ─────────────────────────────────
   moveSelectedUnit(tx, ty) {
     const unit = this.selectedUnit;
     unit.x = tx; unit.y = ty;
     this.updateUnitPosition(unit);
-
     this.clearMoveRange();
     this.phase = 'playerAction';
+    this.updateMinimap();
 
-    // 공격 가능 적 탐색
-    const maxRng = Math.max(
-      unit.rng || 1,
-      ...unit.skills.filter(s => s.type === 'attack').map(s => s.rng || 1)
-    );
+    const maxRng = Math.max(unit.rng||1,
+      ...unit.skills.filter(s => s.type==='attack').map(s => s.rng||1));
     const nearEnemies = this.units.filter(e =>
-      e.team === 'enemy' && e.alive &&
-      this.manhattanDist(unit, e) <= maxRng
-    );
+      e.team==='enemy' && e.alive && this.manhattanDist(unit, e) <= maxRng);
 
     this.selectionBox.setPosition(tx*CELL+CELL/2, ty*CELL+CELL/2);
     this.showHUD(unit);
@@ -814,54 +1093,61 @@ class BattleScene extends Phaser.Scene {
   startAttack(mode, skillIdx) {
     this.attackMode = mode;
     this.attackSkillIdx = skillIdx;
-
     const unit = this.selectedUnit;
-    const rng = mode === 'skill' ? unit.skills[skillIdx].rng || 1 : unit.rng || 1;
-
+    const rng = mode==='skill' ? unit.skills[skillIdx].rng||1 : unit.rng||1;
     this.attackTargets = this.units.filter(e =>
-      e.team === 'enemy' && e.alive &&
-      this.manhattanDist(unit, e) <= rng
-    );
-
-    if (this.attackTargets.length === 0) {
-      this.setGuide('범위 내 적 없음');
-      return;
-    }
-    if (this.attackTargets.length === 1) {
-      this.executeAttack(this.attackTargets[0]);
-      return;
-    }
-
-    // 여러 적이 있으면 선택
+      e.team==='enemy' && e.alive && this.manhattanDist(unit, e) <= rng);
+    if (this.attackTargets.length === 0) { this.setGuide('범위 내 적 없음'); return; }
+    if (this.attackTargets.length === 1) { this.executeAttack(this.attackTargets[0]); return; }
     this.phase = 'playerAttackTarget';
     this.drawAtkRange();
     this.setGuide('공격할 적을 터치!');
   }
 
-  // ── 공격 실행 (컷인) ──────────────────────
+  // ── 공격 실행 + 크리티컬 + 지형보너스 + XP ──
   executeAttack(target) {
     this.phase = 'cutscene';
     this.clearAtkRange();
     this.hideActionButtons();
-
     const unit = this.selectedUnit;
-    let dmg, skillName;
+    let baseDmg, skillName, element;
 
-    if (this.attackMode === 'skill' && this.attackSkillIdx != null) {
+    // 날씨 공격력 보정
+    const atkMod = this.weather.atkMod || 0;
+
+    if (this.attackMode==='skill' && this.attackSkillIdx != null) {
       const sk = unit.skills[this.attackSkillIdx];
-      dmg = Math.max(1, sk.dmg - target.def) + Phaser.Math.Between(0, 5);
+      baseDmg = sk.dmg;
       skillName = sk.name;
+      element = sk.element;
+      audioMgr.playSFX('skill');
     } else {
-      dmg = Math.max(1, unit.atk - target.def) + Phaser.Math.Between(0, 4);
+      baseDmg = unit.atk + atkMod;
       skillName = '공격';
+      element = null;
+      audioMgr.playSFX('hit');
     }
 
-    this.showCutin(unit, target, dmg, skillName, () => {
-      // 반격 체크
-      if (target.alive && this.manhattanDist(unit, target) <= (target.rng || 1)) {
+    // 지형 방어 보너스
+    const targetTile = this.mapData[target.y][target.x];
+    const terrainDef = TILE_INFO[targetTile].defBonus || 0;
+
+    // 크리티컬 (10%)
+    const isCrit = Phaser.Math.Between(1, 10) === 1;
+    let dmg = Math.max(1, baseDmg - target.def - terrainDef) + Phaser.Math.Between(0, 5);
+    if (isCrit) { dmg = Math.floor(dmg * 1.5); audioMgr.playSFX('crit'); }
+
+    this.showCutin(unit, target, dmg, skillName, isCrit, element, () => {
+      // XP 획득 (아군만)
+      if (unit.team === 'ally') {
+        const xpGain = target.alive ? 10 : 50;
+        this.grantXP(unit, xpGain);
+      }
+      // 반격
+      if (target.alive && this.manhattanDist(unit, target) <= (target.rng||1)) {
         const counterDmg = Math.max(1, target.atk - unit.def - 2) + Phaser.Math.Between(0, 3);
         this.time.delayedCall(200, () => {
-          this.showCutin(target, unit, counterDmg, '반격', () => {
+          this.showCutin(target, unit, counterDmg, '반격', false, null, () => {
             this.finishAction();
           });
         });
@@ -871,13 +1157,63 @@ class BattleScene extends Phaser.Scene {
     });
   }
 
+  // ── XP 획득 + 레벨업 ─────────────────────
+  grantXP(unit, amount) {
+    if (!unit.xp && unit.xp !== 0) unit.xp = 0;
+    if (!unit.level) unit.level = 1;
+    unit.xp += amount;
+    if (unit.xp >= 100) {
+      unit.xp -= 100;
+      unit.level++;
+      unit.maxHp += 3; unit.hp = Math.min(unit.hp + 3, unit.maxHp);
+      unit.atk += 2; unit.def += 1;
+      // 레벨업 이펙트
+      audioMgr.playSFX('levelup');
+      this.showLevelUpEffect(unit);
+      // 세이브 갱신
+      if (!gameState.unitLevels) gameState.unitLevels = {};
+      gameState.unitLevels[unit.id] = { level: unit.level, xp: unit.xp };
+      gameState.maxLevel = Math.max(gameState.maxLevel || 1, unit.level);
+    }
+  }
+
+  showLevelUpEffect(unit) {
+    const px = unit.x*CELL+CELL/2, py = unit.y*CELL+CELL/2;
+    // 골든 링
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const particle = this.add.circle(px, py, 3, 0xFFD700, 0.8).setDepth(20);
+      this.tweens.add({
+        targets: particle,
+        x: px + Math.cos(angle)*30, y: py + Math.sin(angle)*30,
+        alpha: 0, duration: 800, ease: 'Power2',
+        onComplete: () => particle.destroy()
+      });
+    }
+    // 텍스트
+    const lvlText = this.add.text(px, py-20, 'LEVEL UP!', {
+      fontSize:'12px', fill:'#FFD700', fontStyle:'bold',
+      shadow:{offsetX:0,offsetY:0,blur:8,color:'#FFD700',fill:true}
+    }).setOrigin(0.5).setDepth(20);
+    this.tweens.add({
+      targets: lvlText, y: py-50, alpha:0, duration:1200,
+      onComplete: () => lvlText.destroy()
+    });
+    // 유닛 스프라이트 갱신
+    this.drawArmyInContainer(unit.container, unit);
+  }
+
   // ── 회복/아이템/대기 ──────────────────────
   useHealSkill(skillIdx) {
     const unit = this.selectedUnit;
     const sk = unit.skills[skillIdx];
     unit.hp = Math.min(unit.maxHp, unit.hp + sk.amount);
     this.updateUnitHP(unit);
-    this.showPopup('회복', `${sk.name}!\nHP ${sk.amount} 회복!`, () => this.finishAction());
+    audioMgr.playSFX('heal');
+    // 힐 파티클
+    this.spawnParticles(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2, 0x2ecc71, 12);
+    if (unit.team === 'ally') this.grantXP(unit, 15);
+    this.showPopup('회복', sk.name + '!\nHP ' + sk.amount + ' 회복!', () => this.finishAction());
   }
 
   useItem() {
@@ -886,42 +1222,56 @@ class BattleScene extends Phaser.Scene {
     const unit = this.selectedUnit;
     unit.hp = Math.min(unit.maxHp, unit.hp + 20);
     this.updateUnitHP(unit);
-    this.showPopup('아이템', `회복약!\nHP 20 회복! (남은 ${this.itemCount})`, () => this.finishAction());
+    audioMgr.playSFX('heal');
+    this.spawnParticles(unit.x*CELL+CELL/2, unit.y*CELL+CELL/2, 0x2ecc71, 8);
+    this.showPopup('아이템', '회복약!\nHP 20 회복! (남은 ' + this.itemCount + ')', () => this.finishAction());
   }
 
-  doWait() {
-    this.finishAction();
+  doWait() { this.finishAction(); }
+
+  // ── 파티클 이펙트 ─────────────────────────
+  spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const p = this.add.circle(x, y, Phaser.Math.Between(2, 4), color, 0.8).setDepth(20);
+      this.tweens.add({
+        targets: p,
+        x: x + Phaser.Math.Between(-30, 30),
+        y: y + Phaser.Math.Between(-40, -10),
+        alpha: 0, scale: 0.3, duration: Phaser.Math.Between(400, 800),
+        onComplete: () => p.destroy()
+      });
+    }
   }
 
   // ── 행동 완료 ─────────────────────────────
   finishAction() {
-    if (this.selectedUnit) {
-      this.setUnitActed(this.selectedUnit, true);
-    }
+    if (this.selectedUnit) this.setUnitActed(this.selectedUnit, true);
     this.selectedUnit = null;
     this.moveRange = [];
     this.attackTargets = [];
-    this.clearMoveRange();
-    this.clearAtkRange();
+    this.clearMoveRange(); this.clearAtkRange();
     this.selectionBox.setVisible(false);
-    this.hideHUD();
-    this.hideActionButtons();
+    this.hideHUD(); this.hideActionButtons();
+    this.updateMinimap();
 
-    // 승리 체크
-    if (!this.units.some(e => e.team === 'enemy' && e.alive)) {
+    // 승리
+    if (!this.units.some(e => e.team==='enemy' && e.alive)) {
+      audioMgr.stopBGM();
+      audioMgr.playSFX('victory');
       this.time.delayedCall(500, () => {
         this.cameras.main.fadeOut(500);
         this.time.delayedCall(500, () => this.scene.start('Victory'));
       });
       return;
     }
-    // 패배 체크
-    if (!this.units.some(a => a.team === 'ally' && a.alive)) {
-      this.time.delayedCall(500, () => this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart()));
+    // 패배
+    if (!this.units.some(a => a.team==='ally' && a.alive)) {
+      audioMgr.stopBGM();
+      this.time.delayedCall(500, () => this.showPopup('패배', '다시 도전하라!', () => this.scene.restart()));
       return;
     }
-    // 다음 아군 또는 적 턴
-    if (this.units.some(a => a.team === 'ally' && a.alive && !a.acted)) {
+    // 턴 진행
+    if (this.units.some(a => a.team==='ally' && a.alive && !a.acted)) {
       this.phase = 'playerSelect';
       this.setGuide('다음 아군을 선택');
     } else {
@@ -929,13 +1279,24 @@ class BattleScene extends Phaser.Scene {
     }
   }
 
-  // ── 적 턴 AI ──────────────────────────────
+  // ── 적 턴 AI (스킬 사용 + 약한 유닛 우선) ──
   startEnemyTurn() {
     this.phase = 'enemyTurn';
     this.setGuide('적 턴...');
-    this.turnText.setText(`턴 ${this.turnCount} · 적군`);
+    this.turnText.setText('턴 ' + this.turnCount + ' · 적군');
+    this.showTurnBanner('적군 턴');
 
-    const enemies = this.units.filter(u => u.team === 'enemy' && u.alive);
+    // 신단수 턴 회복
+    this.units.filter(u => u.alive).forEach(u => {
+      const tile = this.mapData[u.y][u.x];
+      const healBonus = TILE_INFO[tile].healBonus || 0;
+      if (healBonus > 0) {
+        u.hp = Math.min(u.maxHp, u.hp + healBonus);
+        this.updateUnitHP(u);
+      }
+    });
+
+    const enemies = this.units.filter(u => u.team==='enemy' && u.alive);
     let idx = 0;
 
     const nextEnemy = () => {
@@ -947,57 +1308,85 @@ class BattleScene extends Phaser.Scene {
       const e = enemies[idx]; idx++;
       if (!e.alive) { nextEnemy(); return; }
 
-      // 가장 가까운 아군 찾기
-      const allies = this.units.filter(u => u.team === 'ally' && u.alive);
+      const allies = this.units.filter(u => u.team==='ally' && u.alive);
       if (allies.length === 0) {
-        this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart());
+        this.showPopup('패배', '다시 도전하라!', () => this.scene.restart());
         return;
       }
 
-      let nearest = allies[0], minDist = 999;
+      // 약한 유닛 우선 타겟
+      let target = allies[0], minScore = 999;
       allies.forEach(a => {
-        const d = this.manhattanDist(e, a);
-        if (d < minDist) { minDist = d; nearest = a; }
+        const dist = this.manhattanDist(e, a);
+        const hpRatio = a.hp / a.maxHp;
+        const score = dist + hpRatio * 3;
+        if (score < minScore) { minScore = score; target = a; }
       });
 
-      // 카메라 이동
       this.cameras.main.pan(e.x*CELL+CELL/2, e.y*CELL+CELL/2, 200);
 
-      if (minDist <= (e.rng || 1)) {
-        // 인접하면 공격
-        this.time.delayedCall(300, () => this.enemyAttack(e, nearest, nextEnemy));
+      // AI: 체력 낮으면 힐 스킬 사용
+      const healSkill = e.skills.find(s => s.type === 'heal');
+      if (healSkill && e.hp < e.maxHp * 0.4) {
+        e.hp = Math.min(e.maxHp, e.hp + healSkill.amount);
+        this.updateUnitHP(e);
+        audioMgr.playSFX('heal');
+        this.spawnParticles(e.x*CELL+CELL/2, e.y*CELL+CELL/2, 0xe74c3c, 8);
+        this.time.delayedCall(400, nextEnemy);
+        return;
+      }
+
+      const dist = this.manhattanDist(e, target);
+      if (dist <= (e.rng || 1)) {
+        // 공격 스킬 사용 시도
+        const atkSkill = e.skills.find(s => s.type === 'attack' && (s.rng||1) >= dist);
+        if (atkSkill && Phaser.Math.Between(1, 3) <= 2) {
+          this.time.delayedCall(300, () => this.enemySkillAttack(e, target, atkSkill, nextEnemy));
+        } else {
+          this.time.delayedCall(300, () => this.enemyAttack(e, target, nextEnemy));
+        }
       } else {
-        // 이동
         const moveR = this.calcMoveRange(e);
         let bestCell = null, bestDist = 999;
         moveR.forEach(c => {
-          const d = Math.abs(c.x - nearest.x) + Math.abs(c.y - nearest.y);
+          const d = Math.abs(c.x-target.x) + Math.abs(c.y-target.y);
           if (d < bestDist) { bestDist = d; bestCell = c; }
         });
-        if (bestCell) {
-          e.x = bestCell.x; e.y = bestCell.y;
-          this.updateUnitPosition(e);
-        }
-
-        // 이동 후 공격 가능?
-        if (this.manhattanDist(e, nearest) <= (e.rng || 1)) {
-          this.time.delayedCall(350, () => this.enemyAttack(e, nearest, nextEnemy));
+        if (bestCell) { e.x = bestCell.x; e.y = bestCell.y; this.updateUnitPosition(e); }
+        this.updateMinimap();
+        if (this.manhattanDist(e, target) <= (e.rng||1)) {
+          this.time.delayedCall(350, () => this.enemyAttack(e, target, nextEnemy));
         } else {
           this.time.delayedCall(250, nextEnemy);
         }
       }
     };
-
     this.time.delayedCall(500, nextEnemy);
   }
 
   enemyAttack(attacker, defender, callback) {
     this.phase = 'cutscene';
     const dmg = Math.max(1, attacker.atk - defender.def) + Phaser.Math.Between(0, 4);
+    const isCrit = Phaser.Math.Between(1, 10) === 1;
+    const finalDmg = isCrit ? Math.floor(dmg * 1.5) : dmg;
+    audioMgr.playSFX(isCrit ? 'crit' : 'hit');
+    this.showCutin(attacker, defender, finalDmg, attacker.name + '의 공격', isCrit, null, () => {
+      if (!this.units.some(a => a.team==='ally' && a.alive)) {
+        this.showPopup('패배', '다시 도전하라!', () => this.scene.restart());
+        return;
+      }
+      this.phase = 'enemyTurn';
+      this.time.delayedCall(200, callback);
+    });
+  }
 
-    this.showCutin(attacker, defender, dmg, attacker.name + '의 공격', () => {
-      if (!this.units.some(a => a.team === 'ally' && a.alive)) {
-        this.showPopup('💀 패배', '다시 도전하라!', () => this.scene.restart());
+  enemySkillAttack(attacker, defender, skill, callback) {
+    this.phase = 'cutscene';
+    const dmg = Math.max(1, skill.dmg - defender.def) + Phaser.Math.Between(0, 5);
+    audioMgr.playSFX('skill');
+    this.showCutin(attacker, defender, dmg, skill.name, false, skill.element, () => {
+      if (!this.units.some(a => a.team==='ally' && a.alive)) {
+        this.showPopup('패배', '다시 도전하라!', () => this.scene.restart());
         return;
       }
       this.phase = 'enemyTurn';
@@ -1006,284 +1395,366 @@ class BattleScene extends Phaser.Scene {
   }
 
   startPlayerTurn() {
-    this.units.filter(u => u.team === 'ally' && u.alive).forEach(u => {
-      this.setUnitActed(u, false);
-    });
-    this.turnText.setText(`턴 ${this.turnCount} · 아군`);
+    this.units.filter(u => u.team==='ally' && u.alive).forEach(u => this.setUnitActed(u, false));
+    this.turnText.setText('턴 ' + this.turnCount + ' · 아군');
     this.phase = 'playerSelect';
     this.setGuide('아군을 터치하여 선택');
+    this.showTurnBanner('아군 턴 ' + this.turnCount);
   }
 
-  // ── 전투 컷인 애니메이션 ──────────────────
-  showCutin(attacker, defender, dmg, label, callback) {
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
+  // ── 전투 컷인 + 파티클 ────────────────────
+  showCutin(attacker, defender, dmg, label, isCrit, element, callback) {
+    const w = this.cameras.main.width, h = this.cameras.main.height;
+    const bg = this.add.rectangle(w/2,h/2,w,h,0x000000,0.85).setScrollFactor(0).setDepth(200);
 
-    // 어두운 배경
-    const bg = this.add.rectangle(w/2, h/2, w, h, 0x000000, 0.85)
-      .setScrollFactor(0).setDepth(200);
-
-    // 공격자 (왼쪽)
+    // 공격자
     const lName = this.add.text(w*0.25, h*0.35, attacker.name, {
-      fontSize: '16px', fontStyle: 'bold',
-      fill: attacker.team === 'ally' ? '#e8dcc8' : '#ff6666',
-      fontFamily: 'Noto Serif KR, serif'
+      fontSize:'16px', fontStyle:'bold',
+      fill: attacker.team==='ally' ? '#e8dcc8' : '#ff6666',
+      fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
-
-    const lHp = this.add.text(w*0.25, h*0.42, `HP ${attacker.hp}/${attacker.maxHp}`, {
-      fontSize: '10px', fill: '#aaa'
+    const lHp = this.add.text(w*0.25, h*0.42, 'HP '+attacker.hp+'/'+attacker.maxHp, {
+      fontSize:'10px', fill:'#aaa'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
 
     // VS
-    const vsText = this.add.text(w*0.5, h*0.38, '⚔️', {
-      fontSize: '28px'
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    const vsText = this.add.text(w*0.5, h*0.38, '⚔️', {fontSize:'28px'})
+      .setOrigin(0.5).setScrollFactor(0).setDepth(201);
 
-    // 방어자 (오른쪽)
+    // 방어자
     const rName = this.add.text(w*0.75, h*0.35, defender.name, {
-      fontSize: '16px', fontStyle: 'bold',
-      fill: defender.team === 'ally' ? '#e8dcc8' : '#ff6666',
-      fontFamily: 'Noto Serif KR, serif'
+      fontSize:'16px', fontStyle:'bold',
+      fill: defender.team==='ally' ? '#e8dcc8' : '#ff6666',
+      fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
-
-    const rHp = this.add.text(w*0.75, h*0.42, `HP ${defender.hp}/${defender.maxHp}`, {
-      fontSize: '10px', fill: '#aaa'
+    const rHp = this.add.text(w*0.75, h*0.42, 'HP '+defender.hp+'/'+defender.maxHp, {
+      fontSize:'10px', fill:'#aaa'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
 
     // 스킬명
     const msgText = this.add.text(w*0.5, h*0.52, label + '!', {
-      fontSize: '13px', fill: '#ddd'
+      fontSize:'13px', fill:'#ddd'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
 
-    // 데미지 텍스트 (나중에 표시)
+    // 크리티컬 표시
+    let critText = null;
+    if (isCrit) {
+      critText = this.add.text(w*0.5, h*0.48, '💥 CRITICAL!', {
+        fontSize:'14px', fill:'#FF4444', fontStyle:'bold'
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    }
+
     const dmgText = this.add.text(w*0.5, h*0.6, '', {
-      fontSize: '24px', fontStyle: 'bold', fill: '#ff4444',
-      fontFamily: 'Noto Serif KR, serif'
+      fontSize:'24px', fontStyle:'bold', fill: isCrit ? '#FF0000' : '#ff4444',
+      fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(201).setAlpha(0);
 
-    // 플래시
-    const flash = this.add.rectangle(w/2, h/2, w, h, 0xffffff, 0)
-      .setScrollFactor(0).setDepth(202);
+    const flash = this.add.rectangle(w/2,h/2,w,h,0xffffff,0).setScrollFactor(0).setDepth(202);
+
+    // 스킬 파티클
+    if (element) {
+      const colors = { fire:0xFF4500, thunder:0xFFD700, wind:0x00FF88, water:0x1E90FF };
+      const color = colors[element] || 0xFFFFFF;
+      for (let i = 0; i < 15; i++) {
+        const p = this.add.circle(w*0.5, h*0.45, Phaser.Math.Between(2,5), color, 0.7)
+          .setScrollFactor(0).setDepth(203);
+        this.tweens.add({
+          targets: p,
+          x: w*0.5 + Phaser.Math.Between(-60,60),
+          y: h*0.45 + Phaser.Math.Between(-40,40),
+          alpha:0, scale:0.2, duration: Phaser.Math.Between(300,600),
+          delay: Phaser.Math.Between(100,400),
+          onComplete: () => p.destroy()
+        });
+      }
+    }
 
     // 히트 애니메이션
     this.time.delayedCall(350, () => {
-      this.tweens.add({ targets: lName, x: w*0.25+30, duration: 150, yoyo: true });
-      this.tweens.add({ targets: rName, x: w*0.75-30, duration: 150, yoyo: true });
-      this.tweens.add({ targets: flash, alpha: 0.4, duration: 100, yoyo: true });
+      this.tweens.add({targets:lName, x:w*0.25+30, duration:150, yoyo:true});
+      this.tweens.add({targets:rName, x:w*0.75-30, duration:150, yoyo:true});
+      this.tweens.add({targets:flash, alpha: isCrit ? 0.6 : 0.4, duration:100, yoyo:true});
     });
 
     // 데미지 표시
     this.time.delayedCall(600, () => {
       defender.hp = Math.max(0, defender.hp - dmg);
-      if (defender.hp <= 0) defender.alive = false;
+      if (defender.hp <= 0) { defender.alive = false; audioMgr.playSFX('death'); }
       this.updateUnitHP(defender);
       if (!defender.alive) defender.container.setVisible(false);
 
-      dmgText.setText(`💥 ${dmg} 데미지!`);
-      this.tweens.add({ targets: dmgText, alpha: 1, scale: { from: 0.5, to: 1 }, duration: 300, ease: 'Back.easeOut' });
-      rHp.setText(`HP ${defender.hp}/${defender.maxHp}`);
-
-      if (!defender.alive) {
-        msgText.setText(defender.name + ' 격파!');
-      }
+      const dmgStr = (isCrit ? '💥 ' : '') + dmg + ' 데미지!';
+      dmgText.setText(dmgStr);
+      this.tweens.add({targets:dmgText, alpha:1, scale:{from:0.5,to:1}, duration:300, ease:'Back.easeOut'});
+      rHp.setText('HP '+defender.hp+'/'+defender.maxHp);
+      if (!defender.alive) msgText.setText(defender.name + ' 격파!');
     });
 
     // 종료
     this.time.delayedCall(1500, () => {
-      [bg, lName, lHp, vsText, rName, rHp, msgText, dmgText, flash].forEach(o => o.destroy());
+      const toDestroy = [bg, lName, lHp, vsText, rName, rHp, msgText, dmgText, flash];
+      if (critText) toDestroy.push(critText);
+      toDestroy.forEach(o => { if (o && o.destroy) o.destroy(); });
       callback();
     });
   }
 
-  // ── 팝업 메시지 ───────────────────────────
+  // ── 팝업 ──────────────────────────────────
   showPopup(title, body, callback) {
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
-
-    const bg = this.add.rectangle(w/2, h/2, w*0.8, 160, 0x151520, 0.95)
-      .setStrokeStyle(2, 0xc4956a).setScrollFactor(0).setDepth(250);
-    const tText = this.add.text(w/2, h/2-40, title, {
-      fontSize: '15px', fontStyle: 'bold', fill: '#c4956a'
+    const w = this.cameras.main.width, h = this.cameras.main.height;
+    const bg = this.add.rectangle(w/2,h/2,w*0.8,160,0x151520,0.95)
+      .setStrokeStyle(2,0xc4956a).setScrollFactor(0).setDepth(250);
+    const tText = this.add.text(w/2,h/2-40,title,{
+      fontSize:'15px',fontStyle:'bold',fill:'#c4956a'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(251);
-    const bText = this.add.text(w/2, h/2, body, {
-      fontSize: '12px', fill: '#ccc', align: 'center', lineSpacing: 6
+    const bText = this.add.text(w/2,h/2,body,{
+      fontSize:'12px',fill:'#ccc',align:'center',lineSpacing:6
     }).setOrigin(0.5).setScrollFactor(0).setDepth(251);
-    const btn = this.add.text(w/2, h/2+50, '확인', {
-      fontSize: '13px', fill: '#e8dcc8', fontStyle: 'bold',
-      backgroundColor: '#2a2a3e', padding: { x: 18, y: 8 }
+    const btn = this.add.text(w/2,h/2+50,'확인',{
+      fontSize:'13px',fill:'#e8dcc8',fontStyle:'bold',
+      backgroundColor:'#2a2a3e',padding:{x:18,y:8}
     }).setOrigin(0.5).setScrollFactor(0).setDepth(251).setInteractive();
-
     btn.on('pointerdown', () => {
-      [bg, tText, bText, btn].forEach(o => o.destroy());
+      [bg,tText,bText,btn].forEach(o => o.destroy());
       if (callback) callback();
     });
   }
 
-  // ── 오버레이 표시 ─────────────────────────
+  // ── 오버레이 ──────────────────────────────
   drawMoveRange() {
     this.clearMoveRange();
-    this.moveRange.forEach(({ x, y }) => {
-      const px = x * CELL + CELL/2, py = y * CELL + CELL/2;
-      const rect = this.add.rectangle(px, py, CELL-2, CELL-2, 0x50B4FF, 0.28)
-        .setStrokeStyle(2, 0x50B4FF, 0.6).setDepth(5);
+    this.moveRange.forEach(({x,y}) => {
+      const rect = this.add.rectangle(x*CELL+CELL/2,y*CELL+CELL/2,CELL-2,CELL-2,0x50B4FF,0.28)
+        .setStrokeStyle(2,0x50B4FF,0.6).setDepth(5);
       this.moveOverlays.add(rect);
     });
   }
   clearMoveRange() { this.moveOverlays.clear(true, true); }
-
   drawAtkRange() {
     this.clearAtkRange();
     this.attackTargets.forEach(u => {
-      const px = u.x * CELL + CELL/2, py = u.y * CELL + CELL/2;
-      const rect = this.add.rectangle(px, py, CELL-2, CELL-2, 0xFF3333, 0.3)
-        .setStrokeStyle(2, 0xFF3333, 0.65).setDepth(5);
+      const rect = this.add.rectangle(u.x*CELL+CELL/2,u.y*CELL+CELL/2,CELL-2,CELL-2,0xFF3333,0.3)
+        .setStrokeStyle(2,0xFF3333,0.65).setDepth(5);
       this.atkOverlays.add(rect);
     });
   }
   clearAtkRange() { this.atkOverlays.clear(true, true); }
 
-  // ── HUD (화면 하단) ───────────────────────
+  // ── HUD ───────────────────────────────────
   createHUD() {
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
-
+    const w = this.cameras.main.width, h = this.cameras.main.height;
     this.hudContainer = this.add.container(0, h).setScrollFactor(0).setDepth(150);
     this.hudBg = this.add.rectangle(w/2, -50, w, 110, 0x0c0c18, 0.95);
     this.hudContainer.add(this.hudBg);
 
-    this.hudName = this.add.text(60, -90, '', { fontSize: '13px', fontStyle: 'bold', fill: '#e8dcc8' });
-    this.hudTitle = this.add.text(60, -76, '', { fontSize: '10px', fill: '#999' });
-    this.hudHpBg = this.add.rectangle(60, -60, 150, 8, 0x1a1a2e).setOrigin(0, 0.5);
-    this.hudHpFill = this.add.rectangle(60, -60, 150, 8, 0x2ecc71).setOrigin(0, 0.5);
-    this.hudHpText = this.add.text(215, -60, '', { fontSize: '9px', fill: '#aaa' }).setOrigin(0, 0.5);
-    this.hudSub = this.add.text(60, -48, '', { fontSize: '9px', fill: '#777' });
-    this.hudContainer.add([this.hudName, this.hudTitle, this.hudHpBg, this.hudHpFill, this.hudHpText, this.hudSub]);
-
-    // 액션 버튼 컨테이너
-    this.hudBtnContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(151);
+    this.hudName = this.add.text(60,-90,'',{fontSize:'13px',fontStyle:'bold',fill:'#e8dcc8'});
+    this.hudTitle = this.add.text(60,-76,'',{fontSize:'10px',fill:'#999'});
+    this.hudHpBg = this.add.rectangle(60,-60,150,8,0x1a1a2e).setOrigin(0,0.5);
+    this.hudHpFill = this.add.rectangle(60,-60,150,8,0x2ecc71).setOrigin(0,0.5);
+    this.hudHpText = this.add.text(215,-60,'',{fontSize:'9px',fill:'#aaa'}).setOrigin(0,0.5);
+    this.hudSub = this.add.text(60,-48,'',{fontSize:'9px',fill:'#777'});
+    this.hudContainer.add([this.hudName,this.hudTitle,this.hudHpBg,this.hudHpFill,this.hudHpText,this.hudSub]);
+    this.hudBtnContainer = this.add.container(0,0).setScrollFactor(0).setDepth(151);
     this.hudBtnContainer.setVisible(false);
-
     this.hudContainer.setVisible(false);
   }
 
   showHUD(unit) {
     this.hudContainer.setVisible(true);
-    this.hudName.setText(unit.name);
+    const lvlStr = unit.level ? ' Lv.' + unit.level : '';
+    this.hudName.setText(unit.name + lvlStr);
     this.hudTitle.setText(unit.title);
     const pct = unit.hp / unit.maxHp;
-    this.hudHpFill.setDisplaySize(150 * pct, 8);
-    this.hudHpFill.setFillStyle(unit.team === 'ally' ? 0x2ecc71 : 0xe74c3c);
-    this.hudHpText.setText(`${unit.hp}/${unit.maxHp}`);
-    this.hudSub.setText(`ATK ${unit.atk} · DEF ${unit.def} · MOV ${unit.mov} · RNG ${unit.rng||1}`);
+    this.hudHpFill.setDisplaySize(150*pct, 8);
+    this.hudHpFill.setFillStyle(unit.team==='ally' ? 0x2ecc71 : 0xe74c3c);
+    this.hudHpText.setText(unit.hp+'/'+unit.maxHp);
+    const xpStr = unit.xp !== undefined ? ' · XP '+unit.xp+'/100' : '';
+    this.hudSub.setText('ATK '+unit.atk+' · DEF '+unit.def+' · MOV '+unit.mov+' · RNG '+(unit.rng||1)+xpStr);
   }
-
-  hideHUD() {
-    this.hudContainer.setVisible(false);
-    this.hideActionButtons();
-  }
+  hideHUD() { this.hudContainer.setVisible(false); this.hideActionButtons(); }
 
   showActionButtons(unit, enemies) {
     this.hideActionButtons();
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
+    const w = this.cameras.main.width, h = this.cameras.main.height;
     const btns = [];
     let bx = 8;
     const by = h - 28;
-    const bw = Math.min(80, (w - 16) / 4 - 4);
+    const bw = Math.min(80, (w-16)/5 - 4);
 
     const makeBtn = (label, color, cb) => {
       const btn = this.add.text(bx, by, label, {
-        fontSize: '11px', fontStyle: 'bold', fill: '#e8dcc8',
-        backgroundColor: color, padding: { x: 6, y: 8 },
-        fixedWidth: bw, align: 'center'
+        fontSize:'11px', fontStyle:'bold', fill:'#e8dcc8',
+        backgroundColor:color, padding:{x:6,y:8}, fixedWidth:bw, align:'center'
       }).setScrollFactor(0).setDepth(155).setInteractive();
-      btn.on('pointerdown', cb);
+      btn.on('pointerdown', () => { audioMgr.playSFX('click'); cb(); });
       btns.push(btn);
-      bx += bw + 4;
+      bx += bw + 3;
     };
 
-    const hasAdj = enemies.some(e => this.manhattanDist(unit, e) <= (unit.rng || 1));
-    if (hasAdj) makeBtn('⚔️공격', '#7a1a0a', () => this.startAttack('basic'));
+    const hasAdj = enemies.some(e => this.manhattanDist(unit,e) <= (unit.rng||1));
+    if (hasAdj) makeBtn('⚔공격', '#7a1a0a', () => this.startAttack('basic'));
 
     unit.skills.forEach((sk, i) => {
       if (sk.type === 'heal') {
-        makeBtn(`💚${sk.name}`, '#1a3a5c', () => this.useHealSkill(i));
+        makeBtn('💚'+sk.name.slice(0,3), '#1a3a5c', () => this.useHealSkill(i));
       } else {
-        const has = enemies.some(e => this.manhattanDist(unit, e) <= (sk.rng||1));
-        if (has) makeBtn(`✨${sk.name}`, '#1a3a5c', () => this.startAttack('skill', i));
+        const has = enemies.some(e => this.manhattanDist(unit,e) <= (sk.rng||1));
+        if (has) makeBtn('✨'+sk.name.slice(0,3), '#1a3a5c', () => this.startAttack('skill', i));
       }
     });
 
-    if (this.itemCount > 0) makeBtn(`🧪약(${this.itemCount})`, '#2a5a2a', () => this.useItem());
+    if (this.itemCount > 0) makeBtn('🧪약'+this.itemCount, '#2a5a2a', () => this.useItem());
     makeBtn('⏳대기', '#2a2a3e', () => this.doWait());
-
     this.actionBtns = btns;
   }
-
   hideActionButtons() {
-    if (this.actionBtns) {
-      this.actionBtns.forEach(b => b.destroy());
-      this.actionBtns = [];
-    }
+    if (this.actionBtns) { this.actionBtns.forEach(b => b.destroy()); this.actionBtns = []; }
   }
 
   // ── 유틸리티 ──────────────────────────────
   getAliveUnit(x, y, team) {
-    return this.units.find(u => u.alive && u.x === x && u.y === y && (!team || u.team === team));
+    return this.units.find(u => u.alive && u.x===x && u.y===y && (!team || u.team===team));
   }
-
-  manhattanDist(a, b) {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-  }
-
-  setGuide(text) {
-    if (this.guideText) this.guideText.setText(text);
-  }
+  manhattanDist(a, b) { return Math.abs(a.x-b.x) + Math.abs(a.y-b.y); }
+  setGuide(text) { if (this.guideText) this.guideText.setText(text); }
 }
 
 // ══════════════════════════════════════════════════
-// 🏆 VictoryScene — 승리 화면
+// 🏆 VictoryScene — 승리 + XP + 세이브
 // ══════════════════════════════════════════════════
 class VictoryScene extends Phaser.Scene {
   constructor() { super('Victory'); }
 
   create() {
-    const w = this.cameras.main.width;
-    const h = this.cameras.main.height;
+    audioMgr.stopBGM();
+    audioMgr.playSFX('victory');
+    const ep = EPISODES[currentEpisode];
+    const w = this.cameras.main.width, h = this.cameras.main.height;
     this.cameras.main.setBackgroundColor('#0a0a14');
 
-    this.add.text(w/2, h*0.15, '🏆', { fontSize: '48px' }).setOrigin(0.5);
-    this.add.text(w/2, h*0.25, '전투 승리!', {
-      fontSize: '24px', fontStyle: 'bold', fill: '#f4d03f',
-      fontFamily: 'Noto Serif KR, serif'
+    // 승리 파티클
+    for (let i = 0; i < 20; i++) {
+      const colors = [0xFFD700, 0xFF6B35, 0x00CED1, 0xFF5FA2];
+      const p = this.add.circle(
+        Phaser.Math.Between(0, w), h + 10,
+        Phaser.Math.Between(2, 5),
+        colors[Phaser.Math.Between(0, 3)], 0.7
+      );
+      this.tweens.add({
+        targets: p,
+        y: Phaser.Math.Between(-20, h*0.5),
+        x: p.x + Phaser.Math.Between(-50, 50),
+        alpha: 0, duration: Phaser.Math.Between(1500, 3000),
+        delay: Phaser.Math.Between(0, 500)
+      });
+    }
+
+    this.add.text(w/2, h*0.08, '🏆', {fontSize:'48px'}).setOrigin(0.5);
+    this.add.text(w/2, h*0.17, '전투 승리!', {
+      fontSize:'24px', fontStyle:'bold', fill:'#f4d03f', fontFamily:'Noto Serif KR, serif'
     }).setOrigin(0.5);
 
     // 보상
-    this.add.rectangle(w/2, h*0.36, w*0.85, 50, 0x151520)
-      .setStrokeStyle(1, 0xc4956a, 0.3);
-    this.add.text(w/2, h*0.36, '🎁 ' + VICTORY_DATA.reward, {
-      fontSize: '14px', fontStyle: 'bold', fill: '#f4d03f'
+    this.add.rectangle(w/2, h*0.27, w*0.85, 40, 0x151520).setStrokeStyle(1,0xc4956a,0.3);
+    this.add.text(w/2, h*0.27, '🎁 ' + ep.victory.reward, {
+      fontSize:'12px', fontStyle:'bold', fill:'#f4d03f'
     }).setOrigin(0.5);
+
+    // 유닛 레벨/XP 표시
+    let yPos = h*0.35;
+    this.add.text(w/2, yPos, '📊 부대 현황', {fontSize:'12px',fill:'#c4956a',fontStyle:'bold'}).setOrigin(0.5);
+    yPos += 20;
+
+    const allyData = ep.allies;
+    allyData.forEach(a => {
+      const saved = gameState.unitLevels && gameState.unitLevels[a.id];
+      const lvl = saved ? saved.level : 1;
+      const xp = saved ? saved.xp : 0;
+      this.add.text(w*0.2, yPos, a.name + '  Lv.' + lvl + '  XP:' + xp + '/100', {
+        fontSize:'10px', fill:'#ccc'
+      });
+      // XP바
+      this.add.rectangle(w*0.75, yPos+5, 60, 6, 0x1a1a2e);
+      this.add.rectangle(w*0.75-30+30*(xp/100), yPos+5, 60*(xp/100), 6, 0xFFD700).setOrigin(0, 0.5);
+      yPos += 18;
+    });
 
     // 역사 노트
-    this.add.rectangle(w/2, h*0.56, w*0.88, 130, 0x0a0a14)
-      .setStrokeStyle(1, 0xffffff, 0.07);
-    this.add.text(w/2, h*0.47, '📖 역사 포인트', {
-      fontSize: '12px', fontStyle: 'bold', fill: '#c4956a'
-    }).setOrigin(0.5);
-    this.add.text(w/2, h*0.58, VICTORY_DATA.historyNote, {
-      fontSize: '11px', fill: '#aaa', wordWrap: { width: w*0.8 },
-      lineSpacing: 6, align: 'center'
+    const noteY = yPos + 15;
+    this.add.rectangle(w/2, noteY+40, w*0.88, 100, 0x0a0a14).setStrokeStyle(1,0xffffff,0.07);
+    this.add.text(w/2, noteY+5, '📖 역사 포인트', {fontSize:'12px',fontStyle:'bold',fill:'#c4956a'}).setOrigin(0.5);
+    this.add.text(w/2, noteY+45, ep.victory.historyNote, {
+      fontSize:'10px', fill:'#aaa', wordWrap:{width:w*0.8}, lineSpacing:5, align:'center'
     }).setOrigin(0.5);
 
-    // 다시하기
-    const btn = this.add.text(w/2, h*0.8, '🔄 다시 플레이', {
-      fontSize: '16px', fill: '#e8dcc8', fontStyle: 'bold',
-      backgroundColor: '#6B1A0A', padding: { x: 24, y: 12 }
+    // 세이브
+    SaveManager.save(gameState);
+
+    // 버튼들
+    const btnY = Math.min(h*0.88, noteY + 110);
+
+    if (currentEpisode === 1) {
+      const nextBtn = this.add.text(w/2, btnY, '▶ EP.2 살수대첩으로', {
+        fontSize:'14px', fill:'#e8dcc8', fontStyle:'bold',
+        backgroundColor:'#104E8B', padding:{x:20,y:10}
+      }).setOrigin(0.5).setInteractive();
+      nextBtn.on('pointerdown', () => {
+        currentEpisode = 2;
+        gameState.currentEp = 2;
+        SaveManager.save(gameState);
+        this.scene.start('Story');
+      });
+    }
+
+    const retryBtn = this.add.text(w*0.3, btnY+35, '🔄 다시', {
+      fontSize:'12px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#6B1A0A', padding:{x:14,y:8}
     }).setOrigin(0.5).setInteractive();
-    btn.on('pointerdown', () => this.scene.start('Title'));
+    retryBtn.on('pointerdown', () => this.scene.start('Title'));
+
+    const titleBtn = this.add.text(w*0.7, btnY+35, '🏠 타이틀', {
+      fontSize:'12px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#2a2a3e', padding:{x:14,y:8}
+    }).setOrigin(0.5).setInteractive();
+    titleBtn.on('pointerdown', () => {
+      audioMgr.stopBGM();
+      this.scene.start('Title');
+    });
 
     this.cameras.main.fadeIn(800);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 🏕️ CampScene — 파티 상태 확인 (미래 확장용)
+// ══════════════════════════════════════════════════
+class CampScene extends Phaser.Scene {
+  constructor() { super('Camp'); }
+  create() {
+    const w = this.cameras.main.width, h = this.cameras.main.height;
+    this.cameras.main.setBackgroundColor('#0a0a14');
+    this.add.text(w/2, h*0.1, '⛺ 야영지', {
+      fontSize:'20px', fill:'#c4956a', fontStyle:'bold', fontFamily:'Noto Serif KR, serif'
+    }).setOrigin(0.5);
+
+    this.add.text(w/2, h*0.2, '부대원 상태를 확인하세요', {fontSize:'11px',fill:'#888'}).setOrigin(0.5);
+
+    let y = h*0.3;
+    const ep = EPISODES[currentEpisode];
+    ep.allies.forEach(a => {
+      const saved = gameState.unitLevels && gameState.unitLevels[a.id];
+      const lvl = saved ? saved.level : 1;
+      this.add.text(w*0.15, y, a.name + ' (Lv.' + lvl + ') — ' + a.title, {
+        fontSize:'11px', fill:'#e8dcc8'
+      });
+      y += 22;
+    });
+
+    const btn = this.add.text(w/2, h*0.8, '출발 ▶', {
+      fontSize:'16px', fill:'#e8dcc8', fontStyle:'bold',
+      backgroundColor:'#6B1A0A', padding:{x:24,y:12}
+    }).setOrigin(0.5).setInteractive();
+    btn.on('pointerdown', () => this.scene.start('Battle'));
   }
 }
 
@@ -1300,7 +1771,7 @@ const config = {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, TitleScene, StoryScene, BattleScene, VictoryScene],
+  scene: [BootScene, TitleScene, StoryScene, BattleScene, VictoryScene, CampScene],
 };
 
 const game = new Phaser.Game(config);
