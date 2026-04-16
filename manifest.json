@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 기반 RPG 게임 모음",
+  "description": "고조선 4챕터 택티컬 RPG — 환웅·단군·위만·부여삼한",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a14",

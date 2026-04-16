@@ -1,0 +1,47 @@
+// ============================================================
+// minigames.js — 한국사 영웅전 v7 Minigames (Endurance / Quiz / Ritual)
+// ============================================================
+
+// --- Endurance ---
+function startEndurance(){G.mode='endurance';G.endDay=0;G.endHP=100;$('endurance-game').classList.add('on');nextED()}
+function nextED(){
+  G.endDay++;if(G.endDay>7){$('endurance-game').classList.remove('on');const st=STAGES[G.stage];
+    startDlg(st.post||[{s:'',t:'21일 시련 완료!'}],()=>{doRecruit(st);completeArea()});return}
+  $('endurance-day').textContent=`${G.endDay*3}일차 / 21일`;$('endurance-fill').style.width=(G.endDay/7*100)+'%';
+  const evts=[{p:'배가 고프다... 쑥을 먹어 인내하라!',l:10},{p:'동굴이 춥다... 마늘을 먹어 버텨라!',l:12},{p:'밖에서 새소리가... 참아라!',l:8},{p:'호랑이가 유혹: "나가자!"',l:15}];
+  const ev=evts[Math.floor(Math.random()*evts.length)];$('endurance-prompt').textContent=ev.p;
+  const btn=$('endurance-btn');btn.style.display='none';
+  setTimeout(()=>{btn.style.display='block';btn.onclick=()=>{G.endHP-=ev.l*(.5+Math.random()*.5);sfx('def');$('endurance-prompt').textContent='인내 성공!';btn.style.display='none';setTimeout(nextED,800)}},500+Math.random()*800);
+}
+
+// --- Quiz ---
+const QUIZZES=[
+  // Ch1-2 기존 문제
+  {q:'고조선의 건국 연도는?',a:['BC 2333년','BC 1000년','BC 500년','BC 108년'],c:0},
+  {q:'단군왕검의 어머니는?',a:['선녀','웅녀','호녀','학녀'],c:1},
+  {q:'고조선의 법률 이름은?',a:['팔조법금','살수대첩','화랑도','골품제'],c:0},
+  {q:'환웅이 가져온 신물은?',a:['삼신기','천부인','천부경','삼태극'],c:1},
+  {q:'고조선의 수도는?',a:['평양','서울','아사달','개경'],c:2},
+  // Ch3-4 신규 문제
+  {q:'위만조선의 수도는?',a:['왕검성','아사달','개경','평양'],c:0},
+  {q:'고조선을 멸망시킨 나라는?',a:['한나라','진나라','흉노','고구려'],c:0},
+  {q:'부여의 제천행사 이름은?',a:['영고','무천','동맹','소도'],c:0},
+  {q:'동예의 특산물이 아닌 것은?',a:['비단','단궁','과하마','반어피'],c:0},
+  {q:'삼한의 신성구역을 뭐라 하는가?',a:['소도','신시','신궁','사직'],c:0}
+];
+let quizIdx=0,quizCorrect=0;
+function startQuiz(cb){G.quizCb=cb;quizIdx=0;quizCorrect=0;G._quizSet=[...QUIZZES].sort(()=>Math.random()-.5).slice(0,3);showQuizQ();$('quiz-screen').classList.add('on');G.mode='quiz'}
+function showQuizQ(){
+  if(quizIdx>=3){$('quiz-screen').classList.remove('on');
+    if(quizCorrect>=2){sfx('quest');startDlg([{s:'현자',t:`${quizCorrect}/3 정답! 지혜로운 자이다.`}],()=>{if(G.quizCb)G.quizCb()})}
+    else startDlg([{s:'현자',t:`아직 부족하다. 다시 도전하라.`}],()=>startQuiz(G.quizCb));return}
+  const q=G._quizSet[quizIdx];$('quiz-question').textContent=`문제 ${quizIdx+1}/3: ${q.q}`;
+  $('quiz-answers').innerHTML=q.a.map((a,i)=>`<button class="quiz-btn" onclick="answerQuiz(${i})">${a}</button>`).join('');
+}
+window.answerQuiz=function(i){const q=G._quizSet[quizIdx];const btns=$('quiz-answers').querySelectorAll('.quiz-btn');btns.forEach((b,j)=>{b.disabled=true;if(j===q.c)b.classList.add('correct');if(j===i&&j!==q.c)b.classList.add('wrong')});if(i===q.c){quizCorrect++;sfx('sel')}else sfx('miss');setTimeout(()=>{quizIdx++;showQuizQ()},1000)};
+
+// --- Ritual ---
+function startRitual(cb){G.ritualCb=cb;G.ritualRound=0;G.ritualSuccess=0;G.ritualAngle=0;$('ritual-game').classList.add('on');G.mode='ritual';$('ritual-round').textContent='1 / 5';animateRitual()}
+let ritualAF=null;
+function animateRitual(){G.ritualAngle+=0.03;if(G.ritualAngle>Math.PI*2)G.ritualAngle-=Math.PI*2;const m=$('ritual-marker'),r=60;m.style.left=(80+Math.cos(G.ritualAngle)*r-8)+'px';m.style.top=(80+Math.sin(G.ritualAngle)*r-8)+'px';if(G.mode==='ritual')ritualAF=requestAnimationFrame(animateRitual)}
+window.ritualTap=function(){if(G.mode!=='ritual')return;let diff=Math.abs(G.ritualAngle-((-Math.PI/2+Math.PI*2)%(Math.PI*2)));if(diff>Math.PI)diff=Math.PI*2-diff;if(diff<0.4){G.ritualSuccess++;sfx('sel')}else sfx('miss');G.ritualRound++;$('ritual-round').textContent=`${G.ritualRound+1} / 5`;$('ritual-score').textContent=`성공: ${G.ritualSuccess}`;if(G.ritualRound>=5){cancelAnimationFrame(ritualAF);$('ritual-game').classList.remove('on');if(G.ritualSuccess>=3){sfx('quest');startDlg([{s:'',t:'제천의식 성공!'}],()=>{if(G.ritualCb)G.ritualCb()})}else startDlg([{s:'',t:'부족하다... 다시 시도한다.'}],()=>startRitual(G.ritualCb))}};
