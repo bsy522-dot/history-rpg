@@ -1,0 +1,12 @@
+{
+  "reachedTown": true,
+  "flags": {
+    "flags": {
+      "ep1_cleared": false,
+      "council_done": true
+    },
+    "inventory": {}
+  },
+  "consoleErrors": [],
+  "pageErrors": []
+}

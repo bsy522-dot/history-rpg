@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>v8 전투 시스템 테스트 · Agent C</title>
+  <style>
+    html, body { margin:0; padding:0; background:#1a1428; color:#ffd700;
+      font-family:"Noto Serif KR", serif; overflow:hidden; }
+    #ui {
+      position:fixed; top:6px; left:6px; z-index:100;
+      background:rgba(0,0,0,.7); padding:10px 14px; border-radius:6px;
+      min-width:300px; max-width:360px;
+      font-size:12px; line-height:1.6;
+    }
+    #ui h2 { margin:0 0 6px; font-size:14px; color:#ffd700; }
+    #ui .row { display:flex; justify-content:space-between; margin:2px 0; }
+    #ui .row .nm { color:#ddd; }
+    #ui .hp { color:#ff7070; }
+    #ui .hp.low { color:#ff3030; font-weight:bold; }
+    #ui .mp { color:#6aa0ff; }
+    #ui .acted { opacity:0.5; }
+    #ui button {
+      background:#3a2418; color:#ffd700; border:1px solid #ffd700;
+      padding:4px 10px; margin:2px; cursor:pointer; font-family:inherit;
+      border-radius:4px;
+    }
+    #ui button:hover { background:#5a3418; }
+    #ui button:disabled { opacity:0.4; cursor:not-allowed; }
+    #phase { color:#ffaa66; font-weight:bold; }
+    #log {
+      position:fixed; bottom:6px; left:6px; z-index:100;
+      background:rgba(0,0,0,.65); padding:8px 12px; border-radius:6px;
+      max-width:500px; max-height:150px; overflow-y:auto;
+      font-size:11px; color:#ccc; line-height:1.5;
+    }
+    #log .hit { color:#ff6666; }
+    #log .heal { color:#66ff99; }
+    #log .crit { color:#ffd700; font-weight:bold; }
+    #log .lvup { color:#ffd700; }
+    #simbar {
+      position:fixed; top:6px; right:6px; z-index:100;
+      background:rgba(0,0,0,.7); padding:10px 14px; border-radius:6px;
+      font-size:12px;
+    }
+    #simout { color:#ddd; font-family:monospace; white-space:pre; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <h2>⚔ v8 전투 테스트 · EP.1 환웅</h2>
+    <div>Turn <span id="turn">1</span> · Phase <span id="phase">-</span> · Side <span id="side">ally</span></div>
+    <hr style="border-color:#553;margin:6px 0" />
+    <h2 style="color:#ffcc66">아군 (4)</h2>
+    <div id="allies"></div>
+    <h2 style="color:#ff8888;margin-top:6px">적군 (5)</h2>
+    <div id="enemies"></div>
+    <hr style="border-color:#553;margin:6px 0" />
+    <div>
+      <button id="btn-move">이동 후보</button>
+      <button id="btn-atk">공격 사거리</button>
+      <button id="btn-skill">스킬 범위</button>
+      <button id="btn-clear">하이라이트 끄기</button>
+      <button id="btn-end">턴 종료</button>
+    </div>
+  </div>
+  <div id="simbar">
+    <button id="sim10">AI 시뮬 10회</button>
+    <button id="sim100">AI 시뮬 100회</button>
+    <div id="simout"></div>
+  </div>
+  <div id="log"><strong>전투 로그</strong></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { initEngine, State, onUpdate, queueAnim } from '../js-v8/core/engine.js';
+    import { MAT, assertStandardMaterials } from '../js-v8/graphics/materials.js';
+    import { buildTileMap, TILE_SIZE, gridToWorld } from '../js-v8/graphics/terrain.js';
+    import { buildUnit, setUnitActed } from '../js-v8/graphics/unit_builder.js';
+    import { damageNumber, critNumber, healNumber, cameraShake, spawnHitParticle } from '../js-v8/graphics/effects.js';
+
+    import { TurnManager, PHASE } from '../js-v8/battle/turn_manager.js';
+    import { calcMoveRange, calcAttackRange, manhattan } from '../js-v8/battle/movement.js';
+    import { executeAttack, calcDamage } from '../js-v8/battle/attack.js';
+    import { executeSkill, getSkillRange } from '../js-v8/battle/skills.js';
+    import { grantXP } from '../js-v8/battle/xp_level.js';
+    import { enemyTurn } from '../js-v8/battle/ai.js';
+    import { applyWeather } from '../js-v8/battle/weather.js';
+    import {
+      showMoveRange, showAttackRange, showSkillRange, clearHighlights,
+    } from '../js-v8/battle/highlights.js';
+
+    // ─── 데이터 로드 ───
+    const [unitsDb, skillsDb, mapsDb, itemsDb] = await Promise.all([
+      fetch('../js-v8/data/units.json').then(r => r.json()),
+      fetch('../js-v8/data/skills.json').then(r => r.json()),
+      fetch('../js-v8/data/maps.json').then(r => r.json()),
+      fetch('../js-v8/data/items.json').then(r => r.json()),
+    ]);
+
+    // ─── 엔진 ───
+    initEngine({ bgColor: 0x1a1428, debug: true });
+    assertStandardMaterials();
+
+    // 카메라: Orthographic tactical
+    const sz = 8;
+    const aspect = window.innerWidth / window.innerHeight;
+    const cam = new THREE.OrthographicCamera(-sz*aspect, sz*aspect, sz, -sz, 0.1, 100);
+    cam.position.set(12, 15, 12);
+    cam.lookAt(5.5, 0, 5.5);
+    State.camera = cam;
+
+    // 조명
+    State.scene.add(new THREE.AmbientLight(0xffeedd, 0.65));
+    const sun = new THREE.DirectionalLight(0xffaa66, 1.2);
+    sun.position.set(10, 20, 10);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -15; sun.shadow.camera.right = 15;
+    sun.shadow.camera.top = 15; sun.shadow.camera.bottom = -15;
+    State.scene.add(sun);
+    State.scene.add(new THREE.HemisphereLight(0xffaa77, 0x332211, 0.4));
+
+    // ─── 맵 ───
+    const map = mapsDb.ep1_trial;
+    const tileGroup = buildTileMap(map.terrain);
+    State.scene.add(tileGroup);
+
+    // ─── 유닛 스폰 ───
+    function spawnUnit(id, db, team, x, y) {
+      const base = db[id];
+      const u = {
+        id, name: base.name, team, unitType: base.unitType,
+        hp: base.hp, mhp: base.mhp, mp: base.mp || 0, mmp: base.mmp || 0,
+        atk: base.atk, def: base.def, spd: base.spd || 10,
+        mov: base.mov, rng: base.rng,
+        x, y, acted: false,
+        skills: base.skills || [],
+        weakTo: base.weakTo, isLeader: !!base.isLeader,
+        level: 1, xp: 0,
+      };
+      const mesh = buildUnit({ isAlly: team === 'ally', isLeader: u.isLeader, unitData: u });
+      const w = gridToWorld(x, y);
+      mesh.position.set(w.x, 0.24, w.z);
+      State.scene.add(mesh);
+      u.mesh = mesh;
+      return u;
+    }
+
+    const allies = [
+      spawnUnit('hwanwoong', unitsDb.ep1_allies, 'ally', map.allyStart[0][0], map.allyStart[0][1]),
+      spawnUnit('pungbaek',  unitsDb.ep1_allies, 'ally', map.allyStart[1][0], map.allyStart[1][1]),
+      spawnUnit('usa',       unitsDb.ep1_allies, 'ally', map.allyStart[2][0], map.allyStart[2][1]),
+      spawnUnit('unsa',      unitsDb.ep1_allies, 'ally', map.allyStart[3][0], map.allyStart[3][1]),
+    ];
+    const enemies = [
+      spawnUnit('cheonmujang', unitsDb.ep1_enemies, 'enemy', map.enemyStart[0][0], map.enemyStart[0][1]),
+      spawnUnit('noigong',     unitsDb.ep1_enemies, 'enemy', map.enemyStart[1][0], map.enemyStart[1][1]),
+      spawnUnit('hwashin',     unitsDb.ep1_enemies, 'enemy', map.enemyStart[2][0], map.enemyStart[2][1]),
+      spawnUnit('sanryeong',   unitsDb.ep1_enemies, 'enemy', map.enemyStart[3][0], map.enemyStart[3][1]),
+      spawnUnit('sujang',      unitsDb.ep1_enemies, 'enemy', map.enemyStart[4][0], map.enemyStart[4][1]),
+    ];
+
+    const allUnits = [...allies, ...enemies];
+    const weather = applyWeather(map.weather || 'clear', State);
+
+    // ─── TurnManager ───
+    const tm = new TurnManager({ allies, enemies, map, weather });
+    let selected = allies[0];
+
+    // ─── UI 업데이트 ───
+    const $ = (id) => document.getElementById(id);
+    function renderList(arr, elId) {
+      const el = $(elId);
+      el.innerHTML = arr.map((u, i) => {
+        const hpPct = u.hp / u.mhp;
+        const cls = hpPct < 0.3 ? 'low' : '';
+        const acted = u.acted ? 'acted' : '';
+        const sel = (u === selected) ? '★' : '';
+        return `<div class="row ${acted}">
+          <span class="nm">${sel}${u.name} Lv.${u.level} (${u.x},${u.y})</span>
+          <span class="hp ${cls}">HP ${u.hp}/${u.mhp}</span>
+          <span class="mp">MP ${u.mp}/${u.mmp}</span>
+        </div>`;
+      }).join('');
+    }
+    function updateUI() {
+      renderList(allies, 'allies');
+      renderList(enemies, 'enemies');
+      $('turn').textContent = tm.turn;
+      $('phase').textContent = tm.currentPhase;
+      $('side').textContent = tm.side;
+    }
+
+    function log(msg, cls = '') {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.innerHTML = msg;
+      $('log').appendChild(el);
+      $('log').scrollTop = $('log').scrollHeight;
+    }
+
+    // ─── 이벤트 리스너 ───
+    tm.addEventListener('phase', (e) => {
+      updateUI();
+    });
+    tm.addEventListener('turn', (e) => {
+      log(`<strong>— Turn ${e.detail.turn} · ${e.detail.side} —</strong>`);
+      updateUI();
+    });
+    tm.addEventListener('special_heal', (e) => {
+      log(`<span class="heal">${e.detail.unit.name} 신단수 +${e.detail.amount}</span>`);
+    });
+
+    tm.start();
+    updateUI();
+
+    // ─── 버튼 핸들러 ───
+    $('btn-move').onclick = () => {
+      clearHighlights();
+      if (!selected || selected.hp <= 0) return;
+      const tiles = calcMoveRange(selected, map, allUnits);
+      showMoveRange(tiles);
+      log(`${selected.name} 이동 범위 ${tiles.length}칸`);
+    };
+    $('btn-atk').onclick = () => {
+      clearHighlights();
+      if (!selected || selected.hp <= 0) return;
+      const tiles = calcAttackRange(selected, map);
+      showAttackRange(tiles);
+    };
+    $('btn-skill').onclick = () => {
+      clearHighlights();
+      if (!selected || !selected.skills?.length) return;
+      const skill = skillsDb[selected.skills[0]];
+      if (!skill) return;
+      const { tiles } = getSkillRange(selected, skill, map);
+      showSkillRange(tiles);
+      log(`${selected.name} 스킬: ${skill.name} (MP ${skill.mp})`);
+    };
+    $('btn-clear').onclick = () => clearHighlights();
+    $('btn-end').onclick = async () => {
+      if (tm.side !== 'ally') return;
+      // 간단 테스트: 모든 아군 acted 처리 → enemy turn
+      for (const a of allies) if (a.hp > 0) a.acted = true;
+      tm.endUnitTurn();
+      if (tm.currentPhase === PHASE.ENEMY) {
+        await enemyTurn(enemies, allUnits, map, 'normal', { weather, skillsDb });
+        tm.endEnemyTurn();
+        // 죽은 유닛 mesh 제거/반투명
+        for (const u of allUnits) {
+          if (u.hp <= 0 && u.mesh) setUnitActed(u.mesh, true);
+          else if (u.mesh) {
+            const w = gridToWorld(u.x, u.y);
+            u.mesh.position.x = w.x; u.mesh.position.z = w.z;
+            setUnitActed(u.mesh, u.acted);
+          }
+        }
+        updateUI();
+      }
+    };
+
+    // ─── 클릭으로 유닛 선택 ───
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    window.addEventListener('click', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, cam);
+      const hits = raycaster.intersectObjects(State.scene.children, true);
+      for (const h of hits) {
+        let obj = h.object;
+        while (obj && !obj.userData?.type) obj = obj.parent;
+        if (obj?.userData?.type === 'unit' && obj.userData.unitData) {
+          selected = obj.userData.unitData;
+          log(`선택: ${selected.name}`);
+          updateUI();
+          return;
+        }
+      }
+    });
+
+    // ─── 100회 시뮬 (브라우저에서도 가능) ───
+    async function simOneHeadless() {
+      // copy units (deep)
+      const dup = (arr) => arr.map((u) => ({ ...u, buffs: [] }));
+      const a = dup(allies), e = dup(enemies);
+      const all = [...a, ...e];
+      const ctx = { weather, skillsDb, suppressFx: true };
+      let turn = 1;
+      while (turn <= 30) {
+        // 아군 AI
+        await enemyTurn(a, all, map, 'normal', ctx);
+        if (!e.some((u) => u.hp > 0)) return { winner: 'ally', turns: turn };
+        // 적 AI
+        await enemyTurn(e, all, map, 'normal', ctx);
+        if (!a.some((u) => u.hp > 0)) return { winner: 'enemy', turns: turn };
+        turn++;
+      }
+      return { winner: 'draw', turns: turn };
+    }
+    async function runSim(n) {
+      $('simout').textContent = `실행 중... 0/${n}`;
+      let wins = 0, totalTurns = 0;
+      const t0 = performance.now();
+      for (let i = 0; i < n; i++) {
+        const r = await simOneHeadless();
+        if (r.winner === 'ally') wins++;
+        totalTurns += r.turns;
+        if (i % 10 === 0) $('simout').textContent = `실행 중... ${i}/${n}`;
+      }
+      const ms = performance.now() - t0;
+      $('simout').textContent =
+        `결과 (${n}회):\n` +
+        `아군 승률: ${(wins/n*100).toFixed(1)}%\n` +
+        `평균 턴: ${(totalTurns/n).toFixed(1)}\n` +
+        `총 시간: ${ms.toFixed(0)}ms`;
+    }
+    $('sim10').onclick = () => runSim(10);
+    $('sim100').onclick = () => runSim(100);
+
+    log('테스트 로드 완료. 유닛 클릭하여 선택, 버튼으로 범위 표시.');
+    window.gameState = { tm, allies, enemies, allUnits, map, State };
+  </script>
+</body>
+</html>

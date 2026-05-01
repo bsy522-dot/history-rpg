@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>v8 · UI 자동 시연 스크린샷</title>
+<link rel="stylesheet" href="../js-v8/ui/styles.css">
+<style>
+  html, body { margin:0; padding:0; height:100%;
+    background: linear-gradient(180deg, #0a0a14 0%, #1a1428 100%);
+    color: #f0e6d0; font-family: 'Noto Serif KR', serif;
+  }
+  #v8-bg-hint {
+    position: fixed; inset: 0; z-index: -1;
+    background: radial-gradient(ellipse at 30% 40%, #3a2a5a 0%, #0a0a14 70%);
+  }
+  #v8-mode-tag {
+    position: fixed; top: 50px; left: 16px;
+    background: rgba(0,0,0,0.65); color: #FFD700;
+    padding: 6px 12px; border: 1px solid #FFD700; border-radius: 4px;
+    font-size: 13px; z-index: 300;
+  }
+</style>
+</head>
+<body>
+<div id="v8-bg-hint"></div>
+<div id="v8-mode-tag">시연 중: <span id="v8-stage">—</span></div>
+
+<script type="module">
+import { audio } from '../js-v8/core/audio.js';
+import { initHUD, updateHUD, showUnitPanel, setMinimap } from '../js-v8/ui/hud.js';
+import { showDialogue } from '../js-v8/ui/dialogue.js';
+import { showVictory } from '../js-v8/ui/menus.js';
+import { openSettings } from '../js-v8/ui/settings.js';
+
+const STAGE = (new URLSearchParams(location.search)).get('stage') || 'hud';
+document.getElementById('v8-stage').textContent = STAGE;
+
+initHUD(document.body);
+updateHUD({ turn: 2, side: 'ally', weather: 'clear', allyAlive: 4, enemyAlive: 5, camMode: 'tactical' });
+
+function demoMap() {
+  const w = 10, h = 10;
+  const tiles = Array.from({length: h}, () => Array(w).fill('plain'));
+  for (let x = 0; x < w; x++) { tiles[0][x] = 'mountain'; tiles[h-1][x] = 'mountain'; }
+  for (let y = 0; y < h; y++) { tiles[y][0] = 'mountain'; tiles[y][w-1] = 'mountain'; }
+  tiles[4][3] = 'water'; tiles[4][4] = 'water';
+  tiles[3][6] = 'forest'; tiles[6][7] = 'forest';
+  for (let i = 2; i < 8; i++) if (tiles[5][i] !== 'water') tiles[5][i] = 'road';
+  tiles[1][8] = 'sacred';
+  return { w, h, tiles };
+}
+function demoUnits() {
+  return [
+    { x:1, y:8, team:'ally', isLeader:true, hp:50 },
+    { x:2, y:8, team:'ally', hp:40 },
+    { x:1, y:7, team:'ally', hp:38 },
+    { x:2, y:7, team:'ally', hp:35 },
+    { x:7, y:1, team:'enemy', isLeader:true, hp:60 },
+    { x:6, y:1, team:'enemy', hp:38 },
+    { x:8, y:1, team:'enemy', hp:45 },
+  ];
+}
+setMinimap(demoUnits, demoMap);
+
+const HWANWOONG = {
+  id: 'hwanwoong', portraitId:'hwanwoong', name:'환웅', class:'신장', level:3,
+  hp:48, hpMax:50, mp:20, mpMax:20, xp:62, xpMax:100, acted:false
+};
+
+if (STAGE === 'hud') {
+  showUnitPanel(HWANWOONG);
+}
+else if (STAGE === 'dialogue') {
+  showDialogue([
+    { speakerId:'hwanin', speaker:'환인', text:'아들아, 어찌 북방 거친 땅을 원하느냐. 남쪽이 뭐가 좋다고.' },
+    { speakerId:'hwanwoong', speaker:'환웅', text:'홍익인간 — 널리 인간을 이롭게 하고자 합니다.' }
+  ]);
+  // 타이핑이 완료되도록 대기 (타이핑 약 3초 + 여유)
+  setTimeout(() => {
+    // 타이핑 스킵해 전체 표시
+    const el = document.getElementById('v8-dialogue');
+    if (el) el.click();
+  }, 100);
+}
+else if (STAGE === 'settings') {
+  openSettings({});
+}
+else if (STAGE === 'settings-locked') {
+  openSettings({ cameraLocked: true });
+}
+else if (STAGE === 'victory') {
+  showUnitPanel(HWANWOONG);
+  showVictory({
+    xpGains: [
+      { unitId:'hwanwoong', name:'환웅', beforeXp:60, afterXp:120, beforeLv:3, afterLv:4, leveledUp:true },
+      { unitId:'pungbaek', name:'풍백', beforeXp:30, afterXp:60, beforeLv:2, afterLv:2, leveledUp:false },
+      { unitId:'usa', name:'우사', beforeXp:15, afterXp:45, beforeLv:2, afterLv:2, leveledUp:false },
+      { unitId:'unsa', name:'운사', beforeXp:80, afterXp:110, beforeLv:2, afterLv:3, leveledUp:true }
+    ],
+    rewards: [
+      { id:'cheonbuin', name:'천부인 (3종)', icon:'✨', qty:1 },
+      { id:'hp_potion', name:'회복약', icon:'🧪', qty:3 }
+    ]
+  });
+}
+</script>
+</body>
+</html>

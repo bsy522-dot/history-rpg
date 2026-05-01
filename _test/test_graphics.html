@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>한국사 영웅전 v8 — 그래픽 표준 테스트 (Agent A)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{overflow:hidden;background:#0a0814;font-family:'Noto Serif KR',serif;color:#e8dcc8;width:100%;height:100%}
+canvas{display:block}
+
+#controls{
+  position:fixed;top:10px;left:10px;z-index:100;
+  display:flex;flex-direction:column;gap:6px;
+}
+.btn{
+  padding:9px 14px;font-family:'Noto Serif KR',serif;font-size:13px;font-weight:700;
+  color:#e8dcc8;background:rgba(20,10,30,.85);border:1px solid #c4956a;border-radius:6px;
+  cursor:pointer;letter-spacing:1px;
+  box-shadow:0 2px 8px rgba(0,0,0,.6);
+  transition:transform .1s, background .1s;
+}
+.btn:hover{background:rgba(40,20,60,.95)}
+.btn:active{transform:scale(.95)}
+.btn.active{background:#6B1A0A;border-color:#ffd700;color:#ffd700}
+#info{
+  position:fixed;bottom:10px;left:10px;z-index:100;
+  background:rgba(10,8,20,.75);border:1px solid #5a4a3a;border-radius:6px;
+  padding:8px 12px;font-size:11px;line-height:1.6;color:#c4956a;max-width:420px;
+}
+#legend{
+  position:fixed;bottom:10px;right:10px;z-index:100;
+  background:rgba(10,8,20,.75);border:1px solid #5a4a3a;border-radius:6px;
+  padding:8px 12px;font-size:10px;line-height:1.5;color:#aaa;
+}
+</style>
+</head>
+<body>
+
+<div id="controls">
+  <button class="btn active" id="b-battle">☀ 전투 조명 (일몰)</button>
+  <button class="btn" id="b-town">🌞 마을 조명 (대낮)</button>
+  <button class="btn" id="b-boss">👑 보스 조명 (황금)</button>
+  <hr style="border-color:#5a4a3a;margin:2px 0">
+  <button class="btn" id="b-rot">🔄 자동 회전 ON/OFF</button>
+  <button class="btn" id="b-debug">📊 디버그 HUD</button>
+</div>
+
+<div id="info">
+  <b style="color:#ffd700">한국사 영웅전 v8 — 그래픽 표준 샘플 (Agent A)</b><br>
+  · 캐릭터 4명 (아군 리더/병사 · 적군 리더/병사)<br>
+  · 건물 7종 (오두막·상점·돌탑·고인돌·신단수·모닥불·울타리)<br>
+  · 타일 10×10 (평지·숲·산·물·길·신단수·모래 7종)<br>
+  · 우클릭 드래그 회전 · 휠 줌
+</div>
+
+<div id="legend">
+  엔진 Three.js r160 · ACES · PCFSoft · sRGB<br>
+  AmbientLight ≥ 0.45 · 머리 Sphere(14,12) · 타일 H ≥ 0.22
+</div>
+
+<!-- importmap: three 모듈 CDN -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import { initEngine, State, onUpdate, toggleDebug } from '../js-v8/core/engine.js';
+import { MAT, PALETTE, assertStandardMaterials } from '../js-v8/graphics/materials.js';
+import { applyBattleLight, applyTownLight, applyBossLight, assertLightStandard } from '../js-v8/graphics/lighting.js';
+import { buildUnit } from '../js-v8/graphics/unit_builder.js';
+import { buildTile, buildTileMap, TILE, TILE_SIZE, gridToWorld } from '../js-v8/graphics/terrain.js';
+import {
+  buildHut, buildShop, buildTower, buildDolmen, buildGodTree, buildCampfire, buildFence,
+  tickCampfire,
+} from '../js-v8/graphics/buildings.js';
+import { spawnLevelUpParticles, spawnHitParticle, cameraShake, damageNumber } from '../js-v8/graphics/effects.js';
+
+// ── 엔진 초기화 ─────────────────────────────────
+initEngine({
+  bgColor: PALETTE.BG_BATTLE,
+  fog: { color: PALETTE.FOG_BATTLE, near: 18, far: 45 },
+  debug: true,
+});
+
+// QA 자가점검
+assertStandardMaterials();
+
+// OrbitControls로 카메라 조작 (A는 camera/ 안 건드리기로 약속 — 테스트용으로만 여기서 사용)
+const controls = new OrbitControls(State.camera, State.renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(5.5, 0.5, 5.5);
+controls.maxPolarAngle = Math.PI / 2.2;
+controls.minPolarAngle = Math.PI / 6;
+State.camera.position.set(11, 9, 14);
+controls.update();
+
+// ── 조명: 기본은 전투 ──
+applyBattleLight(State.scene);
+assertLightStandard(State.scene);
+
+// ── 타일맵 10x10 ──
+const MAP = [
+  [0,0,1,1,4,4,0,0,2,2],
+  [0,0,1,0,4,4,0,0,2,2],
+  [0,0,0,0,0,0,0,0,0,0],
+  [6,0,0,0,0,0,0,0,0,0],
+  [0,0,0,3,3,0,0,0,1,0],
+  [0,0,0,3,3,0,0,0,1,0],
+  [0,0,0,0,0,0,5,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,4,0,0,0,0,0,1,1],
+  [0,0,4,0,0,0,0,0,1,1],
+];
+const tileMap = buildTileMap(MAP);
+State.scene.add(tileMap);
+
+// ── 건물 배치 ──
+const buildingsGroup = new THREE.Group();
+State.scene.add(buildingsGroup);
+
+function placeBuilding(mesh, gx, gz) {
+  const p = gridToWorld(gx, gz);
+  mesh.position.set(p.x, 0.22, p.z); // 타일 높이 위에 얹기
+  buildingsGroup.add(mesh);
+}
+
+// 신단수 (중앙 GODTREE 타일 위)
+const godTree = buildGodTree();
+placeBuilding(godTree, 6, 6);
+
+// 오두막 2채
+placeBuilding(buildHut(), 1, 1);
+placeBuilding(buildHut(), 8, 8);
+
+// 상점
+placeBuilding(buildShop(), 8, 1);
+
+// 돌탑 (돌무더기 옆)
+placeBuilding(buildTower(), 0, 3);
+
+// 고인돌
+placeBuilding(buildDolmen(), 3, 3);
+
+// 모닥불 (캐릭터 옆)
+const campfire = buildCampfire();
+placeBuilding(campfire, 5, 3);
+
+// 울타리
+const fence1 = buildFence({ length: 2.2, segments: 4 });
+fence1.position.set(TILE_SIZE * 0.5, 0.22, TILE_SIZE * 9.2);
+buildingsGroup.add(fence1);
+
+// ── 캐릭터 4명 ──
+const unitsGroup = new THREE.Group();
+State.scene.add(unitsGroup);
+
+function placeUnit(u, gx, gz) {
+  const p = gridToWorld(gx, gz);
+  u.position.set(p.x, 0.22, p.z);
+  unitsGroup.add(u);
+}
+
+// 아군 리더 (환웅)
+const allyLead = buildUnit({ isAlly: true, isLeader: true,
+  unitData: { id: 'hwanwoong', nm: '환웅' } });
+placeUnit(allyLead, 4, 5);
+
+// 아군 병사
+const allyPawn = buildUnit({ isAlly: true, isLeader: false,
+  unitData: { id: 'warrior', nm: '전사' } });
+placeUnit(allyPawn, 3, 5);
+
+// 적군 리더
+const enemyLead = buildUnit({ isAlly: false, isLeader: true,
+  unitData: { id: 'chunmu', nm: '천무장' } });
+enemyLead.rotation.y = Math.PI;
+placeUnit(enemyLead, 7, 5);
+
+// 적군 병사
+const enemyPawn = buildUnit({ isAlly: false, isLeader: false,
+  unitData: { id: 'enemy_p', nm: '졸개' } });
+enemyPawn.rotation.y = Math.PI;
+placeUnit(enemyPawn, 8, 5);
+
+// ── 업데이트 루프 ──
+let rotating = false;
+onUpdate((dt, elapsed) => {
+  controls.update();
+  tickCampfire(campfire, elapsed);
+
+  // 유닛 idle bob
+  [allyLead, allyPawn, enemyLead, enemyPawn].forEach((u, i) => {
+    u.position.y = 0.22 + Math.sin(elapsed * 2 + i) * 0.015;
+  });
+
+  if (rotating) {
+    const r = 12;
+    const a = elapsed * 0.25;
+    State.camera.position.set(
+      controls.target.x + Math.cos(a) * r,
+      7 + Math.sin(elapsed * 0.5) * 0.6,
+      controls.target.z + Math.sin(a) * r
+    );
+    State.camera.lookAt(controls.target);
+  }
+});
+
+// ── UI 버튼 바인딩 ──
+function setActive(id) {
+  for (const b of document.querySelectorAll('.btn')) b.classList.remove('active');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+document.getElementById('b-battle').addEventListener('click', () => {
+  applyBattleLight(State.scene);
+  State.scene.background = new THREE.Color(PALETTE.BG_BATTLE);
+  State.scene.fog = new THREE.Fog(PALETTE.FOG_BATTLE, 18, 45);
+  assertLightStandard(State.scene);
+  setActive('b-battle');
+});
+document.getElementById('b-town').addEventListener('click', () => {
+  applyTownLight(State.scene);
+  State.scene.background = new THREE.Color(PALETTE.BG_TOWN);
+  State.scene.fog = new THREE.Fog(PALETTE.FOG_TOWN, 22, 50);
+  assertLightStandard(State.scene);
+  setActive('b-town');
+});
+document.getElementById('b-boss').addEventListener('click', () => {
+  applyBossLight(State.scene);
+  State.scene.background = new THREE.Color(PALETTE.BG_BOSS);
+  State.scene.fog = new THREE.Fog(PALETTE.FOG_BOSS, 16, 40);
+  assertLightStandard(State.scene);
+  setActive('b-boss');
+});
+document.getElementById('b-rot').addEventListener('click', (e) => {
+  rotating = !rotating;
+  e.target.classList.toggle('active', rotating);
+  if (!rotating) {
+    State.camera.position.set(11, 9, 14);
+    controls.update();
+  }
+});
+document.getElementById('b-debug').addEventListener('click', () => {
+  toggleDebug();
+});
+
+// ── 클릭 이펙트 데모: 유닛 클릭 시 피격 이펙트 ──
+const ray = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+State.renderer.domElement.addEventListener('click', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  ray.setFromCamera(mouse, State.camera);
+  const hits = ray.intersectObjects(unitsGroup.children, true);
+  if (!hits.length) return;
+  let g = hits[0].object;
+  while (g.parent && g.userData?.type !== 'unit') g = g.parent;
+  if (!g || g.userData?.type !== 'unit') return;
+  const p = new THREE.Vector3();
+  g.getWorldPosition(p);
+  p.y += 0.6;
+  spawnHitParticle(p, g.userData.isAlly ? 'holy' : 'fire');
+  damageNumber(p, String(20 + ((Math.random() * 30) | 0)), g.userData.isAlly ? '#ffd700' : '#ff4444');
+  cameraShake(State.camera, 0.15, 0.25);
+  if (Math.random() < 0.3) spawnLevelUpParticles(p);
+});
+
+console.log('[Agent A test] v8 그래픽 샘플 로드 완료.');
+</script>
+</body>
+</html>

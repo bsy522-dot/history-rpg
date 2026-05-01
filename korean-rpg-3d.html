@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>한국사 영웅전 3D — EP.1 환웅의 하강</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
+body{overflow:hidden;background:#111;font-family:'Noto Serif KR',serif;color:#e8dcc8}
+canvas{display:block}
+
+/* ── UI Layer ── */
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#ui>*{pointer-events:auto}
+
+#topbar{position:absolute;top:0;left:0;right:0;height:36px;background:linear-gradient(180deg,#0a0814ee,#0a081400);display:flex;justify-content:space-between;align-items:center;padding:0 14px}
+.tb-l{font-size:12px;color:#c4956a;font-weight:700;letter-spacing:2px}
+.tb-r{font-size:11px;color:#888}
+
+#guide{position:absolute;top:40px;left:0;right:0;text-align:center;font-size:12px;color:#c4956a;text-shadow:0 1px 4px #000;pointer-events:none}
+
+#turnBanner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;color:#FFD700;text-shadow:0 2px 12px #000;display:none;pointer-events:none;letter-spacing:4px}
+
+/* ── Unit Info Panel ── */
+#unitPanel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,#0a0814fa 70%,#0a081400);padding:8px 12px 12px;display:none;border-top:1px solid #5a4a3a44}
+#up-top{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+#up-portrait{width:48px;height:48px;border-radius:8px;border:2px solid #c4956a;background:#1a1428;display:flex;align-items:center;justify-content:center;font-size:24px}
+#up-name{font-size:14px;font-weight:700}
+#up-title{font-size:10px;color:#999;margin-top:1px}
+.stat-bar{height:8px;background:#1a1a2e;border-radius:4px;overflow:hidden;margin-top:3px}
+.stat-fill{height:100%;border-radius:4px;transition:width .4s}
+#up-troops{font-size:10px;color:#aaa;margin-top:2px}
+#up-stats{font-size:10px;color:#777;margin-top:1px}
+#up-btns{display:flex;gap:5px;flex-wrap:wrap}
+#up-btns button{flex:1;min-width:60px;padding:9px 4px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;color:#e8dcc8;cursor:pointer;transition:all .1s}
+#up-btns button:active{transform:scale(.95);filter:brightness(.8)}
+#up-btns button:disabled{opacity:.3;pointer-events:none}
+.btn-atk{background:#6B1A0A}.btn-sk{background:#1a3a5c}.btn-wait{background:#2a2a3e}.btn-item{background:#2a5a2a}
+
+/* ── Battle Cutin ── */
+#cutin{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:50}
+#cutin.on{display:flex}
+.cut-row{display:flex;align-items:center;gap:16px}
+.cut-unit{text-align:center;min-width:100px}
+.cut-face{font-size:36px;margin-bottom:4px}
+.cut-nm{font-size:15px;font-weight:700}.cut-sub{font-size:9px;color:#aaa}.cut-tr{font-size:11px;margin-top:2px}
+#cut-vs{font-size:24px;font-weight:900;color:#c4956a}
+#cut-label{font-size:12px;color:#ddd;margin-top:10px}
+#cut-dmg{font-size:22px;font-weight:900;color:#ff4444;margin-top:4px;min-height:28px}
+@keyframes hitL{0%{transform:translateX(0)}30%{transform:translateX(30px) scale(1.1)}100%{transform:translateX(0)}}
+@keyframes hitR{0%{transform:translateX(0)}30%{transform:translateX(-30px) scale(1.1)}100%{transform:translateX(0)}}
+@keyframes dmgPop{0%{opacity:0;transform:scale(.3)}50%{transform:scale(1.3)}100%{opacity:1;transform:scale(1)}}
+.anim-hl{animation:hitL .4s ease}.anim-hr{animation:hitR .4s ease}
+
+/* ── Title ── */
+.ov{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px;text-align:center}
+.ov.on{display:flex}
+#title-ov{background:radial-gradient(ellipse at 50% 40%,#2a1a0a,#0a0814)}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #c4956a44}50%{text-shadow:0 0 50px #c4956aaa}}
+.g-title{font-size:clamp(28px,7vw,48px);font-weight:900;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s infinite}
+.g-sub{font-size:clamp(11px,2.5vw,14px);color:#8a7a6a;margin-top:8px;font-style:italic}
+.g-btn{padding:14px 40px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:17px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer;letter-spacing:3px;box-shadow:0 3px 16px #0008;margin-top:6px}
+.g-btn:active{transform:scale(.96)}.g-btn2{background:#2a2a3e;font-size:12px;padding:10px 24px;letter-spacing:1px}
+
+#vic-ov,#lose-ov{background:#0a0814ee}
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="topbar"><span class="tb-l" id="tb-era">EP.1 환웅의 하강</span><span class="tb-r" id="tb-turn">턴 1 · 아군</span></div>
+  <div id="guide">아군 유닛을 클릭하여 선택</div>
+  <div id="turnBanner"></div>
+  <div id="unitPanel">
+    <div id="up-top">
+      <div id="up-portrait"></div>
+      <div style="flex:1">
+        <div id="up-name"></div><div id="up-title"></div>
+        <div class="stat-bar"><div class="stat-fill" id="up-hp" style="background:#2ecc71"></div></div>
+        <div id="up-troops"></div><div id="up-stats"></div>
+      </div>
+    </div>
+    <div id="up-btns"></div>
+  </div>
+  <div id="cutin">
+    <div class="cut-row">
+      <div class="cut-unit" id="cl"><div class="cut-face" id="cl-face"></div><div class="cut-nm" id="cl-nm"></div><div class="cut-sub" id="cl-sub"></div><div class="cut-tr" id="cl-tr"></div></div>
+      <div id="cut-vs">⚔</div>
+      <div class="cut-unit" id="cr"><div class="cut-face" id="cr-face"></div><div class="cut-nm" id="cr-nm"></div><div class="cut-sub" id="cr-sub"></div><div class="cut-tr" id="cr-tr"></div></div>
+    </div>
+    <div id="cut-label"></div><div id="cut-dmg"></div>
+  </div>
+</div>
+
+<div id="title-ov" class="ov on">
+  <div style="animation:fadeUp .8s ease">
+    <div style="font-size:11px;letter-spacing:6px;color:#8a7a6a;margin-bottom:8px">3D TACTICAL RPG</div>
+    <h1 class="g-title">한국사 영웅전</h1>
+    <div class="g-sub">에피소드 1 — 환웅의 하강, 고조선 전야</div>
+    <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <button class="g-btn" onclick="startGame()">⚔ 출진</button>
+    </div>
+    <div style="margin-top:28px;font-size:10px;color:#555;line-height:2.2;max-width:260px;margin-left:auto;margin-right:auto">
+      ▸ 유닛 클릭 → 파란 타일로 이동<br>
+      ▸ 이동 후 인접 적 → 공격/스킬/대기<br>
+      ▸ 마우스 휠: 줌 / 우클릭 드래그: 회전<br>
+      ▸ 적 전멸 = 승리!
+    </div>
+  </div>
+</div>
+<div id="vic-ov" class="ov"><div><div style="font-size:48px;margin-bottom:8px">🏆</div><h2 style="font-size:24px;font-weight:900;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">전투 승리!</h2><div style="font-size:13px;color:#c4956a;margin:12px 0">천부인(天符印) 세 개 — 거울·칼·방울 각성!</div><div style="font-size:11px;color:#aaa;line-height:1.8;max-width:320px;margin:0 auto 16px">환인의 시련을 통과한 환웅은 천부인을 가지고 태백산 신단수로 내려왔다. 이것이 고조선 건국의 서막이다. (BC 2333)</div><button class="g-btn" onclick="location.reload()">다시 플레이</button></div></div>
+<div id="lose-ov" class="ov"><div><div style="font-size:48px;margin-bottom:8px">💀</div><h2 style="font-size:24px;font-weight:900;color:#e74c3c">패배...</h2><p style="font-size:12px;color:#888;margin:10px 0">하늘의 뜻은 아직 끝나지 않았다!</p><button class="g-btn" onclick="location.reload()">다시 도전</button></div></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+// ═══════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════
+const CFG={
+  GRID:10,TILE:1.1,TILE_H:0.12,
+  CAM_SIZE:6,
+  FOG_COLOR:0x1a1a2e,FOG_NEAR:15,FOG_FAR:40,
+  TILE_GROUND:0x8B6B3A,TILE_GRASS:0x556B2F,TILE_PATH:0xA08050,TILE_WATER:0x2a5a8a,TILE_FOREST:0x2d4a1a,TILE_MOUNT:0x6a6a5a,
+  ALLY_COLOR:0xCD7F32,ENEMY_COLOR:0x43464B,
+  HIGHLIGHT:0x3399ff,ATTACK_HL:0xff3333,HOVER_HL:0xffffff,
+  MOVE_SPEED:4,
+};
+
+// ═══════════════════════════════════════
+// MAP DATA (10x10)
+// 0=ground,1=grass,2=path,3=water,4=forest,5=mountain
+// ═══════════════════════════════════════
+const MAP=[
+  [1,1,4,0,2,2,0,4,1,1],
+  [1,0,0,0,2,2,0,0,0,1],
+  [4,0,0,0,0,0,0,0,0,4],
+  [0,0,0,0,0,0,1,0,0,0],
+  [2,2,0,0,0,0,0,0,2,2],
+  [2,2,0,0,0,0,0,0,2,2],
+  [0,0,0,1,0,0,0,0,0,0],
+  [4,0,0,0,0,0,0,0,0,4],
+  [1,0,0,0,2,2,0,0,0,1],
+  [1,1,4,0,2,2,0,4,1,1],
+];
+const PASSABLE=t=>t!==3&&t!==4&&t!==5;
+const TILE_COLORS=[CFG.TILE_GROUND,CFG.TILE_GRASS,CFG.TILE_PATH,CFG.TILE_WATER,CFG.TILE_FOREST,CFG.TILE_MOUNT];
+const TILE_HEIGHTS=[0,0.02,0,-0.05,0.15,0.35];
+
+// ═══════════════════════════════════════
+// UNIT DATA
+// ═══════════════════════════════════════
+const UNIT_DATA={
+  allies:[
+    {id:'hwanwoong',nm:'환웅',ti:'천왕(天王)',tp:'신장',emoji:'👑',tr:200,mt:200,atk:22,def:8,mov:4,rng:1,
+     sk:[{n:'천부인·뇌격',t:'a',pw:35,rng:2},{n:'홍익신광',t:'h',pw:50}],gx:4,gy:1},
+    {id:'pungbaek',nm:'풍백',ti:'바람의 신장',tp:'기마',emoji:'🌬️',tr:150,mt:150,atk:18,def:5,mov:5,rng:1,
+     sk:[{n:'질풍참',t:'a',pw:28,rng:1}],gx:3,gy:2},
+    {id:'wusa',nm:'우사',ti:'비의 신장',tp:'책사',emoji:'🌧️',tr:120,mt:120,atk:10,def:5,mov:3,rng:3,
+     sk:[{n:'치유비',t:'h',pw:60},{n:'폭우격',t:'a',pw:25,rng:3}],gx:5,gy:2},
+    {id:'wunsa',nm:'운사',ti:'구름의 신장',tp:'궁수',emoji:'☁️',tr:130,mt:130,atk:15,def:5,mov:4,rng:2,
+     sk:[{n:'뇌운격',t:'a',pw:26,rng:2},{n:'운무차폐',t:'h',pw:40}],gx:4,gy:2},
+  ],
+  enemies:[
+    {id:'chunmu',nm:'천무장',ti:'제1천장',tp:'무사',emoji:'👹',tr:180,mt:180,atk:20,def:7,mov:3,rng:1,sk:[],gx:4,gy:8},
+    {id:'noegong',nm:'뇌공',ti:'천둥장수',tp:'책사',emoji:'⚡',tr:130,mt:130,atk:16,def:4,mov:3,rng:2,sk:[],gx:3,gy:7},
+    {id:'hwasin',nm:'화신',ti:'불의 장수',tp:'기마',emoji:'🔥',tr:140,mt:140,atk:19,def:3,mov:5,rng:1,sk:[],gx:6,gy:7},
+    {id:'sanryeong',nm:'산령',ti:'산의 수호자',tp:'수비',emoji:'🏔️',tr:200,mt:200,atk:14,def:12,mov:2,rng:1,sk:[],gx:5,gy:9},
+    {id:'sujang',nm:'수장',ti:'물의 장수',tp:'정령',emoji:'🌊',tr:120,mt:120,atk:17,def:5,mov:3,rng:2,sk:[],gx:3,gy:8},
+  ]
+};
+
+// ═══════════════════════════════════════
+// THREE.JS SETUP
+// ═══════════════════════════════════════
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(CFG.FOG_COLOR);
+scene.fog=new THREE.Fog(CFG.FOG_COLOR,CFG.FOG_NEAR,CFG.FOG_FAR);
+
+// Orthographic camera (isometric)
+const aspect=window.innerWidth/window.innerHeight;
+let camSize=CFG.CAM_SIZE;
+const camera=new THREE.OrthographicCamera(-camSize*aspect,camSize*aspect,camSize,-camSize,0.1,100);
+camera.position.set(12,10,12);
+camera.lookAt(CFG.GRID*CFG.TILE/2,0,CFG.GRID*CFG.TILE/2);
+
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.1;
+document.body.appendChild(renderer.domElement);
+
+// Controls
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=0.08;
+controls.target.set(CFG.GRID*CFG.TILE/2,0,CFG.GRID*CFG.TILE/2);
+controls.maxPolarAngle=Math.PI/3;controls.minPolarAngle=Math.PI/6;
+controls.enablePan=false;
+controls.mouseButtons={LEFT:null,MIDDLE:null,RIGHT:THREE.MOUSE.ROTATE};
+controls.touches={ONE:null,TWO:THREE.TOUCH.DOLLY_ROTATE};
+
+// Zoom with wheel
+renderer.domElement.addEventListener('wheel',e=>{
+  e.preventDefault();
+  camSize+=e.deltaY*0.005;
+  camSize=Math.max(3,Math.min(10,camSize));
+  updateCamSize();
+},{passive:false});
+
+function updateCamSize(){
+  const a=window.innerWidth/window.innerHeight;
+  camera.left=-camSize*a;camera.right=camSize*a;camera.top=camSize;camera.bottom=-camSize;
+  camera.updateProjectionMatrix();
+}
+
+// ── Lighting ──
+const ambientLight=new THREE.AmbientLight(0xfff5e6,0.5);
+scene.add(ambientLight);
+
+const dirLight=new THREE.DirectionalLight(0xffe8cc,1.2);
+dirLight.position.set(8,12,-4);
+dirLight.castShadow=true;
+dirLight.shadow.mapSize.set(2048,2048);
+dirLight.shadow.camera.near=0.5;dirLight.shadow.camera.far=40;
+dirLight.shadow.camera.left=-12;dirLight.shadow.camera.right=12;
+dirLight.shadow.camera.top=12;dirLight.shadow.camera.bottom=-12;
+dirLight.shadow.bias=-0.001;
+scene.add(dirLight);
+
+const hemiLight=new THREE.HemisphereLight(0x88aacc,0x443322,0.3);
+scene.add(hemiLight);
+
+// ═══════════════════════════════════════
+// BUILD TERRAIN
+// ═══════════════════════════════════════
+const tileMeshes=[],tileHighlights=[];
+const tileGroup=new THREE.Group();
+scene.add(tileGroup);
+
+for(let z=0;z<CFG.GRID;z++){
+  tileMeshes[z]=[];tileHighlights[z]=[];
+  for(let x=0;x<CFG.GRID;x++){
+    const t=MAP[z][x];
+    const h=TILE_HEIGHTS[t];
+    // Tile
+    const geo=new THREE.BoxGeometry(CFG.TILE,CFG.TILE_H+Math.abs(h),CFG.TILE);
+    const mat=new THREE.MeshStandardMaterial({color:TILE_COLORS[t],roughness:0.85,metalness:0.05});
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(x*CFG.TILE+CFG.TILE/2,(CFG.TILE_H+Math.abs(h))/2+h*0.5,z*CFG.TILE+CFG.TILE/2);
+    mesh.receiveShadow=true;
+    mesh.userData={gx:x,gz:z,type:'tile'};
+    tileGroup.add(mesh);
+    tileMeshes[z][x]=mesh;
+
+    // Highlight overlay (invisible initially)
+    const hlGeo=new THREE.PlaneGeometry(CFG.TILE*0.95,CFG.TILE*0.95);
+    const hlMat=new THREE.MeshBasicMaterial({color:CFG.HIGHLIGHT,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
+    const hlMesh=new THREE.Mesh(hlGeo,hlMat);
+    hlMesh.rotation.x=-Math.PI/2;
+    hlMesh.position.set(x*CFG.TILE+CFG.TILE/2,CFG.TILE_H+0.02+Math.max(0,h),z*CFG.TILE+CFG.TILE/2);
+    tileGroup.add(hlMesh);
+    tileHighlights[z][x]=hlMesh;
+
+    // Decorations
+    if(t===4){// Forest - simple tree
+      const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,0.4,6),new THREE.MeshStandardMaterial({color:0x5a3a1a,roughness:0.9}));
+      trunk.position.set(x*CFG.TILE+CFG.TILE/2,0.35,z*CFG.TILE+CFG.TILE/2);trunk.castShadow=true;
+      const canopy=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.5,6),new THREE.MeshStandardMaterial({color:0x2d5a1a,roughness:0.8}));
+      canopy.position.set(x*CFG.TILE+CFG.TILE/2,0.7,z*CFG.TILE+CFG.TILE/2);canopy.castShadow=true;
+      tileGroup.add(trunk,canopy);
+    }
+    if(t===5){// Mountain
+      const rock=new THREE.Mesh(new THREE.ConeGeometry(0.35,0.6,5),new THREE.MeshStandardMaterial({color:0x7a7a6a,roughness:0.9}));
+      rock.position.set(x*CFG.TILE+CFG.TILE/2,0.45,z*CFG.TILE+CFG.TILE/2);rock.castShadow=true;
+      const snow=new THREE.Mesh(new THREE.ConeGeometry(0.15,0.15,5),new THREE.MeshStandardMaterial({color:0xeeeeee,roughness:0.5}));
+      snow.position.set(x*CFG.TILE+CFG.TILE/2,0.72,z*CFG.TILE+CFG.TILE/2);
+      tileGroup.add(rock,snow);
+    }
+    if(t===3){// Water - animated plane
+      const water=new THREE.Mesh(new THREE.PlaneGeometry(CFG.TILE,CFG.TILE),
+        new THREE.MeshStandardMaterial({color:0x3a7aba,roughness:0.2,metalness:0.1,transparent:true,opacity:0.7}));
+      water.rotation.x=-Math.PI/2;
+      water.position.set(x*CFG.TILE+CFG.TILE/2,0.06,z*CFG.TILE+CFG.TILE/2);
+      tileGroup.add(water);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// BUILD UNITS (비파형 동검 + 방패 style)
+// ═══════════════════════════════════════
+let units=[];
+const unitGroup=new THREE.Group();
+scene.add(unitGroup);
+
+function createUnitMesh(isAlly){
+  const group=new THREE.Group();
+  const mainColor=isAlly?CFG.ALLY_COLOR:CFG.ENEMY_COLOR;
+  const mat=new THREE.MeshStandardMaterial({color:mainColor,roughness:0.4,metalness:0.6});
+  const matDark=new THREE.MeshStandardMaterial({color:isAlly?0x8a5a1a:0x2a2a2a,roughness:0.5,metalness:0.4});
+
+  // Body (tapered box - torso)
+  const body=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.45,0.25),mat);
+  body.position.y=0.35;body.castShadow=true;
+  group.add(body);
+
+  // Head
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),
+    new THREE.MeshStandardMaterial({color:0xDEB887,roughness:0.7}));
+  head.position.y=0.68;head.castShadow=true;
+  group.add(head);
+
+  // Helmet (비파형 helmet shape)
+  const helmet=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.15,6),mat);
+  helmet.position.y=0.82;helmet.castShadow=true;
+  group.add(helmet);
+
+  // Shield (비파형 - leaf shape)
+  const shieldShape=new THREE.Shape();
+  shieldShape.moveTo(0,0.2);shieldShape.quadraticCurveTo(0.12,0.15,0.1,0);
+  shieldShape.quadraticCurveTo(0.08,-0.15,0,-0.2);
+  shieldShape.quadraticCurveTo(-0.08,-0.15,-0.1,0);
+  shieldShape.quadraticCurveTo(-0.12,0.15,0,0.2);
+  const shieldGeo=new THREE.ExtrudeGeometry(shieldShape,{depth:0.03,bevelEnabled:false});
+  const shield=new THREE.Mesh(shieldGeo,matDark);
+  shield.position.set(-0.22,0.35,0);shield.rotation.y=Math.PI/2;
+  shield.castShadow=true;
+  group.add(shield);
+
+  // Spear (비파형 동검 - dagger shape)
+  const spear=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.8,4),
+    new THREE.MeshStandardMaterial({color:0xaaaaaa,roughness:0.3,metalness:0.8}));
+  spear.position.set(0.18,0.55,0);spear.rotation.z=-0.2;
+  spear.castShadow=true;
+  group.add(spear);
+
+  // Blade tip
+  const blade=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.15,4),
+    new THREE.MeshStandardMaterial({color:0xcccccc,roughness:0.2,metalness:0.9}));
+  blade.position.set(0.12,0.97,0);blade.rotation.z=-0.2;
+  group.add(blade);
+
+  // Team color banner (flag on back)
+  const flagPole=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.5,4),
+    new THREE.MeshStandardMaterial({color:0x5a3a1a}));
+  flagPole.position.set(0,0.7,-0.15);
+  group.add(flagPole);
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.12),
+    new THREE.MeshStandardMaterial({color:isAlly?0xFFD700:0xff3333,side:THREE.DoubleSide,roughness:0.8}));
+  flag.position.set(0.09,0.88,-0.15);
+  group.add(flag);
+
+  return group;
+}
+
+function spawnUnits(){
+  unitGroup.clear();units=[];
+  const spawn=(data,team)=>{
+    data.forEach(d=>{
+      const mesh=createUnitMesh(team==='ally');
+      const px=d.gx*CFG.TILE+CFG.TILE/2;
+      const pz=d.gy*CFG.TILE+CFG.TILE/2;
+      mesh.position.set(px,TILE_HEIGHTS[MAP[d.gy][d.gx]]||0,pz);
+      if(team==='enemy')mesh.rotation.y=Math.PI;
+      unitGroup.add(mesh);
+      units.push({...d,team,x:d.gx,y:d.gy,mesh,acted:false,sk:d.sk?[...d.sk]:[]});
+    });
+  };
+  spawn(UNIT_DATA.allies,'ally');
+  spawn(UNIT_DATA.enemies,'enemy');
+}
+
+// ═══════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════
+let state='title'; // title,playerSelect,playerMove,playerAction,playerAttack,enemyTurn,animating,cutin
+let selected=null,moveRange=[],atkTargets=[];
+let atkMode=null,atkSkIdx=null;
+let turnCount=1,itemCount=2;
+let animQueue=[];
+
+// ── Raycaster for mouse interaction ──
+const raycaster=new THREE.Raycaster();
+const mouse=new THREE.Vector2();
+let hoveredTile=null;
+
+function gridToWorld(gx,gz){return{x:gx*CFG.TILE+CFG.TILE/2,z:gz*CFG.TILE+CFG.TILE/2};}
+
+// ═══════════════════════════════════════
+// HIGHLIGHT SYSTEM
+// ═══════════════════════════════════════
+function clearHighlights(){
+  for(let z=0;z<CFG.GRID;z++)for(let x=0;x<CFG.GRID;x++){
+    tileHighlights[z][x].material.opacity=0;
+  }
+}
+function showMoveRange(){
+  clearHighlights();
+  moveRange.forEach(({x,y})=>{
+    const hl=tileHighlights[y]?.[x];
+    if(hl){hl.material.color.setHex(CFG.HIGHLIGHT);hl.material.opacity=0.35;}
+  });
+}
+function showAtkRange(){
+  atkTargets.forEach(u=>{
+    const hl=tileHighlights[u.y]?.[u.x];
+    if(hl){hl.material.color.setHex(CFG.ATTACK_HL);hl.material.opacity=0.4;}
+  });
+}
+
+// ═══════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════
+renderer.domElement.addEventListener('pointermove',e=>{
+  mouse.x=(e.clientX/window.innerWidth)*2-1;
+  mouse.y=-(e.clientY/window.innerHeight)*2+1;
+});
+
+renderer.domElement.addEventListener('click',e=>{
+  if(state==='title')return;
+  mouse.x=(e.clientX/window.innerWidth)*2-1;
+  mouse.y=-(e.clientY/window.innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(tileGroup.children,false);
+  if(!hits.length)return;
+  const hit=hits[0].object;
+  if(!hit.userData.gx===undefined)return;
+  const gx=hit.userData.gx,gz=hit.userData.gz;
+  if(gx===undefined||gz===undefined)return;
+  handleClick(gx,gz);
+});
+
+// Touch support
+renderer.domElement.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1)return;
+  const t=e.touches[0];
+  mouse.x=(t.clientX/window.innerWidth)*2-1;
+  mouse.y=-(t.clientY/window.innerHeight)*2+1;
+},{passive:true});
+renderer.domElement.addEventListener('touchend',e=>{
+  if(state==='title')return;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects(tileGroup.children,false);
+  if(!hits.length)return;
+  const hit=hits[0].object;
+  const gx=hit.userData.gx,gz=hit.userData.gz;
+  if(gx===undefined||gz===undefined)return;
+  handleClick(gx,gz);
+},{passive:true});
+
+function handleClick(gx,gz){
+  if(state==='playerSelect'){
+    const u=aliveAt(gx,gz,'ally');
+    if(u&&!u.acted)selectUnit(u);
+  }else if(state==='playerMove'){
+    if(moveRange.some(m=>m.x===gx&&m.y===gz)){
+      moveUnitTo(selected,gx,gz);
+    }else{
+      const u=aliveAt(gx,gz,'ally');
+      if(u&&!u.acted)selectUnit(u);else deselectUnit();
+    }
+  }else if(state==='playerAttack'){
+    const tgt=atkTargets.find(u=>u.x===gx&&u.y===gz);
+    if(tgt)executeAttack(tgt);
+  }
+}
+
+function aliveAt(x,y,team){return units.find(u=>u.tr>0&&u.x===x&&u.y===y&&(!team||u.team===team));}
+function mdist(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
+
+// ═══════════════════════════════════════
+// PLAYER ACTIONS
+// ═══════════════════════════════════════
+function selectUnit(u){
+  selected=u;state='playerMove';
+  moveRange=calcMoveRange(u);atkTargets=[];
+  showMoveRange();showUnitPanel(u);
+  setGuide(`${u.nm} [${u.tp}] — 이동할 파란 타일을 클릭`);
+}
+function deselectUnit(){
+  selected=null;state='playerSelect';moveRange=[];atkTargets=[];
+  clearHighlights();hideUnitPanel();
+  setGuide('아군 유닛을 클릭하여 선택');
+}
+
+function calcMoveRange(u){
+  const range=[],visited=new Set();
+  const q=[{x:u.x,y:u.y,s:0}];visited.add(`${u.x},${u.y}`);
+  while(q.length){
+    const c=q.shift();
+    if(c.s>0&&!aliveAt(c.x,c.y)&&PASSABLE(MAP[c.y]?.[c.x]??-1))range.push({x:c.x,y:c.y});
+    if(c.s>=u.mov)continue;
+    for(const[dx,dy]of[[-1,0],[1,0],[0,-1],[0,1]]){
+      const nx=c.x+dx,ny=c.y+dy,k=`${nx},${ny}`;
+      if(nx>=0&&nx<CFG.GRID&&ny>=0&&ny<CFG.GRID&&!visited.has(k)&&PASSABLE(MAP[ny]?.[nx]??-1)){
+        const bl=aliveAt(nx,ny);
+        if(!bl||bl.team===u.team){visited.add(k);q.push({x:nx,y:ny,s:c.s+1});}
+      }
+    }
+  }
+  return range;
+}
+
+function moveUnitTo(u,gx,gz){
+  state='animating';clearHighlights();hideUnitPanel();
+  const target=gridToWorld(gx,gz);
+  const startPos=u.mesh.position.clone();
+  const endPos=new THREE.Vector3(target.x,TILE_HEIGHTS[MAP[gz][gx]]||0,target.z);
+  const duration=0.3+mdist(u,{x:gx,y:gz})*0.1;
+  let elapsed=0;
+
+  function animStep(dt){
+    elapsed+=dt;
+    const t=Math.min(1,elapsed/duration);
+    const ease=t<0.5?2*t*t:(1-Math.pow(-2*t+2,2)/2);// easeInOutQuad
+    u.mesh.position.lerpVectors(startPos,endPos,ease);
+    u.mesh.position.y=Math.max(startPos.y,endPos.y)+Math.sin(t*Math.PI)*0.15;// hop
+    if(t>=1){
+      u.x=gx;u.y=gz;u.mesh.position.copy(endPos);
+      // Face toward center of enemies
+      const enemies=units.filter(e=>e.team==='enemy'&&e.tr>0);
+      if(enemies.length){
+        const avgX=enemies.reduce((s,e)=>s+e.x,0)/enemies.length;
+        const avgZ=enemies.reduce((s,e)=>s+e.y,0)/enemies.length;
+        u.mesh.lookAt(avgX*CFG.TILE+CFG.TILE/2,0,avgZ*CFG.TILE+CFG.TILE/2);
+      }
+      onMoveComplete(u);
+      return true;
+    }
+    return false;
+  }
+  animQueue.push(animStep);
+}
+
+function onMoveComplete(u){
+  state='playerAction';
+  const maxR=Math.max(u.rng,...u.sk.filter(s=>s.t==='a').map(s=>s.rng||1));
+  const near=units.filter(e=>e.team==='enemy'&&e.tr>0&&mdist(u,e)<=maxR);
+  atkTargets=near;
+  showAtkRange();showUnitPanel(u);showActionBtns(u,near);
+  setGuide(near.length?'행동을 선택하세요':'대기/회복 선택');
+}
+
+function showActionBtns(u,enemies){
+  let html='';
+  const adj=enemies.filter(e=>mdist(u,e)<=u.rng);
+  if(adj.length)html+=`<button class="btn-atk" onclick="window._startAtk('b')">⚔ 공격</button>`;
+  u.sk.forEach((sk,i)=>{
+    if(sk.t==='h')html+=`<button class="btn-sk" onclick="window._useHeal(${i})">💚${sk.n}</button>`;
+    else{
+      const has=enemies.some(e=>mdist(u,e)<=(sk.rng||1));
+      html+=`<button class="btn-sk" ${has?'':'disabled'} onclick="window._startAtk('s',${i})">✨${sk.n}</button>`;
+    }
+  });
+  if(itemCount>0)html+=`<button class="btn-item" onclick="window._useItem()">🧪약(${itemCount})</button>`;
+  html+=`<button class="btn-wait" onclick="window._doWait()">⏳대기</button>`;
+  document.getElementById('up-btns').innerHTML=html;
+}
+
+// Global action bindings
+window._startAtk=(m,si)=>{
+  atkMode=m;atkSkIdx=si!=null?si:null;
+  const rng=m==='s'?selected.sk[si].rng||1:selected.rng;
+  atkTargets=units.filter(e=>e.team==='enemy'&&e.tr>0&&mdist(selected,e)<=rng);
+  if(atkTargets.length===1){executeAttack(atkTargets[0]);return;}
+  if(!atkTargets.length)return;
+  state='playerAttack';clearHighlights();showAtkRange();
+  setGuide('공격할 적을 클릭!');
+};
+window._useHeal=i=>{
+  const sk=selected.sk[i];selected.tr=Math.min(selected.mt,selected.tr+sk.pw);
+  showUnitPanel(selected);finishAction();
+};
+window._useItem=()=>{
+  if(itemCount<=0)return;itemCount--;
+  selected.tr=Math.min(selected.mt,selected.tr+50);
+  showUnitPanel(selected);finishAction();
+};
+window._doWait=()=>finishAction();
+
+function executeAttack(tgt){
+  state='cutin';clearHighlights();hideUnitPanel();
+  let dmg,skN;
+  if(atkMode==='s'&&atkSkIdx!=null){
+    const sk=selected.sk[atkSkIdx];dmg=Math.max(1,sk.pw-tgt.def)+Math.floor(Math.random()*8);skN=sk.n;
+  }else{dmg=Math.max(1,selected.atk-tgt.def)+Math.floor(Math.random()*6);skN='공격';}
+  showCutin(selected,tgt,dmg,skN,()=>{
+    if(tgt.tr>0&&mdist(selected,tgt)<=(tgt.rng||1)){
+      const cd=Math.max(1,tgt.atk-selected.def-2)+Math.floor(Math.random()*4);
+      setTimeout(()=>showCutin(tgt,selected,cd,'반격',()=>finishAction()),200);
+    }else finishAction();
+  });
+}
+
+function finishAction(){
+  if(selected)selected.acted=true;
+  // Gray out acted unit
+  if(selected&&selected.mesh){
+    selected.mesh.children.forEach(c=>{if(c.material)c.material.opacity=0.5;});
+  }
+  selected=null;moveRange=[];atkTargets=[];clearHighlights();hideUnitPanel();
+  // Remove dead units
+  units.forEach(u=>{if(u.tr<=0&&u.mesh.parent){u.mesh.parent.remove(u.mesh);}});
+
+  if(!units.some(e=>e.team==='enemy'&&e.tr>0)){setTimeout(()=>showOv('vic-ov'),600);return;}
+  if(!units.some(a=>a.team==='ally'&&a.tr>0)){setTimeout(()=>showOv('lose-ov'),600);return;}
+  if(units.some(a=>a.team==='ally'&&a.tr>0&&!a.acted)){
+    state='playerSelect';setGuide('다음 아군 유닛을 선택');
+  }else startEnemyTurn();
+}
+
+// ═══════════════════════════════════════
+// ENEMY AI
+// ═══════════════════════════════════════
+function startEnemyTurn(){
+  state='enemyTurn';setGuide('적 턴...');
+  showTurnBanner('— 적 턴 —');
+  document.getElementById('tb-turn').textContent=`턴 ${turnCount} · 적군`;
+  const enemies=units.filter(u=>u.team==='enemy'&&u.tr>0);
+  let idx=0;
+
+  function nextEnemy(){
+    if(idx>=enemies.length){turnCount++;startPlayerTurn();return;}
+    const e=enemies[idx];idx++;
+    if(e.tr<=0){nextEnemy();return;}
+    const allies=units.filter(u=>u.team==='ally'&&u.tr>0);
+    if(!allies.length){showOv('lose-ov');return;}
+    let nearest=allies[0],minD=999;
+    allies.forEach(a=>{const d=mdist(e,a);if(d<minD){minD=d;nearest=a;}});
+
+    if(minD<=(e.rng||1)){
+      setTimeout(()=>enemyAttack(e,nearest,nextEnemy),400);
+    }else{
+      const mr=calcMoveRange(e);
+      let best=null,bd=999;
+      mr.forEach(c=>{const d=Math.abs(c.x-nearest.x)+Math.abs(c.y-nearest.y);if(d<bd){bd=d;best=c;}});
+      if(best){
+        // Animate enemy move
+        const target=gridToWorld(best.x,best.y);
+        e.mesh.position.set(target.x,TILE_HEIGHTS[MAP[best.y][best.x]]||0,target.z);
+        e.x=best.x;e.y=best.y;
+      }
+      if(mdist(e,nearest)<=(e.rng||1)){
+        setTimeout(()=>enemyAttack(e,nearest,nextEnemy),400);
+      }else{setTimeout(nextEnemy,300);}
+    }
+  }
+  setTimeout(nextEnemy,800);
+}
+
+function enemyAttack(atk,def,cb){
+  state='cutin';
+  const dmg=Math.max(1,atk.atk-def.def)+Math.floor(Math.random()*5);
+  showCutin(atk,def,dmg,atk.nm+'의 공격',()=>{
+    units.forEach(u=>{if(u.tr<=0&&u.mesh.parent)u.mesh.parent.remove(u.mesh);});
+    if(!units.some(a=>a.team==='ally'&&a.tr>0)){showOv('lose-ov');return;}
+    state='enemyTurn';setTimeout(cb,200);
+  });
+}
+
+function startPlayerTurn(){
+  units.filter(u=>u.team==='ally'&&u.tr>0).forEach(u=>{
+    u.acted=false;
+    u.mesh.children.forEach(c=>{if(c.material)c.material.opacity=1;});
+  });
+  document.getElementById('tb-turn').textContent=`턴 ${turnCount} · 아군`;
+  state='playerSelect';
+  showTurnBanner(`— 턴 ${turnCount}: 아군 —`);
+  setGuide('아군 유닛을 클릭하여 선택');
+}
+
+// ═══════════════════════════════════════
+// CUTIN ANIMATION
+// ═══════════════════════════════════════
+function showCutin(atk,def,dmg,label,cb){
+  const el=document.getElementById('cutin');el.classList.add('on');
+  const isA=atk.team==='ally';
+  document.getElementById('cl-face').textContent=atk.emoji;
+  document.getElementById('cl-nm').textContent=atk.nm;document.getElementById('cl-nm').style.color=isA?'#FFD700':'#ff6666';
+  document.getElementById('cl-sub').textContent=`[${atk.tp}] ${atk.ti}`;
+  document.getElementById('cl-tr').textContent=`병력:${atk.tr}`;document.getElementById('cl-tr').style.color=isA?'#2ecc71':'#e74c3c';
+  document.getElementById('cr-face').textContent=def.emoji;
+  document.getElementById('cr-nm').textContent=def.nm;document.getElementById('cr-nm').style.color=isA?'#ff6666':'#FFD700';
+  document.getElementById('cr-sub').textContent=`[${def.tp}] ${def.ti}`;
+  document.getElementById('cr-tr').textContent=`병력:${def.tr}`;document.getElementById('cr-tr').style.color=isA?'#e74c3c':'#2ecc71';
+  document.getElementById('cut-label').textContent=label+'!';
+  document.getElementById('cut-dmg').textContent='';
+
+  setTimeout(()=>{
+    document.getElementById('cl').classList.add('anim-hl');
+    document.getElementById('cr').classList.add('anim-hr');
+  },300);
+  setTimeout(()=>{
+    def.tr=Math.max(0,def.tr-dmg);
+    document.getElementById('cut-dmg').textContent=`💥 병력 -${dmg}!`;
+    document.getElementById('cut-dmg').style.animation='dmgPop .4s ease';
+    document.getElementById('cr-tr').textContent=`병력:${def.tr}`;
+    if(def.tr<=0)document.getElementById('cut-label').textContent=def.nm+' 전멸!';
+  },600);
+  setTimeout(()=>{
+    el.classList.remove('on');
+    document.getElementById('cl').classList.remove('anim-hl');
+    document.getElementById('cr').classList.remove('anim-hr');
+    document.getElementById('cut-dmg').style.animation='';
+    cb();
+  },1500);
+}
+
+// ═══════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════
+function setGuide(t){document.getElementById('guide').textContent=t;}
+function showOv(id){document.getElementById(id).classList.add('on');}
+
+function showUnitPanel(u){
+  const p=document.getElementById('unitPanel');p.style.display='block';
+  document.getElementById('up-portrait').textContent=u.emoji;
+  document.getElementById('up-portrait').style.borderColor=u.team==='ally'?'#FFD700':'#e74c3c';
+  document.getElementById('up-name').textContent=`${u.nm} [${u.tp}]`;
+  document.getElementById('up-title').textContent=u.ti;
+  document.getElementById('up-hp').style.width=(u.tr/u.mt*100)+'%';
+  document.getElementById('up-hp').style.background=u.team==='ally'?'#2ecc71':'#e74c3c';
+  document.getElementById('up-troops').textContent=`병력: ${u.tr} / ${u.mt}`;
+  document.getElementById('up-stats').textContent=`ATK ${u.atk} · DEF ${u.def} · MOV ${u.mov} · RNG ${u.rng}`;
+  document.getElementById('up-btns').innerHTML='';
+}
+function hideUnitPanel(){document.getElementById('unitPanel').style.display='none';}
+
+function showTurnBanner(text){
+  const el=document.getElementById('turnBanner');
+  el.textContent=text;el.style.display='block';
+  setTimeout(()=>el.style.display='none',1200);
+}
+
+// ═══════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════
+const clock=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta();
+
+  // Process animation queue
+  if(animQueue.length){
+    const done=animQueue[0](dt);
+    if(done)animQueue.shift();
+  }
+
+  // Hover highlight
+  if(state.startsWith('player')){
+    raycaster.setFromCamera(mouse,camera);
+    const hits=raycaster.intersectObjects(tileGroup.children,false);
+    if(hoveredTile){
+      // Only reset if not in moveRange or atkRange
+      const isMove=moveRange.some(m=>m.x===hoveredTile.userData.gx&&m.y===hoveredTile.userData.gz);
+      const isAtk=atkTargets.some(u=>u.x===hoveredTile.userData.gx&&u.y===hoveredTile.userData.gz);
+      if(!isMove&&!isAtk){
+        const hz=hoveredTile.userData.gz,hx=hoveredTile.userData.gx;
+        if(hz!==undefined&&tileHighlights[hz]?.[hx])tileHighlights[hz][hx].material.opacity=0;
+      }
+      hoveredTile=null;
+    }
+    if(hits.length){
+      const hit=hits[0].object;
+      if(hit.userData.type==='tile'){
+        hoveredTile=hit;
+        const hz=hit.userData.gz,hx=hit.userData.gx;
+        if(hz!==undefined&&tileHighlights[hz]?.[hx]){
+          const hl=tileHighlights[hz][hx];
+          if(hl.material.opacity<0.1){hl.material.color.setHex(CFG.HOVER_HL);hl.material.opacity=0.15;}
+        }
+      }
+    }
+  }
+
+  // Subtle unit idle animation
+  units.forEach(u=>{
+    if(u.tr>0&&u.mesh){
+      u.mesh.position.y=(TILE_HEIGHTS[MAP[u.y]?.[u.x]]||0)+Math.sin(clock.elapsedTime*2+u.x*3)*0.015;
+    }
+  });
+
+  controls.update();
+  renderer.render(scene,camera);
+}
+animate();
+
+// ═══════════════════════════════════════
+// RESIZE
+// ═══════════════════════════════════════
+window.addEventListener('resize',()=>{
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  updateCamSize();
+});
+
+// ═══════════════════════════════════════
+// START GAME
+// ═══════════════════════════════════════
+window.startGame=()=>{
+  document.getElementById('title-ov').classList.remove('on');
+  spawnUnits();
+  state='playerSelect';
+  showTurnBanner('— 턴 1: 아군 —');
+  setGuide('아군 유닛을 클릭하여 선택');
+};
+</script>
+</body>
+</html>

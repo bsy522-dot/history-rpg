@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>v8 · UI/오디오 테스트 (Agent E)</title>
+<link rel="stylesheet" href="../js-v8/ui/styles.css">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: linear-gradient(180deg, #0a0a14 0%, #1a1428 100%);
+    color: #f0e6d0;
+    font-family: 'Noto Serif KR', serif;
+    min-height: 100vh;
+  }
+  .v8-test-hero {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid #8B6B3D;
+  }
+  .v8-test-hero h1 { margin: 0 0 6px; color: #FFD700; font-size: 22px; }
+  .v8-test-hero .sub { color: #b8a888; font-size: 13px; }
+  .v8-test-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 20px 24px 220px;
+  }
+  .v8-test-card {
+    background: rgba(20,20,40,0.7);
+    border: 1px solid #5a4320;
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .v8-test-card h3 {
+    margin: 0 0 12px; color: #FFD700; font-size: 15px;
+    border-bottom: 1px solid #5a4320; padding-bottom: 8px;
+  }
+  .v8-test-card button {
+    width: 100%;
+    margin: 4px 0; padding: 8px 10px;
+    background: #5a4320; color: #FFD700;
+    border: 1px solid #C4956A; border-radius: 3px;
+    font-family: inherit; font-size: 13px; cursor: pointer;
+    text-align: left;
+  }
+  .v8-test-card button:hover { background: #8B6B3D; }
+  #v8-mock-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse at center, #2a2040 0%, #0a0a14 100%);
+  }
+</style>
+</head>
+<body>
+<div id="v8-mock-scene"></div>
+
+<div class="v8-test-hero">
+  <h1>한국사 영웅전 v8 · UI/오디오 테스트 (Agent E)</h1>
+  <div class="sub">HUD, 대사, 설정, 인벤토리, 승리/패배, 오디오(BGM 4종/SFX 8종) 검증 · 2026-04-17</div>
+</div>
+
+<div class="v8-test-cols">
+  <div class="v8-test-card">
+    <h3>HUD · 유닛 패널</h3>
+    <button data-t="hud-init">HUD 초기화 (상단바)</button>
+    <button data-t="hud-turn-ally">턴 배너: 아군 턴 갱신</button>
+    <button data-t="hud-turn-enemy">턴 배너: 적군 턴 갱신</button>
+    <button data-t="hud-weather-rain">날씨 → 비</button>
+    <button data-t="hud-weather-fog">날씨 → 안개</button>
+    <button data-t="panel-show">유닛 패널 ON (환웅)</button>
+    <button data-t="panel-usa">유닛 패널 → 우사 (힐러)</button>
+    <button data-t="panel-low">유닛 패널 → HP 낮음 (경고)</button>
+    <button data-t="panel-hide">유닛 패널 OFF</button>
+    <button data-t="minimap-demo">미니맵 데모 데이터</button>
+  </div>
+
+  <div class="v8-test-card">
+    <h3>대사 (타이핑 30ms)</h3>
+    <button data-t="dlg-opening">EP.1 오프닝 (환인→환웅 4컷)</button>
+    <button data-t="dlg-tutorial">튜토리얼 대사</button>
+    <button data-t="dlg-victory">승리 대사</button>
+    <button data-t="dlg-short">짧은 1줄 대사</button>
+  </div>
+
+  <div class="v8-test-card">
+    <h3>설정/인벤토리/결과</h3>
+    <button data-t="settings-open">설정 열기</button>
+    <button data-t="settings-ep1-locked">설정 열기 (EP.1 카메라 잠금)</button>
+    <button data-t="inv-show">인벤토리 (5개 아이템)</button>
+    <button data-t="inv-empty">인벤토리 (비어있음)</button>
+    <button data-t="item-battle">전투 아이템 선택</button>
+    <button data-t="victory-show">승리 화면 (레벨업 포함)</button>
+    <button data-t="defeat-show">패배 화면</button>
+    <button data-t="ep-select">에피소드 선택</button>
+    <button data-t="title-lite">타이틀 (경량)</button>
+  </div>
+
+  <div class="v8-test-card">
+    <h3>오디오 · BGM</h3>
+    <button data-t="bgm-title">BGM: 타이틀 (평화 · sine)</button>
+    <button data-t="bgm-battle">BGM: 전투 (긴박 · sawtooth)</button>
+    <button data-t="bgm-boss">BGM: 보스 (웅장 · triangle)</button>
+    <button data-t="bgm-victory">BGM: 승리 (팡파레)</button>
+    <button data-t="bgm-stop">BGM: 정지</button>
+  </div>
+
+  <div class="v8-test-card">
+    <h3>오디오 · SFX (8종)</h3>
+    <button data-t="sfx-hit">SFX: hit (타격)</button>
+    <button data-t="sfx-skill">SFX: skill (스킬)</button>
+    <button data-t="sfx-heal">SFX: heal (치유)</button>
+    <button data-t="sfx-death">SFX: death (전사)</button>
+    <button data-t="sfx-click">SFX: click (선택)</button>
+    <button data-t="sfx-levelup">SFX: levelup (레벨업)</button>
+    <button data-t="sfx-victory">SFX: victory (승리)</button>
+    <button data-t="sfx-crit">SFX: crit (크리티컬)</button>
+  </div>
+
+  <div class="v8-test-card">
+    <h3>오디오 · 컨트롤</h3>
+    <button data-t="audio-mute">Mute 토글</button>
+    <button data-t="audio-init">AudioContext 상태</button>
+    <button data-t="vol-bgm-50">BGM 볼륨 50%</button>
+    <button data-t="vol-sfx-100">SFX 볼륨 100%</button>
+    <button data-t="mobile-note">모바일 터치 언락 테스트</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import { audio } from '../js-v8/core/audio.js';
+import { initHUD, updateHUD, showUnitPanel, hideUnitPanel, setMinimap, onAction, onCameraChange, onSettings } from '../js-v8/ui/hud.js';
+import { showDialogue } from '../js-v8/ui/dialogue.js';
+import { showInventory, showItemSelect, showVictory, showDefeat, showEpisodeSelect, showTitleLite } from '../js-v8/ui/menus.js';
+import { openSettings } from '../js-v8/ui/settings.js';
+
+// HUD 초기화 + 콜백
+initHUD(document.body);
+updateHUD({ turn: 1, side: 'ally', weather: 'clear', allyAlive: 4, enemyAlive: 5, camMode: 'tactical' });
+onAction(({ action, unit }) => {
+  console.log('[HUD] action', action, unit);
+  audio.playSFX('click');
+  alert(`액션 선택: ${action}  (유닛: ${unit?.name || '—'})`);
+});
+onCameraChange(mode => {
+  console.log('[HUD] camera →', mode);
+  audio.playSFX('click');
+});
+onSettings(() => openSettings({}));
+
+// 샘플 유닛
+const HWANWOONG = {
+  id: 'hwanwoong', portraitId: 'hwanwoong', name: '환웅', class: '신장', level: 3,
+  hp: 48, hpMax: 50, mp: 20, mpMax: 20, xp: 62, xpMax: 100, acted: false
+};
+const USA = {
+  id: 'usa', portraitId: 'usa', name: '우사', class: '우사', level: 2,
+  hp: 32, hpMax: 38, mp: 18, mpMax: 22, xp: 30, xpMax: 100, acted: false
+};
+const HWAN_LOW = { ...HWANWOONG, hp: 8, xp: 15 };
+
+// 데모 미니맵 데이터
+function demoUnits() {
+  return [
+    { x: 1, y: 8, team: 'ally', isLeader: true, hp: 50 },
+    { x: 2, y: 8, team: 'ally', hp: 40 },
+    { x: 1, y: 7, team: 'ally', hp: 38 },
+    { x: 2, y: 7, team: 'ally', hp: 35 },
+    { x: 7, y: 1, team: 'enemy', isLeader: true, hp: 60 },
+    { x: 6, y: 1, team: 'enemy', hp: 38 },
+    { x: 8, y: 1, team: 'enemy', hp: 45 },
+    { x: 6, y: 2, team: 'enemy', hp: 50 },
+    { x: 7, y: 3, team: 'enemy', hp: 35 },
+  ];
+}
+function demoMap() {
+  const w = 10, h = 10;
+  const tiles = Array.from({length: h}, () => Array(w).fill('plain'));
+  // 외곽 산
+  for (let x = 0; x < w; x++) { tiles[0][x] = 'mountain'; tiles[h-1][x] = 'mountain'; }
+  for (let y = 0; y < h; y++) { tiles[y][0] = 'mountain'; tiles[y][w-1] = 'mountain'; }
+  // 강
+  tiles[4][3] = 'water'; tiles[4][4] = 'water'; tiles[5][4] = 'water';
+  // 숲
+  tiles[3][6] = 'forest'; tiles[6][3] = 'forest'; tiles[6][7] = 'forest';
+  // 길
+  for (let i = 2; i < 8; i++) tiles[5][i] = tiles[5][i] === 'water' ? 'water' : 'road';
+  // 신단수
+  tiles[1][8] = 'sacred';
+  return { w, h, tiles };
+}
+
+// 버튼 핸들러
+const H = {
+  'hud-init': () => updateHUD({ turn: 1, side: 'ally', weather: 'clear', allyAlive: 4, enemyAlive: 5, camMode: 'tactical' }),
+  'hud-turn-ally': () => updateHUD({ turn: 3, side: 'ally', allyAlive: 4, enemyAlive: 3 }),
+  'hud-turn-enemy': () => updateHUD({ turn: 3, side: 'enemy', allyAlive: 4, enemyAlive: 3 }),
+  'hud-weather-rain': () => updateHUD({ weather: 'rain' }),
+  'hud-weather-fog': () => updateHUD({ weather: 'fog' }),
+  'panel-show': () => showUnitPanel(HWANWOONG, { actions: ['attack','skill','item','wait'] }),
+  'panel-usa': () => showUnitPanel(USA, { actions: ['attack','skill','item','wait'] }),
+  'panel-low': () => showUnitPanel(HWAN_LOW, { actions: ['attack','skill','item','wait'] }),
+  'panel-hide': () => hideUnitPanel(),
+  'minimap-demo': () => { setMinimap(demoUnits, demoMap); updateHUD({}); },
+
+  'dlg-opening': () => showDialogue([
+    { speakerId: 'hwanin', speaker: '환인', text: '아들아, 어찌 북방 거친 땅을 원하느냐. 남쪽이 뭐가 좋다고.' },
+    { speakerId: 'hwanwoong', speaker: '환웅', text: '홍익인간 — 널리 인간을 이롭게 하고자 합니다.' },
+    { speakerId: 'hwanin', speaker: '환인', text: '말이 아닌 몸으로 보여라. 천장들이 네 길을 막을 것이다.' },
+    { speakerId: 'hwanin', speaker: '환인', text: '천무장, 뇌공, 화신, 산령, 수장 — 다섯 시련이다.' }
+  ]),
+  'dlg-tutorial': () => showDialogue([
+    { speakerId: 'narrator', speaker: '해설', text: '유닛을 클릭해 파란 타일로 이동하십시오.' },
+    { speakerId: 'narrator', speaker: '해설', text: '공격·스킬·아이템·대기 중 선택할 수 있습니다.' }
+  ]),
+  'dlg-victory': () => showDialogue([
+    { speakerId: 'hwanin', speaker: '환인', text: '훌륭하다. 천부인을 가져가거라 — 거울, 방울, 검.' },
+    { speakerId: 'hwanwoong', speaker: '환웅', text: '홍익인간의 뜻, 반드시 이루겠습니다.' }
+  ]),
+  'dlg-short': () => showDialogue([{ speakerId: 'narrator', speaker: '해설', text: '한 줄 메시지입니다.' }]),
+
+  'settings-open': () => openSettings({}),
+  'settings-ep1-locked': () => openSettings({ cameraLocked: true }),
+
+  'inv-show': () => showInventory([
+    { id:'hp_potion', name:'회복약', icon:'🧪', qty:3, desc:'HP +20 회복', usable:true },
+    { id:'mp_potion', name:'기력초', icon:'🍶', qty:2, desc:'MP +15 회복', usable:true },
+    { id:'cheonbuin', name:'천부인·거울', icon:'🪞', qty:1, desc:'환웅의 상징', usable:false },
+    { id:'cheonbuin_bell', name:'천부인·방울', icon:'🔔', qty:1, usable:false },
+    { id:'cheonbuin_sword', name:'천부인·검', icon:'⚔️', qty:1, usable:false }
+  ], (it) => alert(`사용: ${it.name}`)),
+  'inv-empty': () => showInventory([]),
+
+  'item-battle': () => showItemSelect([
+    { id:'hp_potion', name:'회복약', icon:'🧪', qty:3 },
+    { id:'mp_potion', name:'기력초', icon:'🍶', qty:2 }
+  ], (it) => { if (it) alert(`전투 사용: ${it.name}`); }),
+
+  'victory-show': () => showVictory({
+    xpGains: [
+      { unitId:'hwanwoong', name:'환웅', beforeXp:60, afterXp:120, beforeLv:3, afterLv:4, leveledUp:true },
+      { unitId:'pungbaek', name:'풍백', beforeXp:30, afterXp:60, beforeLv:2, afterLv:2, leveledUp:false },
+      { unitId:'usa', name:'우사', beforeXp:15, afterXp:45, beforeLv:2, afterLv:2, leveledUp:false },
+      { unitId:'unsa', name:'운사', beforeXp:80, afterXp:110, beforeLv:2, afterLv:3, leveledUp:true }
+    ],
+    rewards: [
+      { id:'cheonbuin', name:'천부인 (3종)', icon:'✨', qty:1 },
+      { id:'hp_potion', name:'회복약', icon:'🧪', qty:3 }
+    ],
+    onNext: () => audio.playSFX('click')
+  }),
+
+  'defeat-show': () => showDefeat({
+    message: '천장들이 너무 강했다. 더 많은 수련이 필요하다.',
+    onRetry: () => console.log('retry'),
+    onTitle: () => console.log('title')
+  }),
+
+  'ep-select': () => showEpisodeSelect([
+    { id:'ep1', title:'환웅의 시험', subtitle:'홍익인간 — 다섯 시련', era:'BC 2333 이전' },
+    { id:'ep2', title:'단군의 건국', subtitle:'신시에서 아사달로', era:'BC 2333', locked: true },
+    { id:'ep3', title:'위만의 진출', subtitle:'이민자의 왕국', era:'BC 194', locked: true },
+    { id:'ep4', title:'부여·삼한', subtitle:'열국의 개막', era:'BC 2~AD 3C', locked: true }
+  ], (id) => alert(`선택: ${id}`)),
+
+  'title-lite': () => showTitleLite(() => alert('시작')),
+
+  // BGM
+  'bgm-title':    () => audio.playBGM('title'),
+  'bgm-battle':   () => audio.playBGM('battle'),
+  'bgm-boss':     () => audio.playBGM('boss'),
+  'bgm-victory':  () => audio.playBGM('victory'),
+  'bgm-stop':     () => audio.stopBGM(),
+
+  // SFX
+  'sfx-hit':      () => audio.playSFX('hit'),
+  'sfx-skill':    () => audio.playSFX('skill'),
+  'sfx-heal':     () => audio.playSFX('heal'),
+  'sfx-death':    () => audio.playSFX('death'),
+  'sfx-click':    () => audio.playSFX('click'),
+  'sfx-levelup':  () => audio.playSFX('levelup'),
+  'sfx-victory':  () => audio.playSFX('victory'),
+  'sfx-crit':     () => audio.playSFX('crit'),
+
+  'audio-mute':   () => { audio.mute(!audio.isMuted()); alert(`Mute: ${audio.isMuted()}`); },
+  'audio-init':   () => {
+    audio.init();
+    const st = audio.ctx ? audio.ctx.state : 'none';
+    alert(`AudioContext: ${st}\nBGM vol: ${(audio.getBGMVolume()*100).toFixed(0)}%\nSFX vol: ${(audio.getSFXVolume()*100).toFixed(0)}%`);
+  },
+  'vol-bgm-50':   () => { audio.setBGMVolume(0.5); alert('BGM → 50%'); },
+  'vol-sfx-100':  () => { audio.setSFXVolume(1.0); alert('SFX → 100%'); },
+  'mobile-note':  () => alert('Chrome DevTools → Toggle Device Toolbar → 모바일 모드에서 이 버튼을 누르면 터치로 AudioContext가 언락됩니다. 첫 클릭 후 BGM/SFX가 실제로 들립니다.')
+};
+
+document.querySelectorAll('button[data-t]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const k = btn.dataset.t;
+    const fn = H[k];
+    if (fn) fn();
+    else console.warn('no handler', k);
+  });
+});
+
+// 데모: 초기 미니맵 세팅
+setMinimap(demoUnits, demoMap);
+updateHUD({ turn: 1, side: 'ally', weather: 'clear', allyAlive: 4, enemyAlive: 5, camMode: 'tactical' });
+
+// 전역 노출 (콘솔에서 바로 조작)
+window.v8 = { audio, showDialogue, showVictory, openSettings, updateHUD, showUnitPanel };
+console.log('[v8-test] ready. 콘솔에서 window.v8 로 접근 가능.');
+</script>
+</body>
+</html>

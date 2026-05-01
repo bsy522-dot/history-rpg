@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>한국사 영웅전 — 환웅의 시련</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
+body{overflow:hidden;background:#0a0608;font-family:'Noto Serif KR',serif;color:#e8dcc8}
+canvas{display:block}
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#ui>*{pointer-events:auto}
+#topbar{position:absolute;top:0;left:0;right:0;height:32px;background:linear-gradient(180deg,#0a0608dd,#0a060800);display:flex;justify-content:space-between;align-items:center;padding:0 12px;pointer-events:none}
+.tl{font-size:11px;color:#c4956a;font-weight:700;letter-spacing:2px}.tr{font-size:10px;color:#777}
+#guide{position:absolute;top:34px;left:0;right:0;text-align:center;font-size:11px;color:#c4956acc;pointer-events:none;text-shadow:0 1px 3px #000}
+#dlg{position:fixed;bottom:0;left:0;right:0;display:none;padding:8px;z-index:50}
+#dlg-box{background:linear-gradient(180deg,#1a1428ee,#0e0a18f8);border:2px solid #8a7a5a;border-radius:10px;padding:12px 14px;max-width:560px;margin:0 auto}
+#dlg-sp{font-size:13px;font-weight:700;color:#FFD700;margin-bottom:4px}
+#dlg-tx{font-size:13px;line-height:1.8;min-height:36px}
+#dlg-nx{font-size:10px;color:#888;text-align:right;margin-top:3px;animation:bk 1s infinite}
+@keyframes bk{0%,100%{opacity:.3}50%{opacity:1}}
+#upanel{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,#0a0608fa 70%,#0a060800);border-top:1px solid #5a4a3a44;padding:6px 10px 10px;z-index:40;display:none}
+#up-r{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+#up-face{width:40px;height:40px;border-radius:8px;border:2px solid #c4956a;background:#1a1428;display:flex;align-items:center;justify-content:center;font-size:20px}
+#up-nm{font-size:13px;font-weight:700}
+#up-ti{font-size:9px;color:#999}
+.sb{height:7px;background:#1a1a2e;border-radius:4px;overflow:hidden;margin-top:2px}
+.sf{height:100%;border-radius:4px;transition:width .3s}
+#up-tr{font-size:10px;color:#aaa;margin-top:1px}
+#up-st{font-size:9px;color:#666;margin-top:1px}
+#up-btns{display:flex;gap:4px;flex-wrap:wrap}
+#up-btns button{flex:1;min-width:52px;padding:8px 2px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:10px;font-weight:700;color:#e8dcc8;cursor:pointer}
+#up-btns button:active{transform:scale(.95)}
+#up-btns button:disabled{opacity:.3}
+.ba{background:#6B1A0A}.bs{background:#1a3a5c}.bw{background:#2a2a3e}.bi{background:#2a5a2a}.bf{background:#5a3a6a}
+/* Formation panel */
+#form-panel{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:none;z-index:45;background:#1a1428ee;border:1px solid #8a7a5a;border-radius:8px;padding:8px 12px;text-align:center}
+#form-panel .ft{font-size:11px;color:#c4956a;margin-bottom:6px;font-weight:700}
+.fbtn{padding:8px 16px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;color:#e8dcc8;cursor:pointer;margin:0 3px}
+.fbtn.active{border-color:#FFD700;box-shadow:0 0 8px #FFD70044}
+.fb-w{background:#6B3A0A}.fb-d{background:#1a3a2a}
+/* Cutin */
+#cutin{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:55}
+#cutin.on{display:flex}
+.cr{display:flex;align-items:center;gap:14px}.cu{text-align:center;min-width:90px}
+.cu-e{font-size:30px;margin-bottom:2px}.cu-n{font-size:14px;font-weight:700}.cu-s{font-size:9px;color:#aaa}.cu-t{font-size:11px;margin-top:2px}
+#ct-vs{font-size:22px;font-weight:900;color:#c4956a}
+#ct-lb{font-size:11px;color:#ddd;margin-top:8px}#ct-dm{font-size:20px;font-weight:900;color:#ff4444;margin-top:4px;min-height:24px}
+#ct-counter{font-size:14px;color:#ffaa44;margin-top:2px;min-height:20px}
+@keyframes hl{0%{transform:translateX(0)}30%{transform:translateX(25px) scale(1.08)}100%{transform:translateX(0)}}
+@keyframes hr{0%{transform:translateX(0)}30%{transform:translateX(-25px) scale(1.08)}100%{transform:translateX(0)}}
+@keyframes dp{0%{opacity:0;transform:scale(.3)}50%{transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+.ahl{animation:hl .35s ease}.ahr{animation:hr .35s ease}
+.ov{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px;text-align:center}.ov.on{display:flex}
+#title-ov{background:radial-gradient(ellipse at 50% 40%,#2a1a0a,#0a0608)}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #c4956a33}50%{text-shadow:0 0 50px #c4956aaa}}
+.gt{font-size:clamp(24px,6vw,40px);font-weight:900;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s infinite}
+.gb{padding:13px 34px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:16px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer;letter-spacing:3px}
+.gb:active{transform:scale(.96)}
+#vic-ov,#lose-ov{background:#0a0608ee}
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="topbar"><span class="tl" id="tl">환웅의 시련</span><span class="tr" id="tr-i">턴 1 · 아군</span></div>
+  <div id="guide"></div>
+  <div id="dlg"><div id="dlg-box"><div id="dlg-sp"></div><div id="dlg-tx"></div><div id="dlg-nx">▼ 터치</div></div></div>
+  <div id="upanel"><div id="up-r"><div id="up-face"></div><div style="flex:1"><div id="up-nm"></div><div id="up-ti"></div><div class="sb"><div class="sf" id="up-hp"></div></div><div id="up-tr"></div><div id="up-st"></div></div></div><div id="up-btns"></div></div>
+  <div id="form-panel"><div class="ft">진형 변경</div><button class="fbtn fb-w" onclick="setForm('wedge')">⟐ 쐐기진<br><span style="font-size:8px;color:#aaa">ATK+30%</span></button><button class="fbtn fb-d" onclick="setForm('defend')">◎ 방어진<br><span style="font-size:8px;color:#aaa">DEF+50%</span></button></div>
+  <div id="cutin"><div class="cr"><div class="cu" id="cu-l"><div class="cu-e" id="cl-e"></div><div class="cu-n" id="cl-n"></div><div class="cu-s" id="cl-s"></div><div class="cu-t" id="cl-t"></div></div><div id="ct-vs">⚔</div><div class="cu" id="cu-r"><div class="cu-e" id="cr-e"></div><div class="cu-n" id="cr-n"></div><div class="cu-s" id="cr-s"></div><div class="cu-t" id="cr-t"></div></div></div><div id="ct-lb"></div><div id="ct-dm"></div><div id="ct-counter"></div></div>
+</div>
+<div id="title-ov" class="ov on">
+  <div><div style="font-size:10px;letter-spacing:5px;color:#8a7a6a;margin-bottom:8px">3D SQUAD TACTICAL RPG</div>
+  <h1 class="gt">한국사 영웅전</h1>
+  <div style="font-size:12px;color:#8a7a6a;margin-top:6px;font-style:italic">부대 전투 · 진형 시스템 · 찰갑 장수</div>
+  <div style="margin-top:18px"><button class="gb" onclick="beginGame()">⚔ 출진</button></div>
+  <div style="margin-top:16px;font-size:9px;color:#555;line-height:2.2;max-width:260px;margin-left:auto;margin-right:auto">
+  ▸ 부대 클릭 → 이동 → 공격/스킬/진형<br>
+  ▸ 병력수 = 실제 병사 수 (줄어들면 병사 소멸)<br>
+  ▸ 쐐기진: 공격+30% / 방어진: 방어+50%<br>
+  ▸ 우클릭 드래그: 회전 / 휠: 줌</div></div>
+</div>
+<div id="vic-ov" class="ov"><div><div style="font-size:40px;margin-bottom:6px">🏆</div><h2 style="font-size:22px;font-weight:900;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">시련 돌파!</h2><div style="font-size:12px;color:#c4956a;margin:10px 0">천부인 획득 · 풍백/우사/운사 동료 합류</div><div style="font-size:11px;color:#aaa;line-height:1.8;max-width:300px;margin:0 auto 12px">환인의 시련을 통과한 환웅은 천부인 세 개를 가지고 태백산 신단수로 내려왔다. 홍익인간의 시작. (BC 2333)</div><button class="gb" onclick="location.reload()">다시</button></div></div>
+<div id="lose-ov" class="ov"><div><div style="font-size:40px;margin-bottom:6px">💀</div><h2 style="font-size:22px;font-weight:900;color:#e74c3c">패배</h2><button class="gb" style="margin-top:10px" onclick="location.reload()">재도전</button></div></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import*as THREE from'three';
+import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+
+// ═══ CONFIG ═══
+const C={GRID:10,T:1.2,TH:.1,FOG:0x1a0e08,ALLY:0xCD7F32,ENEMY:0x43464B,MOVE:0x3399ff,ATK:0xff3333,
+  SCALE_COLOR:0xB87333,SCALE_METAL:0.85,SCALE_ROUGH:0.15,LEATHER:0x5a3a1a};
+const GC=C.GRID*C.T;
+
+// ═══ THREE SETUP ═══
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(C.FOG);
+scene.fog=new THREE.Fog(C.FOG,14,35);
+let cSz=7;const cam=new THREE.OrthographicCamera(-1,1,1,-1,.1,100);
+function uCam(){const a=innerWidth/innerHeight;cam.left=-cSz*a;cam.right=cSz*a;cam.top=cSz;cam.bottom=-cSz;cam.updateProjectionMatrix();}
+cam.position.set(14,11,14);cam.lookAt(GC/2,0,GC/2);
+const ren=new THREE.WebGLRenderer({antialias:true});
+ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio,2));
+ren.shadowMap.enabled=true;ren.shadowMap.type=THREE.PCFSoftShadowMap;
+ren.toneMapping=THREE.ACESFilmicToneMapping;ren.toneMappingExposure=1.0;
+document.body.appendChild(ren.domElement);
+const ctrl=new OrbitControls(cam,ren.domElement);
+ctrl.enableDamping=true;ctrl.dampingFactor=.08;ctrl.target.set(GC/2,0,GC/2);
+ctrl.maxPolarAngle=Math.PI/3;ctrl.minPolarAngle=Math.PI/6;ctrl.enablePan=false;
+ctrl.mouseButtons={LEFT:null,MIDDLE:null,RIGHT:THREE.MOUSE.ROTATE};
+ctrl.touches={ONE:null,TWO:THREE.TOUCH.DOLLY_ROTATE};
+ren.domElement.addEventListener('wheel',e=>{e.preventDefault();cSz=Math.max(3,Math.min(12,cSz+e.deltaY*.005));uCam();},{passive:false});
+addEventListener('resize',()=>{ren.setSize(innerWidth,innerHeight);uCam();});uCam();
+
+// Sunset lighting
+scene.add(new THREE.AmbientLight(0xffeedd,.35));
+const sun=new THREE.DirectionalLight(0xffaa66,1.3);
+sun.position.set(10,12,-5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+const s=14;sun.shadow.camera.left=-s;sun.shadow.camera.right=s;sun.shadow.camera.top=s;sun.shadow.camera.bottom=-s;
+sun.shadow.bias=-.001;scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffaa77,0x332211,.3));
+
+// ═══ MATERIALS ═══
+const M={
+  dirt:new THREE.MeshStandardMaterial({color:0x8B6B3A,roughness:.9}),
+  grass:new THREE.MeshStandardMaterial({color:0x556B2F,roughness:.85}),
+  path:new THREE.MeshStandardMaterial({color:0xA08050,roughness:.8}),
+  scale:new THREE.MeshStandardMaterial({color:C.SCALE_COLOR,roughness:C.SCALE_ROUGH,metalness:C.SCALE_METAL}),
+  scaleOx:new THREE.MeshStandardMaterial({color:0xA06030,roughness:.25,metalness:.75}),// oxidized
+  leather:new THREE.MeshStandardMaterial({color:C.LEATHER,roughness:.85}),
+  skin:new THREE.MeshStandardMaterial({color:0xDEB887,roughness:.7}),
+  iron:new THREE.MeshStandardMaterial({color:C.ENEMY,roughness:.5,metalness:.7}),
+  wood:new THREE.MeshStandardMaterial({color:0x5a3a1a,roughness:.85}),
+  feather:new THREE.MeshStandardMaterial({color:0xeeeeee,roughness:.6,side:THREE.DoubleSide}),
+};
+
+// ═══ MAP ═══
+const MAP=[ // 0=dirt,1=grass,2=path
+  [1,1,0,2,2,2,2,0,1,1],
+  [1,0,0,2,0,0,2,0,0,1],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [2,2,0,0,0,0,0,0,2,2],
+  [2,2,0,0,0,0,0,0,2,2],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [1,0,0,2,0,0,2,0,0,1],
+  [1,1,0,2,2,2,2,0,1,1],
+];
+const PASS=t=>[0,1,2].includes(t);
+const TC=[M.dirt,M.grass,M.path];
+const world=new THREE.Group();scene.add(world);
+const tiles=[],hlMs=[];
+for(let z=0;z<C.GRID;z++){tiles[z]=[];hlMs[z]=[];
+  for(let x=0;x<C.GRID;x++){
+    const t=MAP[z][x];
+    const geo=new THREE.BoxGeometry(C.T,C.TH,C.T);
+    const m=new THREE.Mesh(geo,(TC[t]||M.dirt).clone());
+    m.position.set(x*C.T+C.T/2,C.TH/2,z*C.T+C.T/2);m.receiveShadow=true;
+    m.userData={gx:x,gz:z,type:'tile'};world.add(m);tiles[z][x]=m;
+    const hg=new THREE.PlaneGeometry(C.T*.92,C.T*.92);
+    const hm=new THREE.Mesh(hg,new THREE.MeshBasicMaterial({color:C.MOVE,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));
+    hm.rotation.x=-Math.PI/2;hm.position.set(x*C.T+C.T/2,C.TH+.02,z*C.T+C.T/2);
+    world.add(hm);hlMs[z][x]=hm;
+  }
+}
+
+// ═══ SCALE ARMOR with InstancedMesh ═══
+function createScaleArmor(parentGroup,yOffset,rows,cols,color){
+  const scaleGeo=new THREE.CircleGeometry(.018,5);
+  const scaleMat=new THREE.MeshStandardMaterial({color:color||C.SCALE_COLOR,roughness:C.SCALE_ROUGH,metalness:C.SCALE_METAL,side:THREE.DoubleSide});
+  const count=rows*cols;
+  const instMesh=new THREE.InstancedMesh(scaleGeo,scaleMat,count);
+  const dummy=new THREE.Object3D();
+  let idx=0;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const ox=(c-cols/2)*.035+((r%2)*.017);
+      const oy=yOffset-r*.03;
+      dummy.position.set(ox,oy,.1);
+      dummy.rotation.set(-.2,0,0);
+      dummy.updateMatrix();
+      instMesh.setMatrixAt(idx,dummy.matrix);
+      idx++;
+    }
+  }
+  instMesh.instanceMatrix.needsUpdate=true;
+  instMesh.castShadow=true;
+  parentGroup.add(instMesh);
+  return instMesh;
+}
+
+// ═══ BUILD SOLDIER (individual) ═══
+function buildSoldier(isAlly,isLeader,hasScaleArmor){
+  const g=new THREE.Group();
+  const armorMat=isAlly?M.scale:M.iron;
+  const clothMat=isLeader?M.leather:new THREE.MeshStandardMaterial({color:0xC8B88A,roughness:.9});
+
+  // Legs
+  [-0.04,0.04].forEach(ox=>{
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.15,5),clothMat);
+    leg.position.set(ox,.075,0);g.add(leg);
+  });
+
+  // Body
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.16,.22,.12),armorMat);
+  body.position.y=.26;body.castShadow=true;g.add(body);
+
+  // Scale armor overlay (찰갑)
+  if(hasScaleArmor){
+    createScaleArmor(g,.34,6,5,isAlly?C.SCALE_COLOR:0x555555);
+    // Leather straps
+    const strap=new THREE.Mesh(new THREE.BoxGeometry(.005,.2,.13),M.leather);
+    strap.position.set(-.05,.26,0);g.add(strap.clone());
+    const s2=strap.clone();s2.position.set(.05,.26,0);g.add(s2);
+  }
+
+  // Arms
+  [-.12,.12].forEach(ox=>{
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.02,.025,.18,5),clothMat);
+    arm.position.set(ox,.26,0);arm.rotation.z=ox>0?-.1:.1;g.add(arm);
+  });
+
+  // Head
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),M.skin);
+  head.position.y=.42;head.castShadow=true;g.add(head);
+
+  // Helmet/hair
+  if(isLeader){
+    const helm=new THREE.Mesh(new THREE.ConeGeometry(.07,.08,6),armorMat);
+    helm.position.y=.5;g.add(helm);
+    // Feather decoration (깃털)
+    const feather=new THREE.Mesh(new THREE.PlaneGeometry(.03,.12),M.feather);
+    feather.position.set(0,.56,-.02);feather.rotation.x=-.3;g.add(feather);
+    const f2=feather.clone();f2.position.set(.02,.55,-.02);f2.rotation.z=.2;g.add(f2);
+  }else{
+    const hair=new THREE.Mesh(new THREE.SphereGeometry(.065,6,4,0,Math.PI*2,0,Math.PI/2),
+      new THREE.MeshStandardMaterial({color:0x1a0a00,roughness:.9}));
+    hair.position.y=.45;g.add(hair);
+  }
+
+  // Mandolin-shaped bronze sword (비파형 동검)
+  const swS=new THREE.Shape();
+  swS.moveTo(0,.08);swS.quadraticCurveTo(.025,.05,.022,.01);
+  swS.quadraticCurveTo(.015,-.01,.008,-.05);swS.lineTo(.005,-.08);swS.lineTo(-.005,-.08);
+  swS.lineTo(-.008,-.05);swS.quadraticCurveTo(-.015,-.01,-.022,.01);
+  swS.quadraticCurveTo(-.025,.05,0,.08);
+  const swGeo=new THREE.ExtrudeGeometry(swS,{depth:.006,bevelEnabled:false});
+  const sword=new THREE.Mesh(swGeo,new THREE.MeshStandardMaterial({color:0xB87333,roughness:.3,metalness:.7}));
+  sword.position.set(.14,.3,0);sword.rotation.z=-.3;sword.castShadow=true;g.add(sword);
+
+  // Shield
+  const shS=new THREE.Shape();
+  shS.moveTo(0,.06);shS.quadraticCurveTo(.04,.04,.035,0);
+  shS.quadraticCurveTo(.03,-.04,0,-.06);shS.quadraticCurveTo(-.03,-.04,-.035,0);
+  shS.quadraticCurveTo(-.04,.04,0,.06);
+  const shGeo=new THREE.ExtrudeGeometry(shS,{depth:.01,bevelEnabled:false});
+  const shield=new THREE.Mesh(shGeo,new THREE.MeshStandardMaterial({color:C.SCALE_COLOR-0x202020,roughness:.4,metalness:.6}));
+  shield.position.set(-.13,.28,0);shield.rotation.y=Math.PI/2;shield.castShadow=true;g.add(shield);
+
+  return g;
+}
+
+// ═══ BUILD SQUAD (부대) ═══
+function buildSquad(soldierCount,isAlly,isLeader){
+  const group=new THREE.Group();
+  const soldiers=[];
+
+  // Leader (장수)
+  const leader=buildSoldier(isAlly,true,true);
+  leader.position.set(0,0,0);
+  group.add(leader);
+  soldiers.push({mesh:leader,alive:true,ox:0,oz:0});
+
+  // Soldiers in wedge formation (default)
+  for(let i=0;i<soldierCount-1;i++){
+    const s=buildSoldier(isAlly,false,isLeader);
+    const row=Math.floor(i/3)+1;
+    const col=(i%3)-1;
+    const ox=col*.22;
+    const oz=row*.2*(isAlly?1:-1);
+    s.position.set(ox,0,oz);
+    s.scale.set(.85,.85,.85);
+    group.add(s);
+    soldiers.push({mesh:s,alive:true,ox,oz});
+  }
+
+  group.userData.soldiers=soldiers;
+  group.userData.formation='wedge';
+  return group;
+}
+
+// ═══ FORMATION SYSTEM ═══
+function applyFormation(unit,form){
+  if(!unit.mesh||!unit.mesh.userData.soldiers)return;
+  const soldiers=unit.mesh.userData.soldiers;
+  unit.mesh.userData.formation=form;
+  const isAlly=unit.team==='ally';
+
+  soldiers.forEach((s,i)=>{
+    if(i===0||!s.alive)return; // skip leader
+    const idx=i-1;
+    let tx,tz;
+    if(form==='wedge'){
+      const row=Math.floor(idx/3)+1;
+      const col=(idx%3)-1;
+      tx=col*.22;tz=row*.2*(isAlly?1:-1);
+    }else{// defend - circle
+      const angle=(idx/(soldiers.filter(x=>x.alive).length-1))*Math.PI*2;
+      tx=Math.cos(angle)*.2;
+      tz=Math.sin(angle)*.2;
+    }
+    s.mesh.position.set(tx,0,tz);
+    s.ox=tx;s.oz=tz;
+  });
+}
+
+// ═══ SOLDIER DEATH with knockback ═══
+function killSoldiers(unit,count){
+  if(!unit.mesh||!unit.mesh.userData.soldiers)return;
+  const soldiers=unit.mesh.userData.soldiers;
+  let killed=0;
+  for(let i=soldiers.length-1;i>=1&&killed<count;i--){
+    if(soldiers[i].alive){
+      soldiers[i].alive=false;
+      const s=soldiers[i].mesh;
+      // Knockback + fade animation
+      const startY=s.position.y;
+      const startZ=s.position.z;
+      const dir=unit.team==='ally'?1:-1;
+      animQ.push(dt=>{
+        s.position.z+=dir*dt*2;
+        s.position.y+=dt*.5;
+        s.children.forEach(c=>{if(c.material){
+          if(!c.material._origOpacity){c.material._origOpacity=1;c.material.transparent=true;}
+          c.material.opacity=Math.max(0,c.material.opacity-.03);
+        }});
+        if(s.position.y>startY+.4){s.visible=false;return true;}
+        return false;
+      });
+      killed++;
+    }
+  }
+}
+
+// ═══ UNIT DATA ═══
+const ALLIES=[
+  {id:'hw',nm:'환웅',ti:'환인의 아들',tp:'신장',emoji:'👑',troops:10,maxTr:10,atk:30,def:12,mov:4,rng:1,
+   sk:[{n:'천부인·뇌격',t:'a',pw:45,rng:2},{n:'홍익신광',t:'h',pw:4}],gx:4,gy:1,form:'wedge'},
+  {id:'pb',nm:'풍백',ti:'바람지기',tp:'기마',emoji:'🌬️',troops:10,maxTr:10,atk:28,def:8,mov:5,rng:1,
+   sk:[{n:'질풍참',t:'a',pw:38,rng:1}],gx:3,gy:2,form:'wedge'},
+  {id:'ws',nm:'우사',ti:'비지기',tp:'책사',emoji:'🌧️',troops:10,maxTr:10,atk:22,def:8,mov:3,rng:3,
+   sk:[{n:'치유비',t:'h',pw:5},{n:'폭우격',t:'a',pw:32,rng:3}],gx:5,gy:2,form:'defend'},
+];
+const ENEMIES=[
+  {id:'e1',nm:'중앙 정예군',ti:'환인 직할',tp:'무사',emoji:'⚔️',troops:20,maxTr:20,atk:10,def:6,mov:2,rng:1,sk:[],gx:4,gy:7,form:'defend'},
+  {id:'e2',nm:'요하 수비대A',ti:'성벽 수비',tp:'수비',emoji:'🛡️',troops:20,maxTr:20,atk:8,def:8,mov:2,rng:1,sk:[],gx:3,gy:8,form:'defend'},
+  {id:'e3',nm:'요하 수비대B',ti:'성벽 수비',tp:'수비',emoji:'🛡️',troops:20,maxTr:20,atk:8,def:8,mov:2,rng:1,sk:[],gx:5,gy:8,form:'defend'},
+  {id:'e4',nm:'훈련병A',ti:'신병',tp:'보병',emoji:'🗡️',troops:10,maxTr:10,atk:6,def:3,mov:3,rng:1,sk:[],gx:2,gy:7,form:'wedge'},
+  {id:'e5',nm:'훈련병B',ti:'신병',tp:'보병',emoji:'🗡️',troops:10,maxTr:10,atk:6,def:3,mov:3,rng:1,sk:[],gx:6,gy:7,form:'wedge'},
+  {id:'e6',nm:'훈련병C',ti:'신병',tp:'보병',emoji:'🗡️',troops:10,maxTr:10,atk:6,def:3,mov:2,rng:1,sk:[],gx:4,gy:9,form:'wedge'},
+];
+
+// ═══ STATE ═══
+let mode='title',units=[],sel=null,mvR=[],atkT=[],atkM=null,atkS=null,turnN=1,itemN=2;
+let animQ=[],dlgQ=[],dlgI=0,dlgCb=null;
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+
+function g2w(x,z){return{x:x*C.T+C.T/2,z:z*C.T+C.T/2};}
+function md(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
+function aliveAt(x,y,tm){return units.find(u=>u.troops>0&&u.x===x&&u.y===y&&(!tm||u.team===tm));}
+function clrHL(){for(let z=0;z<C.GRID;z++)for(let x=0;x<C.GRID;x++)hlMs[z][x].material.opacity=0;}
+function setG(t){document.getElementById('guide').textContent=t;}
+
+// ═══ DIALOGUE ═══
+function sDlg(lines,cb){dlgQ=lines;dlgI=0;dlgCb=cb;mode='dlg';showDL();document.getElementById('dlg').style.display='block';}
+function showDL(){const l=dlgQ[dlgI];document.getElementById('dlg-sp').textContent=l.s||'';document.getElementById('dlg-tx').textContent=l.t;}
+function advD(){if(dlgI<dlgQ.length-1){dlgI++;showDL();}else{document.getElementById('dlg').style.display='none';if(dlgCb){const c=dlgCb;dlgCb=null;c();}}}
+document.getElementById('dlg').onclick=advD;
+
+// ═══ SPAWN BATTLE ═══
+function initBattle(){
+  mode='bsel';units=[];sel=null;mvR=[];atkT=[];turnN=1;
+  world.children.filter(c=>c.userData.squad).forEach(c=>world.remove(c));
+
+  const spawn=(arr,team)=>arr.forEach(d=>{
+    const mesh=buildSquad(d.troops,team==='ally',true);
+    const p=g2w(d.gx,d.gy);
+    mesh.position.set(p.x,0,p.z);
+    if(team==='enemy')mesh.rotation.y=Math.PI;
+    mesh.userData.squad=true;world.add(mesh);
+    units.push({...d,team,x:d.gx,y:d.gy,mesh,acted:false,sk:d.sk?[...d.sk]:[],
+      formBonus:{atk:0,def:0}});
+    applyFormation(units[units.length-1],d.form);
+  });
+  spawn(ALLIES,'ally');spawn(ENEMIES,'enemy');
+
+  document.getElementById('tl').textContent='연무장 — 모의전';
+  document.getElementById('tr-i').textContent=`턴 ${turnN} · 아군`;
+  setG('아군 부대를 클릭하여 선택');
+}
+
+// ═══ FORMATION UI ═══
+window.setForm=f=>{
+  if(!sel)return;
+  sel.form=f;
+  applyFormation(sel,f);
+  sel.formBonus=f==='wedge'?{atk:.3,def:0}:{atk:0,def:.5};
+  document.getElementById('form-panel').style.display='none';
+  // Update button highlight
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  showUP(sel);setG(`${sel.nm}: ${f==='wedge'?'쐐기진 (ATK+30%)':'방어진 (DEF+50%)'} 적용!`);
+};
+
+// ═══ BATTLE LOGIC ═══
+function calcMv(u){
+  const r=[],v=new Set(),q=[{x:u.x,y:u.y,s:0}];v.add(`${u.x},${u.y}`);
+  while(q.length){const c=q.shift();
+    if(c.s>0&&!aliveAt(c.x,c.y)&&PASS(MAP[c.y]?.[c.x]??-1))r.push({x:c.x,y:c.y});
+    if(c.s>=u.mov)continue;
+    for(const[dx,dy]of[[-1,0],[1,0],[0,-1],[0,1]]){
+      const nx=c.x+dx,ny=c.y+dy,k=`${nx},${ny}`;
+      if(nx>=0&&nx<C.GRID&&ny>=0&&ny<C.GRID&&!v.has(k)&&PASS(MAP[ny]?.[nx]??-1)){
+        const b=aliveAt(nx,ny);if(!b||b.team===u.team){v.add(k);q.push({x:nx,y:ny,s:c.s+1});}
+      }
+    }
+  }return r;
+}
+
+function selU(u){sel=u;mode='bmov';mvR=calcMv(u);atkT=[];clrHL();
+  mvR.forEach(({x,y})=>{const h=hlMs[y]?.[x];if(h){h.material.color.setHex(C.MOVE);h.material.opacity=.35;}});
+  showUP(u);setG(`${u.nm} [${u.tp}] 병력:${u.troops} — 이동할 타일 클릭`);}
+function deselU(){sel=null;mode='bsel';mvR=[];atkT=[];clrHL();hideUP();setG('아군 부대를 클릭하여 선택');}
+
+function moveU(u,gx,gz){
+  mode='anim';clrHL();hideUP();
+  const start=u.mesh.position.clone();
+  const end=new THREE.Vector3(g2w(gx,gz).x,0,g2w(gx,gz).z);
+  let t=0;const dur=.3+md(u,{x:gx,y:gz})*.08;
+  animQ.push(dt=>{t+=dt;const p=Math.min(1,t/dur);
+    const e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    u.mesh.position.lerpVectors(start,end,e);
+    u.mesh.position.y=Math.sin(p*Math.PI)*.1;
+    if(p>=1){u.x=gx;u.y=gz;u.mesh.position.copy(end);u.mesh.position.y=0;onMoveEnd(u);return true;}
+    return false;
+  });
+}
+
+function onMoveEnd(u){
+  mode='bact';
+  const maxR=Math.max(u.rng,...u.sk.filter(s=>s.t==='a').map(s=>s.rng||1));
+  atkT=units.filter(e=>e.team==='enemy'&&e.troops>0&&md(u,e)<=maxR);
+  atkT.forEach(e=>{const h=hlMs[e.y]?.[e.x];if(h){h.material.color.setHex(C.ATK);h.material.opacity=.4;}});
+  showUP(u);showBtns(u,atkT);
+  setG(atkT.length?'행동 선택 (진형 변경 가능)':'대기/회복/진형');
+  document.getElementById('form-panel').style.display='block';
+}
+
+function showBtns(u,enemies){
+  let h='';
+  if(enemies.some(e=>md(u,e)<=u.rng))h+=`<button class="ba" onclick="window._atk('b')">⚔공격</button>`;
+  u.sk.forEach((s,i)=>{if(s.t==='h')h+=`<button class="bs" onclick="window._heal(${i})">💚${s.n}</button>`;
+    else{const has=enemies.some(e=>md(u,e)<=(s.rng||1));h+=`<button class="bs" ${has?'':'disabled'} onclick="window._atk('s',${i})">✨${s.n}</button>`;}});
+  if(itemN>0)h+=`<button class="bi" onclick="window._item()">🧪약(${itemN})</button>`;
+  h+=`<button class="bw" onclick="window._wait()">⏳대기</button>`;
+  document.getElementById('up-btns').innerHTML=h;
+}
+
+window._atk=(m,si)=>{atkM=m;atkS=si!=null?si:null;
+  const rng=m==='s'?sel.sk[si].rng||1:sel.rng;
+  atkT=units.filter(e=>e.team==='enemy'&&e.troops>0&&md(sel,e)<=rng);
+  if(atkT.length===1){execAtk(atkT[0]);return;}
+  mode='batk';clrHL();atkT.forEach(e=>{const h=hlMs[e.y]?.[e.x];if(h){h.material.color.setHex(C.ATK);h.material.opacity=.4;}});
+  setG('공격할 적 부대 클릭!');};
+window._heal=i=>{const s=sel.sk[i];const healed=Math.min(s.pw,sel.maxTr-sel.troops);sel.troops=Math.min(sel.maxTr,sel.troops+s.pw);showUP(sel);finAct();};
+window._item=()=>{if(itemN<=0)return;itemN--;sel.troops=Math.min(sel.maxTr,sel.troops+3);showUP(sel);finAct();};
+window._wait=()=>finAct();
+
+function execAtk(tgt){
+  mode='cutin';clrHL();hideUP();document.getElementById('form-panel').style.display='none';
+  const atkBonus=1+(sel.formBonus?.atk||0);
+  const defBonus=1+(tgt.formBonus?.def||0);
+  let dmg,skN;
+  if(atkM==='s'&&atkS!=null){const s=sel.sk[atkS];dmg=Math.max(1,Math.floor(s.pw*atkBonus-tgt.def*defBonus))+~~(Math.random()*6);skN=s.n;}
+  else{dmg=Math.max(1,Math.floor(sel.atk*atkBonus-tgt.def*defBonus))+~~(Math.random()*5);skN='공격';}
+
+  // Convert damage to troop loss (10 HP per soldier)
+  const troopLoss=Math.min(tgt.troops,Math.max(1,Math.ceil(dmg/10)));
+
+  // Counter damage (환웅 측 방어 높아서 적게)
+  const counterDmg=Math.max(0,Math.floor(tgt.atk*.3-sel.def*.8));
+  const counterLoss=Math.min(sel.troops-1,Math.max(0,Math.ceil(counterDmg/10)));
+
+  showCutin(sel,tgt,troopLoss,counterLoss,skN,()=>{
+    tgt.troops=Math.max(0,tgt.troops-troopLoss);
+    killSoldiers(tgt,troopLoss);
+    if(counterLoss>0){
+      sel.troops=Math.max(1,sel.troops-counterLoss);
+      killSoldiers(sel,counterLoss);
+    }
+    // Remove dead
+    units.forEach(u=>{if(u.troops<=0&&u.mesh.parent)u.mesh.parent.remove(u.mesh);});
+    finAct();
+  });
+}
+
+function finAct(){
+  if(sel){sel.acted=true;}
+  sel=null;mvR=[];atkT=[];clrHL();hideUP();
+  document.getElementById('form-panel').style.display='none';
+  if(!units.some(e=>e.team==='enemy'&&e.troops>0)){setTimeout(()=>{
+    sDlg([
+      {s:'환인',t:'...훌륭하구나. 네 의지가 진짜임을 인정하마.'},
+      {s:'환인',t:'바람지기, 비지기, 구름지기. 오늘부터 환웅을 따르거라.'},
+      {s:'환인',t:'천부인 세 가지를 가져가라. 비파형 구리검, 구리거울, 구리방울이니라.'},
+      {s:'환웅',t:'감사합니다, 아버지. 홍익인간의 세상을 반드시 열겠습니다!'},
+    ],()=>{document.getElementById('vic-ov').classList.add('on');});
+  },600);return;}
+  if(!units.some(a=>a.team==='ally'&&a.troops>0)){setTimeout(()=>document.getElementById('lose-ov').classList.add('on'),500);return;}
+  if(units.some(a=>a.team==='ally'&&a.troops>0&&!a.acted)){mode='bsel';setG('다음 아군 부대 선택');}
+  else startEnemyTurn();
+}
+
+// ═══ ENEMY AI (소극적 — 튜토리얼) ═══
+function startEnemyTurn(){
+  mode='enemy';setG('적 턴...');document.getElementById('tr-i').textContent=`턴 ${turnN} · 적군`;
+  const el=units.filter(u=>u.team==='enemy'&&u.troops>0);let i=0;
+  function nxt(){if(i>=el.length){turnN++;
+    units.filter(u=>u.team==='ally'&&u.troops>0).forEach(u=>u.acted=false);
+    document.getElementById('tr-i').textContent=`턴 ${turnN} · 아군`;mode='bsel';setG('아군 부대 선택');return;}
+    const e=el[i];i++;if(e.troops<=0){nxt();return;}
+    // Passive AI: only move 1 step toward nearest ally, don't attack unless adjacent
+    const als=units.filter(u=>u.team==='ally'&&u.troops>0);if(!als.length)return;
+    let nr=als[0],minD=999;als.forEach(a=>{const d=md(e,a);if(d<minD){minD=d;nr=a;}});
+
+    if(minD<=1){
+      // Attack but weakly
+      setTimeout(()=>{mode='cutin';
+        const dmg=Math.max(1,e.atk-nr.def)+~~(Math.random()*3);
+        const loss=Math.min(nr.troops-1,Math.max(0,Math.ceil(dmg/15)));// very weak
+        showCutin(e,nr,loss,0,e.nm+'의 공격',()=>{
+          nr.troops=Math.max(1,nr.troops-loss);killSoldiers(nr,loss);
+          units.forEach(u=>{if(u.troops<=0&&u.mesh.parent)u.mesh.parent.remove(u.mesh);});
+          mode='enemy';setTimeout(nxt,200);
+        });
+      },400);
+    }else{
+      // Move just 1 step (passive)
+      const mr=calcMv(e);let b=null,bd=999;
+      mr.forEach(c=>{const d=Math.abs(c.x-nr.x)+Math.abs(c.y-nr.y);if(d<bd){bd=d;b=c;}});
+      if(b&&Math.random()>.4){// Sometimes don't even move (very passive)
+        const p=g2w(b.x,b.y);e.mesh.position.set(p.x,0,p.z);e.x=b.x;e.y=b.y;
+      }
+      setTimeout(nxt,250);
+    }
+  }
+  setTimeout(nxt,600);
+}
+
+// ═══ CUTIN ═══
+function showCutin(atk,def,troopLoss,counterLoss,label,cb){
+  const el=document.getElementById('cutin');el.classList.add('on');
+  const isA=atk.team==='ally';
+  document.getElementById('cl-e').textContent=atk.emoji;
+  document.getElementById('cl-n').textContent=atk.nm;document.getElementById('cl-n').style.color=isA?'#FFD700':'#ff6666';
+  document.getElementById('cl-s').textContent=`[${atk.tp}] ${atk.form==='wedge'?'쐐기진':'방어진'}`;
+  document.getElementById('cl-t').textContent=`병력:${atk.troops}`;document.getElementById('cl-t').style.color=isA?'#2ecc71':'#e74c3c';
+  document.getElementById('cr-e').textContent=def.emoji;
+  document.getElementById('cr-n').textContent=def.nm;document.getElementById('cr-n').style.color=isA?'#ff6666':'#FFD700';
+  document.getElementById('cr-s').textContent=`[${def.tp}] 병력:${def.troops}`;
+  document.getElementById('cr-t').textContent='';
+  document.getElementById('ct-lb').textContent=label+'!';
+  document.getElementById('ct-dm').textContent='';
+  document.getElementById('ct-counter').textContent='';
+
+  setTimeout(()=>{document.getElementById('cu-l').classList.add('ahl');document.getElementById('cu-r').classList.add('ahr');},300);
+  setTimeout(()=>{
+    document.getElementById('ct-dm').textContent=`💥 ${def.nm} 병력 -${troopLoss}!`;
+    document.getElementById('ct-dm').style.animation='dp .4s ease';
+    document.getElementById('cr-t').textContent=`병력: ${def.troops} → ${Math.max(0,def.troops-troopLoss)}`;
+    document.getElementById('cr-t').style.color='#e74c3c';
+    if(counterLoss>0){
+      document.getElementById('ct-counter').textContent=`⚡ 반격! ${atk.nm} 병력 -${counterLoss}`;
+    }
+    if(def.troops-troopLoss<=0)document.getElementById('ct-lb').textContent=def.nm+' 전멸!';
+  },600);
+  setTimeout(()=>{el.classList.remove('on');
+    document.getElementById('cu-l').classList.remove('ahl');document.getElementById('cu-r').classList.remove('ahr');
+    document.getElementById('ct-dm').style.animation='';cb();},1800);
+}
+
+// ═══ UI ═══
+function showUP(u){document.getElementById('upanel').style.display='block';
+  document.getElementById('up-face').textContent=u.emoji;
+  document.getElementById('up-nm').textContent=`${u.nm} [${u.tp}]`;
+  document.getElementById('up-ti').textContent=`${u.ti} | ${u.form==='wedge'?'쐐기진':'방어진'}`;
+  document.getElementById('up-hp').style.width=(u.troops/u.maxTr*100)+'%';
+  document.getElementById('up-hp').style.background=u.team==='ally'?'#2ecc71':'#e74c3c';
+  document.getElementById('up-tr').textContent=`병력: ${u.troops}/${u.maxTr}명`;
+  const ab=u.formBonus||{atk:0,def:0};
+  document.getElementById('up-st').textContent=`ATK${u.atk}${ab.atk?`(+${Math.round(ab.atk*100)}%)`:''} DEF${u.def}${ab.def?`(+${Math.round(ab.def*100)}%)`:''} MOV${u.mov} RNG${u.rng}`;
+  document.getElementById('up-btns').innerHTML='';}
+function hideUP(){document.getElementById('upanel').style.display='none';}
+
+// ═══ INPUT ═══
+function handleClick(gx,gz){
+  if(mode==='bsel'){const u=aliveAt(gx,gz,'ally');if(u&&!u.acted)selU(u);}
+  else if(mode==='bmov'){if(mvR.some(m=>m.x===gx&&m.y===gz))moveU(sel,gx,gz);
+    else{const u=aliveAt(gx,gz,'ally');if(u&&!u.acted)selU(u);else deselU();}}
+  else if(mode==='batk'){const t=atkT.find(u=>u.x===gx&&u.y===gz);if(t)execAtk(t);}
+}
+
+ren.domElement.addEventListener('click',e=>{
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse,cam);
+  const hits=ray.intersectObjects(world.children.filter(c=>c.userData.type==='tile'),false);
+  if(!hits.length)return;const{gx,gz}=hits[0].object.userData;if(gx!==undefined)handleClick(gx,gz);
+});
+ren.domElement.addEventListener('touchend',e=>{
+  if(!e.changedTouches.length)return;const t=e.changedTouches[0];
+  mouse.x=(t.clientX/innerWidth)*2-1;mouse.y=-(t.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse,cam);
+  const hits=ray.intersectObjects(world.children.filter(c=>c.userData.type==='tile'),false);
+  if(!hits.length)return;const{gx,gz}=hits[0].object.userData;if(gx!==undefined)handleClick(gx,gz);
+},{passive:true});
+
+// ═══ ANIMATION LOOP ═══
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);
+  const dt=clock.getDelta();
+  if(animQ.length){const done=[];animQ.forEach((fn,i)=>{if(fn(dt))done.push(i);});
+    for(let i=done.length-1;i>=0;i--)animQ.splice(done[i],1);}
+  // Idle bob
+  units.forEach(u=>{if(u.troops>0&&u.mesh&&mode!=='anim')
+    u.mesh.position.y=Math.sin(clock.elapsedTime*1.5+u.x*3)*.008;});
+  ctrl.update();ren.render(scene,cam);
+}
+animate();
+
+// ═══ START ═══
+window.beginGame=()=>{
+  document.getElementById('title-ov').classList.remove('on');
+  sDlg([
+    {s:'환인',t:'환웅아. 남쪽이 뭐가 좋다고 그러느냐. 여기가 편하지 않더냐?'},
+    {s:'환웅',t:'안락함 속에서 썩어가느니, 거친 땅에서 새 세상을 열겠습니다!'},
+    {s:'환인',t:'...좋다. 그 뜻이 진짜인지 몸으로 보여라.'},
+    {s:'환인',t:'중앙 정예군, 요하 수비대, 훈련병! 연무장에서 이 녀석을 시험하거라!'},
+    {s:'해설',t:'환웅 3부대(10인 정예) vs 환인 6부대(20인 3부대 + 10인 3부대). 소수 정예로 대군을 상대하라!'},
+    {s:'해설',t:'💡 진형 변경: 쐐기진(공격+30%) / 방어진(방어+50%). 전투 중 자유롭게 바꿀 수 있다!'},
+  ],()=>initBattle());
+};
+</script>
+</body>
+</html>

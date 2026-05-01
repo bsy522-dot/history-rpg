@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>카메라 3모드 테스트 · v8</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;font-family:'Noto Serif KR',serif;background:#1a1a20;color:#eee}
+  #canvas{display:block;width:100vw;height:100vh}
+  #hud{position:fixed;top:12px;left:12px;background:rgba(0,0,0,.65);padding:12px 16px;border-radius:10px;border:1px solid #666;font-size:13px;line-height:1.6;pointer-events:none;z-index:10}
+  #hud b{color:#ffd700}
+  #controls{position:fixed;top:12px;right:12px;z-index:10;display:flex;flex-direction:column;gap:6px}
+  #controls button{background:rgba(0,0,0,.7);color:#eee;border:1px solid #888;padding:10px 14px;border-radius:8px;font-size:14px;cursor:pointer;min-width:180px;text-align:left;font-family:inherit}
+  #controls button:hover{background:rgba(80,80,80,.8);border-color:#ffd700}
+  #controls button.active{background:#554400;border-color:#ffd700;color:#ffd700}
+  #mode-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);padding:10px 22px;border-radius:20px;border:1px solid #ffd700;font-size:16px;z-index:10}
+  #fps{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.65);padding:6px 10px;border-radius:6px;font-size:12px;color:#9f9;z-index:10;font-family:monospace}
+  .hint{color:#aaa;font-size:11px}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div id="hud">
+  <b>카메라 3모드 테스트</b><br>
+  <span class="hint">단축키: <b>1</b>택티컬 <b>2</b>캐릭터 <b>3</b>분대</span><br>
+  <span class="hint">Tactical: 좌클릭드래그=팬, 우클릭=회전, 휠=줌, WASD/Q·E/+-</span><br>
+  <span class="hint">모바일: 1지팬, 2지핀치줌·회전</span><br>
+  <span class="hint">컷인: 아래 "공격 시뮬" 버튼</span>
+</div>
+
+<div id="controls">
+  <button id="btnTactical">① Tactical (택티컬)</button>
+  <button id="btnCharacter">② Character (캐릭터)</button>
+  <button id="btnSquad">③ Squad (분대)</button>
+  <button id="btnCutin" style="background:rgba(80,20,20,.7);border-color:#f88">▶ 공격 시뮬 (컷인)</button>
+  <button id="btnSaveDefault" style="background:rgba(20,60,20,.7);border-color:#8f8">💾 기본모드 저장</button>
+</div>
+
+<div id="mode-banner">모드: <b id="modeText">Tactical</b></div>
+<div id="fps">FPS: --</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { CameraSwitcher } from '../js-v8/camera/switcher.js';
+
+// ========== 렌더러/씬 ==========
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a2030);
+scene.fog = new THREE.Fog(0x1a2030, 25, 60);
+
+// ========== 조명 (표준 — 전투 씬 "일몰 신성") ==========
+const ambient = new THREE.AmbientLight(0xffeedd, 0.55);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight(0xffaa66, 1.1);
+sun.position.set(10, 20, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -15;
+sun.shadow.camera.right = 15;
+sun.shadow.camera.top = 15;
+sun.shadow.camera.bottom = -15;
+scene.add(sun);
+const hemi = new THREE.HemisphereLight(0xffaa77, 0x332211, 0.35);
+scene.add(hemi);
+
+// ========== 10x10 맵 (더미) ==========
+const MAP_SIZE = 10;
+const tileGroup = new THREE.Group();
+const grassMat = new THREE.MeshStandardMaterial({ color: 0x4a7030, roughness: 0.9 });
+const pathMat = new THREE.MeshStandardMaterial({ color: 0x9a8060, roughness: 0.85 });
+const tileGeom = new THREE.BoxGeometry(1, 0.22, 1);
+
+for (let x = 0; x < MAP_SIZE; x++) {
+  for (let z = 0; z < MAP_SIZE; z++) {
+    const isPath = x === 5 || z === 5;
+    const m = new THREE.Mesh(tileGeom, isPath ? pathMat : grassMat);
+    m.position.set(x - MAP_SIZE/2 + 0.5, -0.11, z - MAP_SIZE/2 + 0.5);
+    m.receiveShadow = true;
+    tileGroup.add(m);
+  }
+}
+scene.add(tileGroup);
+
+// 벽 (raycast 테스트용)
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x7a7a7a, roughness: 0.95 });
+const walls = [];
+for (let i = 0; i < 3; i++) {
+  const w = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), wallMat);
+  w.position.set(-2 + i * 2, 0.5, -3);
+  w.castShadow = true; w.receiveShadow = true;
+  scene.add(w); walls.push(w);
+}
+
+// ========== 더미 유닛 6명 (아군 3 / 적 3) ==========
+function makeUnit(color, x, z, isAlly) {
+  const g = new THREE.Group();
+  // 다리
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x8a6a3a, roughness: 0.85 });
+  const legGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.22, 8);
+  for (let i = 0; i < 2; i++) {
+    const leg = new THREE.Mesh(legGeom, legMat);
+    leg.position.set(i === 0 ? -0.07 : 0.07, 0.11, 0);
+    leg.castShadow = true;
+    g.add(leg);
+  }
+  // 몸통
+  const armorMat = new THREE.MeshStandardMaterial({
+    color: isAlly ? 0xb5651d : 0x3a3a3a,
+    roughness: isAlly ? 0.45 : 0.6,
+    metalness: isAlly ? 0.55 : 0.7
+  });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.34, 0.20), armorMat);
+  body.position.y = 0.22 + 0.17;
+  body.castShadow = true;
+  g.add(body);
+  // 팔
+  const armGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.24, 8);
+  for (let i = 0; i < 2; i++) {
+    const arm = new THREE.Mesh(armGeom, armorMat);
+    arm.position.set(i === 0 ? -0.18 : 0.18, 0.22 + 0.18, 0);
+    arm.castShadow = true;
+    g.add(arm);
+  }
+  // 머리
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.11, 12, 10),
+    new THREE.MeshStandardMaterial({ color: 0xd0a080, roughness: 0.7 })
+  );
+  head.position.y = 0.22 + 0.34 + 0.11;
+  head.castShadow = true;
+  g.add(head);
+  // 깃발(아군/적 구분)
+  const flagMat = new THREE.MeshStandardMaterial({
+    color: isAlly ? 0xffd700 : 0x8a2020,
+    emissive: isAlly ? 0x442200 : 0x220000,
+    emissiveIntensity: 0.2
+  });
+  const flag = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.12, 10), flagMat);
+  flag.position.y = 0.22 + 0.34 + 0.22 + 0.08;
+  g.add(flag);
+
+  g.position.set(x, 0, z);
+  g.userData.isAlly = isAlly;
+  return g;
+}
+
+const allies = [];
+const enemies = [];
+
+for (let i = 0; i < 3; i++) {
+  const a = makeUnit(null, -2 + i, 2, true);
+  scene.add(a); allies.push(a);
+  const e = makeUnit(null, -2 + i, -2, false);
+  e.rotation.y = Math.PI; // 아군 방향 바라보기
+  scene.add(e); enemies.push(e);
+}
+
+// ========== CameraSwitcher ==========
+const switcher = new CameraSwitcher(renderer, scene, {
+  initialMode: 'tactical'
+});
+
+// 분대 진군 방향 (아군 → 적군 방향 = +Z의 음방향 = -Z)
+const forwardVec = new THREE.Vector3(0, 0, -1);
+
+switcher.setSources({
+  characterTarget: allies[1], // 가운데 아군
+  squadObjs: allies,
+  forwardVec: forwardVec,
+  obstacles: walls
+});
+
+// ========== UI ==========
+const btnT = document.getElementById('btnTactical');
+const btnC = document.getElementById('btnCharacter');
+const btnS = document.getElementById('btnSquad');
+const btnCut = document.getElementById('btnCutin');
+const btnSave = document.getElementById('btnSaveDefault');
+const modeText = document.getElementById('modeText');
+
+function updateButtons() {
+  const m = switcher.current;
+  btnT.classList.toggle('active', m === 'tactical');
+  btnC.classList.toggle('active', m === 'character');
+  btnS.classList.toggle('active', m === 'squad');
+  modeText.textContent = m === 'tactical' ? 'Tactical' :
+                         m === 'character' ? 'Character' :
+                         m === 'squad' ? 'Squad' :
+                         m === 'cutin' ? 'Cut-in' : m;
+}
+
+btnT.addEventListener('click', async () => { await switcher.switchTo('tactical'); updateButtons(); });
+btnC.addEventListener('click', async () => { await switcher.switchTo('character'); updateButtons(); });
+btnS.addEventListener('click', async () => { await switcher.switchTo('squad'); updateButtons(); });
+
+btnCut.addEventListener('click', async () => {
+  // 공격 시뮬: allies[1] → enemies[1] 컷인 → 1.2초 유지 → 원복
+  const attacker = allies[1];
+  const target = enemies[1];
+  await switcher.enableAutoCutin(attacker, target);
+  updateButtons();
+  // 간단한 "공격" 애니메이션: 공격자 앞뒤로 쩝
+  const origZ = attacker.position.z;
+  attacker.position.z = origZ - 0.4;
+  setTimeout(() => { attacker.position.z = origZ; }, 300);
+  setTimeout(async () => {
+    await switcher.disableAutoCutin();
+    updateButtons();
+  }, 1200);
+});
+
+btnSave.addEventListener('click', () => {
+  switcher.setDefaultMode(switcher.current);
+  btnSave.textContent = '💾 저장됨: ' + switcher.current;
+  setTimeout(() => { btnSave.textContent = '💾 기본모드 저장'; }, 1500);
+});
+
+// 단축키 UI 동기화 (switcher 내부 리스너는 switchTo를 호출하므로 약간 후)
+window.addEventListener('keydown', (e) => {
+  if (['1','2','3'].includes(e.key)) {
+    requestAnimationFrame(updateButtons);
+  }
+});
+
+updateButtons();
+
+// ========== 렌더 루프 ==========
+let lastTime = performance.now();
+let fps = 0, fpsAcc = 0, fpsFrames = 0;
+const fpsEl = document.getElementById('fps');
+
+function loop() {
+  const now = performance.now();
+  const dt = now - lastTime;
+  lastTime = now;
+
+  // 유닛 살짝 Y 흔들림 (시각적 확인)
+  const t = now * 0.002;
+  allies.forEach((a, i) => { a.rotation.y = Math.sin(t + i) * 0.1; });
+
+  switcher.update(dt);
+
+  renderer.render(scene, switcher.activeCam);
+
+  // FPS
+  fpsAcc += dt; fpsFrames++;
+  if (fpsAcc >= 500) {
+    fps = Math.round(1000 * fpsFrames / fpsAcc);
+    fpsEl.textContent = `FPS: ${fps}`;
+    fpsAcc = 0; fpsFrames = 0;
+  }
+  requestAnimationFrame(loop);
+}
+
+// ========== Resize ==========
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+loop();
+</script>
+</body>
+</html>
