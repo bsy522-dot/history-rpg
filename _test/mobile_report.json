@@ -1,0 +1,71 @@
+{
+  "url": "http://localhost:8766/korean-rpg-v8.html?debug=1",
+  "profiles": {
+    "iphone12": {
+      "label": "iPhone 12",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "load_ok": true,
+      "loading_hidden": true,
+      "loading_msg": "고조선의 서막 · v8",
+      "title_visible": true,
+      "ep1_clicked": true,
+      "errors": [],
+      "warnings": [
+        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      ],
+      "net_4xx": [],
+      "title_shot": "mobile_iphone12_01_title.png",
+      "battle_shot": "mobile_iphone12_02_after_ep1.png"
+    },
+    "galaxys20": {
+      "label": "Galaxy S20",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "load_ok": true,
+      "loading_hidden": true,
+      "loading_msg": "고조선의 서막 · v8",
+      "title_visible": true,
+      "ep1_clicked": true,
+      "errors": [],
+      "warnings": [
+        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      ],
+      "net_4xx": [],
+      "title_shot": "mobile_galaxys20_01_title.png",
+      "battle_shot": "mobile_galaxys20_02_after_ep1.png"
+    },
+    "tablet": {
+      "label": "iPad Mini",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "load_ok": true,
+      "loading_hidden": true,
+      "loading_msg": "고조선의 서막 · v8",
+      "title_visible": true,
+      "ep1_clicked": true,
+      "errors": [],
+      "warnings": [
+        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      ],
+      "net_4xx": [],
+      "title_shot": "mobile_tablet_01_title.png",
+      "battle_shot": "mobile_tablet_02_after_ep1.png"
+    }
+  }
+}
