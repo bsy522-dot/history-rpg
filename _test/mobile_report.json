@@ -14,10 +14,11 @@
       "ep1_clicked": true,
       "errors": [],
       "warnings": [
-        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x514c00d1da00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        "[.WebGL-0x365400cf0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x365400cf0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x365400cf0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x365400cf0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+        "[audio] unknown BGM peace"
       ],
       "net_4xx": [],
       "title_shot": "mobile_iphone12_01_title.png",
@@ -36,10 +37,11 @@
       "ep1_clicked": true,
       "errors": [],
       "warnings": [
-        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x681400d34e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        "[.WebGL-0x60dc00d2e000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x60dc00d2e000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x60dc00d2e000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "[.WebGL-0x60dc00d2e000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+        "[audio] unknown BGM peace"
       ],
       "net_4xx": [],
       "title_shot": "mobile_galaxys20_01_title.png",
@@ -51,21 +53,18 @@
         "width": 768,
         "height": 1024
       },
-      "load_ok": true,
+      "load_ok": false,
       "loading_hidden": true,
-      "loading_msg": "고조선의 서막 · v8",
-      "title_visible": true,
-      "ep1_clicked": true,
-      "errors": [],
-      "warnings": [
-        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
-        "[.WebGL-0x473400d43200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      "loading_msg": null,
+      "title_visible": false,
+      "ep1_clicked": false,
+      "errors": [
+        "[goto] Page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8766/korean-rpg-v8.html?debug=1\nCall log:\n  - navigating to \"http://localhost:8766/korean-rpg-v8.html?debug=1\", waiting until \"domcontentloaded\"\n"
       ],
+      "warnings": [],
       "net_4xx": [],
       "title_shot": "mobile_tablet_01_title.png",
-      "battle_shot": "mobile_tablet_02_after_ep1.png"
+      "battle_shot": null
     }
   }
 }

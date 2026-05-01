@@ -101,6 +101,41 @@ with sync_playwright() as pw:
                 battle_shot = os.path.join(OUT, f"mobile_{p['name']}_02_after_ep1.png")
                 page.screenshot(path=battle_shot)
                 log(f"  shot {os.path.basename(battle_shot)} ({os.path.getsize(battle_shot)/1024:.1f}KB)")
+
+                # 대화 advance — dialogue 컨테이너에 직접 click → 환웅 차례 도달
+                for i in range(6):
+                    try:
+                        page.evaluate("""() => {
+                          const dlg = document.getElementById('v8-dialogue') || document.querySelector('[class*=\"dialogue\"]');
+                          if (dlg) dlg.click();
+                        }""")
+                    except Exception:
+                        pass
+                    page.wait_for_timeout(900)
+                    speaker = page.evaluate("() => { const e = document.querySelector('[id*=\"speaker\"]'); return e ? e.textContent : null; }")
+                    if speaker and '환웅' in speaker:
+                        hwanwoong_shot = os.path.join(OUT, f"mobile_{p['name']}_03_hwanwoong.png")
+                        page.screenshot(path=hwanwoong_shot)
+                        log(f"  shot {os.path.basename(hwanwoong_shot)} (환웅 도달, {os.path.getsize(hwanwoong_shot)/1024:.1f}KB)")
+                        break
+                else:
+                    log(f"  WARN: 환웅 차례 도달 실패 (last speaker: {speaker})")
+
+                # 전투까지 진행 — dialogue를 빠르게 끝까지 advance
+                for _ in range(40):
+                    page.evaluate("""() => {
+                      const dlg = document.getElementById('v8-dialogue') || document.querySelector('[class*=\"dialogue\"]');
+                      if (dlg) dlg.click();
+                    }""")
+                    page.wait_for_timeout(180)
+                page.wait_for_timeout(2000)
+                # D-pad 보임 + 커서 mesh 존재 검증
+                dpad_visible = page.evaluate("() => { const r = document.getElementById('v8-dpad-root'); if (!r) return false; const s = getComputedStyle(r); return s.display !== 'none'; }")
+                phase_text = page.evaluate("() => window.GameState?.turnManager?.currentPhase || null")
+                log(f"  D-pad visible: {dpad_visible}, phase: {phase_text}")
+                battle_dpad_shot = os.path.join(OUT, f"mobile_{p['name']}_04_battle_dpad.png")
+                page.screenshot(path=battle_dpad_shot)
+                log(f"  shot {os.path.basename(battle_dpad_shot)} ({os.path.getsize(battle_dpad_shot)/1024:.1f}KB)")
             else:
                 log('  WARN: EP.1 버튼 없음')
         except Exception as e:
