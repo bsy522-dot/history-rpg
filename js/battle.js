@@ -511,6 +511,24 @@ function fDmg(u,d,tp='phys',cr=false){
 
 function shake(i=200){G.tac.shake={x:0,y:0,t:i}}
 
+// ===== DAMAGE PREVIEW =====
+
+function showDmgPreview(a,t){
+  const{dmg}=calcDmg(a,t);
+  const minD=Math.max(1,Math.floor(dmg*0.85));
+  const maxD=Math.ceil(dmg*1.15);
+  const ta=typeAdv(a.cl,t.cl);
+  const el=document.getElementById('dmg-preview');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML=`<h4>⚔️ 전투 예측</h4>`+
+    `<div class="dmg-row"><span>${a.nm}</span><span>→${t.nm}</span></div>`+
+    `<div class="dmg-row"><span>예상 피해</span><span style="color:#ff6644">${minD}~${maxD}</span></div>`+
+    `<div class="dmg-row"><span>상성</span><span style="color:${ta>1?'#4f4':ta<1?'#f44':'#aaa'}">${ta>1?'유리':ta<1?'불리':'보통'}</span></div>`+
+    `<div class="dmg-row"><span>적 잔여HP</span><span>${Math.max(0,t.hp-maxD)}~${Math.max(0,t.hp-minD)}</span></div>`;
+}
+function hideDmgPreview(){const el=document.getElementById('dmg-preview');if(el)el.style.display='none'}
+
 // ===== EXECUTE ACTIONS =====
 
 function execAttack(a,t){
@@ -520,6 +538,17 @@ function execAttack(a,t){
     let m=`${a.nm}\u2192${t.nm} ${dmg}피해!`;if(crit)m+=' [크리티컬!]';if(ta>1)m+=' [유리!]';if(ta<1)m+=' [불리]';setTacInfo(m);
     if(t.hp<=0){t.alive=false;t.hp=0}
     chkEnrage(t);
+  }
+  // Counterattack
+  if(t.alive && !t._countered && t.rng >= (Math.abs(a.gx-t.gx)+Math.abs(a.gy-t.gy))){
+    t._countered=true;
+    setTimeout(()=>{
+      const cr=calcDmg(t,a,0.5);
+      if(cr.miss){sfx('miss');fDmg(a,0,'miss');setTacInfo(`${t.nm}의 반격! ${a.nm} 회피!`)}
+      else{sfx('hit');shake(80);a.hp=Math.max(0,a.hp-cr.dmg);fDmg(a,cr.dmg,'phys',cr.crit);
+        setTacInfo(`${t.nm}의 반격! ${a.nm}에게 ${cr.dmg}피해!`);
+        if(a.hp<=0){a.alive=false;a.hp=0}}
+    },400);
   }
   a.acted=true;G.tac.atkRange=[];G.tac.moveRange=[];G.tac.selUnit=null;
   clearTacActions();
@@ -832,6 +861,7 @@ function startNewTurn(){
   $('tac-phase').textContent='아군 페이즈';
   setTacInfo(`턴 ${tc.turn} - 아군 페이즈`);
   sfx('phase');
+  [...tc.allies,...tc.enemies].forEach(u=>{u._countered=false});
 }
 
 // ===== BATTLE END CHECK =====
@@ -893,6 +923,8 @@ function showVic(){
     }
   }});
   st.rewards.items?.forEach(ri=>{addInv(ri.id,ri.q);rh+=`<div class="reward-item"><span>${ITEMS[ri.id].n}</span> x${ri.q} 획득!</div>`});
+  // Auto-save
+  try{saveGame(0);const ind=document.getElementById('autosave-indicator');if(ind){ind.style.display='block';ind.textContent='자동 저장 완료';setTimeout(()=>ind.style.display='none',2000)}}catch(e){}
   $('victory-rewards').innerHTML=rh;$('victory-screen').classList.add('on');
   // Show promotion popups after a delay
   if(promoQueue.length>0){
@@ -957,8 +989,14 @@ function handleTacClick(cx,cy){
   }else if(tc.phase==='target'){
     const enemy=tc.enemies.find(e=>e.alive&&e.gx===gx&&e.gy===gy);
     if(enemy&&tc.atkRange.some(p=>p.x===gx&&p.y===gy)){
+      hideDmgPreview();
       execAttack(tc.selUnit,enemy);
-    }else{tc.atkRange=[];tc.phase='ally';if(tc.selUnit)showTacActions(tc.selUnit)}
+    }else{
+      // Show damage preview when hovering over enemy in attack range
+      const hoverEnemy=tc.enemies.find(e=>e.alive&&e.gx===gx&&e.gy===gy);
+      if(hoverEnemy&&tc.selUnit&&tc.atkRange.some(p=>p.x===gx&&p.y===gy)){showDmgPreview(tc.selUnit,hoverEnemy)}
+      else{hideDmgPreview();tc.atkRange=[];tc.phase='ally';if(tc.selUnit)showTacActions(tc.selUnit)}
+    }
   }else if(tc.phase==='skill_target'){
     const inRange=tc.skillRange.some(p=>p.x===gx&&p.y===gy);
     if(inRange){

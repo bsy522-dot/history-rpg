@@ -126,13 +126,25 @@ window.closeStatusScreen=function(){$('status-screen').style.display='none';G.mo
 window.openSaveScreen=function(mode){
   G.saveMode=mode;$('menu-overlay').classList.remove('on');$('save-screen').style.display='block';$('save-title').textContent=mode==='save'?'저장':'불러오기';G.mode='save';
   const c=$('save-slots');c.innerHTML='';
+  // Auto-save slot (slot 0) - load only
+  const autoData=localStorage.getItem('krpg7_auto');
+  if(autoData){
+    const sl=document.createElement('div');sl.className='save-slot';
+    const p=JSON.parse(autoData);
+    sl.innerHTML=`<h4>자동저장</h4><p>Ch${p.chapter||1} ${p.sid||'?'} ${p.pn||'?'} Lv.${p.plv||'?'} ${p.date||''}</p>`;
+    sl.style.borderColor='#c4956a';
+    if(mode==='load'){sl.onclick=()=>{loadGame(0);closeSaveScreen()}}
+    else{sl.style.opacity='.6';sl.title='자동저장 슬롯은 직접 저장할 수 없습니다'}
+    c.appendChild(sl);
+  }
   for(let i=1;i<=5;i++){const d=localStorage.getItem(`krpg7_${i}`),sl=document.createElement('div');sl.className='save-slot';
     if(d){const p=JSON.parse(d);sl.innerHTML=`<h4>슬롯 ${i}</h4><p>Ch${p.chapter||1} ${p.sid||'?'} ${p.pn||'?'} Lv.${p.plv||'?'} ${p.date||''}</p>`}
     else sl.innerHTML=`<h4>슬롯 ${i}</h4><p>비어있음</p>`;
     sl.onclick=()=>{if(mode==='save'){saveGame(i);closeSaveScreen();startDlg([{s:'',t:'저장 완료!'}],()=>{G.mode=G._pm||'map'})}else if(d){loadGame(i);closeSaveScreen()}};c.appendChild(sl)}};
 window.closeSaveScreen=function(){$('save-screen').style.display='none';if(G.mode==='save')G.mode=G._pm||'map'};
-function saveGame(s){const d={stage:G.stage,chapter:G.chapter,sid:STAGES[G.stage]?.id,party:G.party.map(c=>({id:c.id,nm:c.nm,cl:c.cl,lv:c.lv,exp:c.exp,exn:c.exn,mhp:c.mhp,hp:c.hp,mmp:c.mmp,mp:c.mp,atk:c.atk,def:c.def,spd:c.spd,mov:c.mov,rng:c.rng,weapon:c.weapon,armor:c.armor,acc:c.acc,alive:c.alive,isLeader:c.isLeader})),inv:G.inv,gold:G.gold,cleared:G.cleared,pn:G.party.map(c=>c.nm).join(','),plv:G.party[0]?.lv,date:new Date().toLocaleString('ko-KR')};localStorage.setItem(`krpg7_${s}`,JSON.stringify(d))}
-function loadGame(s){const r=localStorage.getItem(`krpg7_${s}`);if(!r)return;const d=JSON.parse(r);G.chapter=d.chapter||1;G.party=d.party.map(c=>{const ch=mkCh(c.id,c.nm,c.cl,c.lv,true,{weapon:c.weapon,armor:c.armor,acc:c.acc,leader:c.isLeader});ch.exp=c.exp;ch.exn=c.exn;ch.hp=c.hp;ch.mp=c.mp;ch.alive=c.alive!==false;ch.atk=c.atk;ch.def=c.def;ch.spd=c.spd;ch.mhp=c.mhp;ch.mmp=c.mmp;return ch});G.inv=d.inv||[];G.gold=d.gold||0;G.cleared=d.cleared||[];$('title-screen').style.display='none';startArea(d.stage)}
+window.autoSave=function(){try{saveGame(0);const ind=document.getElementById('autosave-indicator');if(ind){ind.style.display='block';ind.textContent='💾 자동저장';setTimeout(()=>ind.style.display='none',1500)}}catch(e){}};
+function saveGame(s){const d={stage:G.stage,chapter:G.chapter,sid:STAGES[G.stage]?.id,party:G.party.map(c=>({id:c.id,nm:c.nm,cl:c.cl,lv:c.lv,exp:c.exp,exn:c.exn,mhp:c.mhp,hp:c.hp,mmp:c.mmp,mp:c.mp,atk:c.atk,def:c.def,spd:c.spd,mov:c.mov,rng:c.rng,weapon:c.weapon,armor:c.armor,acc:c.acc,alive:c.alive,isLeader:c.isLeader})),inv:G.inv,gold:G.gold,cleared:G.cleared,pn:G.party.map(c=>c.nm).join(','),plv:G.party[0]?.lv,date:new Date().toLocaleString('ko-KR')};const key=s===0?'krpg7_auto':`krpg7_${s}`;localStorage.setItem(key,JSON.stringify(d))}
+function loadGame(s){const r=localStorage.getItem(s===0?'krpg7_auto':`krpg7_${s}`);if(!r)return;const d=JSON.parse(r);G.chapter=d.chapter||1;G.party=d.party.map(c=>{const ch=mkCh(c.id,c.nm,c.cl,c.lv,true,{weapon:c.weapon,armor:c.armor,acc:c.acc,leader:c.isLeader});ch.exp=c.exp;ch.exn=c.exn;ch.hp=c.hp;ch.mp=c.mp;ch.alive=c.alive!==false;ch.atk=c.atk;ch.def=c.def;ch.spd=c.spd;ch.mhp=c.mhp;ch.mmp=c.mmp;return ch});G.inv=d.inv||[];G.gold=d.gold||0;G.cleared=d.cleared||[];$('title-screen').style.display='none';startArea(d.stage)}
 
 // --- Chapter Select ---
 window.openChapterSelect=function(){initAudio();$('title-screen').style.display='none';

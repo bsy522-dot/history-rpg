@@ -58,7 +58,7 @@ function rMap(){
   const mh=map.length,mw=map[0].length;
   X.fillStyle=st.bg||'#0a0608';X.fillRect(0,0,C.width,C.height);
   const ps={x:iX(G.px,G.py),y:iY(G.px,G.py)};
-  G.camX+=(ps.x-G.camX)*.1;G.camY+=(ps.y-G.camY)*.1;
+  G.camX+=(ps.x-G.camX)*.15;G.camY+=(ps.y-G.camY)*.15;
   for(let gy=0;gy<mh;gy++)for(let gx=0;gx<mw;gx++){
     let col=TC[map[gy][gx]]||'#333';const r=((gx*7+gy*13)%17)/17;
     const br=parseInt(col.slice(1,3),16),bg2=parseInt(col.slice(3,5),16),bb=parseInt(col.slice(5,7),16);
@@ -93,7 +93,7 @@ function updMove(dt){if(G.mode!=='map')return;mvT+=dt;if(mvT<150)return;let dx=0
 window.tryMove=function(dx,dy){
   if(G.mode!=='map')return;const nx=G.px+dx,ny=G.py+dy,map=G.mapData;if(!map)return;if(ny<0||ny>=map.length||nx<0||nx>=map[0].length)return;if(!TP[map[ny][nx]])return;G.px=nx;G.py=ny;
   const ch=G.chests?.find(c=>c.x===nx&&c.y===ny&&!c.opened);
-  if(ch){ch.opened=true;addInv(ch.item,ch.qty||ch.q||1);sfx('sel');startDlg([{s:'',t:`보물 상자! ${ITEMS[ch.item].n} x${ch.qty||ch.q||1} 획득!`}],()=>{G.mode='map'});return}
+  if(ch){ch.opened=true;addInv(ch.item,ch.qty||ch.q||1);sfx('quest');startDlg([{s:'',t:`보물 상자! ${ITEMS[ch.item].n} x${ch.qty||ch.q||1} 획득!`}],()=>{G.mode='map'});return}
   const hs=G.heals?.find(h=>h.x===nx&&h.y===ny);if(hs){G.party.forEach(c=>{c.hp=c.mhp;c.mp=c.mmp;c.alive=true});sfx('heal')}
   if(map&&map[ny]&&map[ny][nx]===5){
     if(!G._shopVisited||G._shopVisited!==`${nx},${ny}`){

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>한국사 영웅전 v7 — 영걸전 스타일 택티컬 RPG</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C4956A'/%3E%3Cstop offset='100%25' stop-color='%238B6B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23A0A8B8'/%3E%3Cstop offset='100%25' stop-color='%23707888'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M30 6L32 4l2 2v32l-2 2-2-2z' fill='url(%23s)'/%3E%3Cpath d='M26 12h12v4H26z' fill='%23C4956A'/%3E%3Cellipse cx='32' cy='42' rx='14' ry='4' fill='%238B6B3D' opacity='.3'/%3E%3Cpath d='M18 28c0-8 6-16 14-22v6c-5 4-8 10-8 16h-6z' fill='url(%23g)' opacity='.8'/%3E%3Cpath d='M46 28c0-8-6-16-14-22v6c5 4 8 10 8 16h6z' fill='url(%23g)' opacity='.8'/%3E%3Ccircle cx='32' cy='10' r='3' fill='%23FFD700'/%3E%3Cpath d='M14 46l8-4 4 6H18z' fill='url(%23s)'/%3E%3Cpath d='M50 46l-8-4-4 6h8z' fill='url(%23s)'/%3E%3Crect x='22' y='44' width='20' height='14' rx='3' fill='url(%23g)'/%3E%3Cpath d='M28 48h8v2h-8z' fill='%23FFD700' opacity='.6'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a14'/%3E%3Cpath d='M30 8v28l2 2 2-2V8z' fill='%23A0A8B8'/%3E%3Cpath d='M26 14h12v3H26z' fill='%23C4956A'/%3E%3Crect x='22' y='44' width='20' height='12' rx='3' fill='%23C4956A'/%3E%3Ccircle cx='32' cy='12' r='3' fill='%23FFD700'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0608">
+<meta name="description" content="한국사 영웅전 v7 — 고조선부터 부여·삼한까지, 역사 속 영웅들과 함께하는 전략 택티컬 RPG">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
+body{overflow:hidden;background:#0a0608;font-family:'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#e8dcc8;touch-action:none}
+canvas{display:block;position:absolute;top:0;left:0}
+/* UI overlay */
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#ui>*{pointer-events:auto}
+/* HUD */
+#hud{position:absolute;top:0;left:0;right:0;padding:4px 8px;background:linear-gradient(180deg,#0a0608ee,#0a060800);display:none;pointer-events:none}
+#hud-stage{font-size:10px;color:#c4956a;font-weight:700;letter-spacing:2px}
+#hud-info{font-size:9px;color:#888;cursor:pointer;pointer-events:auto}
+.hud-party{display:flex;gap:4px;margin-top:2px;flex-wrap:wrap}
+.hud-char{background:#1a1428cc;border:1px solid #5a4a3a;border-radius:4px;padding:2px 6px;font-size:9px;min-width:72px}
+.hud-char-name{color:#FFD700;font-weight:700;font-size:10px}
+.hud-bar{height:4px;background:#1a1a2e;border-radius:2px;overflow:hidden;margin:1px 0}
+.hud-bar-hp{height:100%;background:#4a2;border-radius:2px;transition:width .3s}
+.hud-bar-mp{height:100%;background:#26a;border-radius:2px;transition:width .3s}
+/* Minimap */
+#minimap{position:absolute;top:4px;right:4px;width:90px;height:90px;border:1px solid #5a4a3a;border-radius:4px;background:#0a0608cc;display:none}
+/* Dialogue */
+#dlg{position:fixed;bottom:0;left:0;right:0;display:none;padding:6px;z-index:50}
+#dlg-box{background:linear-gradient(180deg,#1a1428ee,#0e0a18f8);border:2px solid #8a7a5a;border-radius:8px;padding:10px 12px;max-width:520px;margin:0 auto;display:flex;gap:10px;align-items:flex-start}
+#dlg-portrait{width:48px;height:48px;border-radius:6px;border:2px solid #c4956a;background:#1a1428;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+#dlg-content{flex:1}
+#dlg-speaker{font-size:12px;font-weight:700;color:#FFD700;margin-bottom:2px}
+#dlg-text{font-size:13px;line-height:1.8;min-height:32px}
+#dlg-next{font-size:9px;color:#888;text-align:right;margin-top:2px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+/* Tactical Battle UI */
+#tac-ui{position:fixed;bottom:0;left:0;right:0;display:none;z-index:40;padding:4px}
+#tac-phase{text-align:center;font-size:12px;font-weight:900;color:#FFD700;margin-bottom:4px;letter-spacing:3px}
+#tac-info{text-align:center;font-size:10px;color:#c4956a;max-width:520px;margin:0 auto 4px}
+#tac-actions{display:flex;gap:3px;max-width:520px;margin:0 auto;flex-wrap:wrap}
+#tac-actions button{flex:1;min-width:55px;padding:8px 4px;border:1px solid #5a3a1a;border-radius:5px;font-family:inherit;font-size:11px;font-weight:700;color:#e8dcc8;cursor:pointer;transition:all .1s}
+#tac-actions button:active{transform:scale(.95)}
+#tac-actions button:disabled{opacity:.3}
+.btn-move{background:#2a5a2a}.btn-atk{background:#6B1A0A}.btn-def{background:#1a3a5c}
+.btn-skill{background:#5a3a6a}.btn-item{background:#2a5a2a}.btn-wait{background:#3a3a3a}
+/* Unit info panel */
+#tac-unit-info{position:absolute;top:50px;right:4px;width:140px;background:#1a1428ee;border:1px solid #5a4a3a;border-radius:6px;padding:6px;font-size:9px;display:none}
+#tac-unit-info h4{color:#FFD700;font-size:11px;margin-bottom:3px}
+.tui-row{display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #2a2438}
+.tui-terrain{color:#88aa88;font-size:8px;margin-top:3px}
+/* Damage preview (NEW v7) */
+#dmg-preview{display:none;position:absolute;top:50px;left:4px;width:150px;background:#1a1428ee;border:1px solid #6a3a3a;border-radius:6px;padding:6px;font-size:9px;z-index:42}
+#dmg-preview h4{color:#ff6644;font-size:10px;margin-bottom:3px}
+.dmg-row{display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #2a2438}
+/* Auto-save indicator (NEW v7) */
+#autosave-indicator{position:fixed;top:6px;left:50%;transform:translateX(-50%);background:#2a5a2acc;color:#4f4;font-size:10px;padding:3px 10px;border-radius:10px;z-index:99;display:none;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* Skill/Item menus */
+#skill-menu,#item-menu{display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#1a1428ee;border:1px solid #8a7a5a;border-radius:8px;padding:8px;z-index:45;max-width:300px;width:90%}
+#skill-menu h4,#item-menu h4{color:#c4956a;font-size:11px;margin-bottom:4px}
+.skill-btn,.item-btn{display:block;width:100%;padding:6px 8px;margin:2px 0;border:1px solid #5a3a1a;border-radius:4px;background:#2a2438;font-family:inherit;font-size:11px;color:#e8dcc8;cursor:pointer;text-align:left}
+.skill-btn:hover,.item-btn:hover{background:#3a3448}
+.skill-btn:disabled{opacity:.3}
+.item-btn{border-color:#2a5a2a;background:#1a2a1a}
+/* Deploy screen */
+#deploy-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608f0;z-index:60;overflow-y:auto;padding:16px}
+#deploy-screen h2{color:#c4956a;text-align:center;margin-bottom:8px;font-size:16px}
+.deploy-info{text-align:center;font-size:11px;color:#888;margin-bottom:12px}
+.deploy-unit{display:flex;align-items:center;gap:8px;background:#1a1428;border:1px solid #5a4a3a;border-radius:6px;padding:8px;margin:4px auto;max-width:400px;cursor:pointer}
+.deploy-unit.selected{border-color:#FFD700;background:#2a2438}
+.deploy-unit .du-portrait{font-size:20px;width:30px;text-align:center}
+.deploy-unit .du-info{flex:1;font-size:10px}
+.deploy-unit .du-name{color:#FFD700;font-weight:700;font-size:12px}
+.deploy-start{display:block;margin:12px auto;padding:10px 30px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer}
+/* Status/Save/Other screens */
+#status-screen,#save-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608f0;z-index:60;overflow-y:auto;padding:16px}
+#status-screen h2,#save-screen h2{color:#c4956a;text-align:center;margin-bottom:12px}
+.status-card{background:#1a1428;border:1px solid #5a4a3a;border-radius:8px;padding:10px;margin:8px auto;max-width:400px}
+.status-card h3{color:#FFD700;font-size:14px;margin-bottom:6px}
+.stat-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #2a2438}
+.equip-row{font-size:10px;color:#aaa;padding:2px 0}
+.save-slot{background:#1a1428;border:1px solid #5a4a3a;border-radius:8px;padding:12px;margin:8px auto;max-width:400px;cursor:pointer}
+.save-slot:hover{border-color:#c4956a}
+.save-slot h4{color:#FFD700;font-size:13px}.save-slot p{color:#888;font-size:10px}
+/* Victory/Defeat */
+#victory-screen,#defeat-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608ee;z-index:70;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px}
+#victory-screen.on,#defeat-screen.on{display:flex}
+.victory-rewards{background:#1a1428;border:1px solid #5a4a3a;border-radius:8px;padding:12px;margin:12px auto;max-width:300px;text-align:left}
+.reward-item{font-size:11px;padding:2px 0;color:#aaa}
+.reward-item span{color:#FFD700}
+/* Menu overlay */
+#menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608dd;z-index:55;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#menu-overlay.on{display:flex}
+.menu-btn{padding:10px 40px;border:1px solid #5a3a1a;border-radius:6px;font-family:inherit;font-size:14px;font-weight:700;color:#e8dcc8;background:#2a2438;cursor:pointer;min-width:180px}
+.menu-btn:hover{background:#3a3448;border-color:#c4956a}
+/* Title screen */
+#title-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 40%,#2a1a0a,#0a0608);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #c4956a33}50%{text-shadow:0 0 50px #c4956aaa}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.title-text{font-size:clamp(22px,6vw,42px);font-weight:900;background:linear-gradient(180deg,#f4e4c1,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:glow 3s infinite}
+.title-sub{font-size:14px;color:#8a7a6a;margin-top:6px;font-style:italic}
+.title-btn{padding:12px 30px;border:1px solid #5a3a1a;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;color:#e8dcc8;background:#6B1A0A;cursor:pointer;letter-spacing:2px;margin-top:10px}
+.title-btn:active{transform:scale(.96)}
+.title-btn2{background:#2a2a3e;font-size:11px;padding:8px 18px;margin-top:8px}
+.title-info{margin-top:16px;font-size:9px;color:#555;line-height:2.2;max-width:320px}
+/* Floating damage */
+.float-dmg{position:absolute;font-weight:900;pointer-events:none;z-index:30;animation:floatUp .8s ease-out forwards;text-shadow:0 1px 3px #000}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-30px) scale(1.1)}100%{opacity:0;transform:translateY(-50px) scale(.8)}}
+.dmg-phys{color:#ff6644;font-size:16px}.dmg-magic{color:#aa66ff;font-size:16px}.dmg-heal{color:#44ff66;font-size:16px}.dmg-crit{color:#ffdd00;font-size:20px}.dmg-miss{color:#888;font-size:14px}
+/* Endurance game */
+#endurance-game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608ee;z-index:65;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px}
+#endurance-game.on{display:flex}
+#endurance-bar{width:200px;height:20px;background:#1a1a2e;border-radius:10px;overflow:hidden;margin:12px auto;border:1px solid #5a4a3a}
+#endurance-fill{height:100%;background:linear-gradient(90deg,#c4956a,#FFD700);border-radius:10px;transition:width .3s;width:0%}
+/* Cinematic */
+#cinematic{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:80;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#cinematic.on{display:flex}
+#cin-text{font-size:16px;line-height:2.2;color:#c4956a;max-width:400px;animation:fadeUp 1s ease}
+#cin-sub{font-size:12px;color:#888;margin-top:8px}
+/* Episode banner */
+#episode-banner{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608ee;z-index:75;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#episode-banner.on{display:flex}
+.ep-num{font-size:12px;color:#c4956a;letter-spacing:5px}
+.ep-title{font-size:clamp(20px,5vw,36px);font-weight:900;color:#FFD700;margin:8px 0;animation:fadeUp .8s ease}
+.ep-desc{font-size:12px;color:#8a7a6a;max-width:300px}
+/* D-pad (mobile) */
+#dpad{display:none;position:fixed;bottom:80px;left:16px;z-index:35;pointer-events:auto}
+.dpad-btn{position:absolute;width:40px;height:40px;border-radius:8px;background:rgba(200,150,100,0.25);border:1px solid rgba(200,150,100,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+.dpad-btn:active{background:rgba(200,150,100,0.5)}
+/* Chapter select */
+#chapter-select{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 40%,#1a1408,#0a0608);z-index:90;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px}
+#chapter-select.on{display:flex}
+.ch-card{background:#1a1428;border:2px solid #5a4a3a;border-radius:12px;padding:16px 24px;max-width:320px;width:85%;cursor:pointer;transition:all .2s}
+.ch-card:hover{border-color:#FFD700;background:#2a2438}
+.ch-card.locked{opacity:.4;cursor:not-allowed}
+.ch-card h3{color:#FFD700;font-size:16px;margin-bottom:4px}
+.ch-card p{color:#888;font-size:11px;line-height:1.6}
+.ch-card .ch-status{font-size:10px;margin-top:6px;padding:2px 8px;border-radius:4px;display:inline-block}
+.ch-status.done{background:#2a5a2a;color:#4f4}
+.ch-status.new{background:#5a3a1a;color:#fa0}
+.ch-status.lock{background:#3a2a2a;color:#888}
+/* Quiz */
+#quiz-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608ee;z-index:65;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px}
+#quiz-screen.on{display:flex}
+.quiz-box{background:#1a1428;border:1px solid #8a7a5a;border-radius:8px;padding:16px;max-width:400px;width:90%}
+.quiz-q{font-size:14px;color:#FFD700;margin-bottom:12px;line-height:1.8}
+.quiz-btn{display:block;width:100%;padding:10px;margin:4px 0;border:1px solid #5a3a1a;border-radius:6px;background:#2a2438;color:#e8dcc8;font-family:inherit;font-size:12px;cursor:pointer;text-align:left}
+.quiz-btn:hover{background:#3a3448;border-color:#c4956a}
+.quiz-btn.correct{background:#2a5a2a;border-color:#4f4}
+.quiz-btn.wrong{background:#5a2a2a;border-color:#f44}
+/* Ritual game */
+#ritual-game{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608ee;z-index:65;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px}
+#ritual-game.on{display:flex}
+.ritual-circle{width:160px;height:160px;border-radius:50%;border:3px solid #c4956a;position:relative;margin:16px auto}
+.ritual-marker{position:absolute;width:16px;height:16px;border-radius:50%;background:#FFD700;top:50%;left:50%;transform:translate(-50%,-50%)}
+.ritual-target{position:absolute;width:24px;height:24px;border-radius:50%;border:2px solid #4f4;top:-12px;left:50%;transform:translateX(-50%)}
+/* Shop UI */
+#shop-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0608f0;z-index:60;overflow-y:auto;padding:16px}
+#shop-screen h2{color:#c4956a;text-align:center;margin-bottom:8px;font-size:16px}
+.shop-tabs{display:flex;gap:4px;max-width:400px;margin:0 auto 8px;justify-content:center}
+.shop-tab{padding:8px 20px;border:1px solid #5a3a1a;border-radius:6px 6px 0 0;background:#1a1428;color:#e8dcc8;font-family:inherit;font-size:12px;cursor:pointer;font-weight:700}
+.shop-tab.active{background:#3a2a48;border-color:#c4956a;color:#FFD700}
+.shop-gold{text-align:center;font-size:13px;color:#FFD700;margin-bottom:8px}
+.shop-item{display:flex;align-items:center;gap:8px;background:#1a1428;border:1px solid #5a4a3a;border-radius:6px;padding:8px;margin:4px auto;max-width:400px;cursor:pointer}
+.shop-item:hover{border-color:#c4956a;background:#2a2438}
+.shop-item .si-name{color:#FFD700;font-weight:700;font-size:12px}
+.shop-item .si-desc{color:#888;font-size:10px}
+.shop-item .si-price{color:#c4956a;font-size:11px;font-weight:700;margin-left:auto;white-space:nowrap}
+/* Promotion popup */
+.promo-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#2a1a3a,#1a1428);border:2px solid #FFD700;border-radius:12px;padding:20px 24px;z-index:75;text-align:center;animation:fadeUp .5s ease;max-width:320px;width:90%}
+.promo-popup h3{color:#FFD700;font-size:18px;margin-bottom:8px}
+.promo-popup p{color:#e8dcc8;font-size:12px;line-height:1.8;margin-bottom:12px}
+.promo-popup button{padding:8px 24px;border:1px solid #5a3a1a;border-radius:6px;background:#6B1A0A;color:#e8dcc8;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+/* Responsive enhancements (NEW v7) */
+@media(max-width:400px){
+  #tac-actions button{min-width:48px;padding:6px 3px;font-size:10px}
+  #dlg-box{padding:8px 10px;gap:8px}
+  #dlg-portrait{width:40px;height:40px;font-size:20px}
+  #dlg-text{font-size:12px}
+  .ch-card{padding:12px 16px;width:90%}
+  .ch-card h3{font-size:14px}
+  #tac-unit-info{width:120px;font-size:8px}
+  #dmg-preview{width:130px;font-size:8px}
+}
+@media(max-width:320px){
+  #tac-actions button{min-width:42px;padding:5px 2px;font-size:9px}
+  #hud-stage{font-size:9px}
+  .hud-char{min-width:60px;font-size:8px}
+}
+@media(min-width:600px){
+  #dlg-box{max-width:560px}
+  #tac-actions{max-width:560px}
+  .ch-card{max-width:380px}
+}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+  <!-- HUD -->
+  <div id="hud">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span id="hud-stage">1-1 환웅의 강림</span>
+      <span id="hud-info" onclick="toggleMenu()">&#9776; 메뉴</span>
+    </div>
+    <div class="hud-party" id="hud-party"></div>
+  </div>
+  <!-- Minimap -->
+  <canvas id="minimap" width="90" height="90"></canvas>
+  <!-- Dialogue -->
+  <div id="dlg"><div id="dlg-box"><div id="dlg-portrait"></div><div id="dlg-content"><div id="dlg-speaker"></div><div id="dlg-text"></div><div id="dlg-next">&#9660; 터치</div></div></div></div>
+  <!-- Tactical Battle UI -->
+  <div id="tac-ui">
+    <div id="tac-phase">아군 페이즈</div>
+    <div id="tac-info">유닛을 선택하세요</div>
+    <div id="tac-actions"></div>
+  </div>
+  <div id="tac-unit-info"><h4 id="tui-name">-</h4><div id="tui-stats"></div><div class="tui-terrain" id="tui-terrain"></div></div>
+  <!-- Damage preview (NEW v7) -->
+  <div id="dmg-preview"><h4>예상 피해</h4></div>
+  <!-- Skill/Item menus -->
+  <div id="skill-menu"><h4>기술 선택</h4><div id="skill-list"></div></div>
+  <div id="item-menu"><h4>아이템 사용</h4><div id="item-list"></div></div>
+  <!-- Float container -->
+  <div id="float-container" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden"></div>
+  <!-- Victory/Defeat -->
+  <div id="victory-screen"><div style="animation:fadeUp .8s ease"><div style="font-size:36px;margin-bottom:6px">&#127942;</div><h2 style="font-size:24px;font-weight:900;background:linear-gradient(180deg,#f4d03f,#c4956a);-webkit-background-clip:text;-webkit-text-fill-color:transparent">전투 승리!</h2><div class="victory-rewards" id="victory-rewards"></div><button class="title-btn" id="victory-btn" onclick="onVictoryContinue()">계속</button></div></div>
+  <div id="defeat-screen"><div><div style="font-size:36px;margin-bottom:6px">&#128128;</div><h2 style="font-size:24px;font-weight:900;color:#e74c3c">패배</h2><p style="color:#888;font-size:12px;margin:8px 0">주장이 쓰러졌습니다...</p><button class="title-btn" onclick="retryStage()">재도전</button><button class="title-btn title-btn2" style="margin-left:8px" onclick="backToTitle()">타이틀로</button></div></div>
+  <!-- Deploy -->
+  <div id="deploy-screen">
+    <h2>출격 편성</h2>
+    <div class="deploy-info">출격할 장수를 선택하세요 (최대 <span id="deploy-max">6</span>명)</div>
+    <div id="deploy-list"></div>
+    <button class="deploy-start" onclick="confirmDeploy()">출격!</button>
+  </div>
+  <!-- Menu overlay -->
+  <div id="menu-overlay"><h3 style="color:#c4956a;margin-bottom:12px">메뉴</h3><button class="menu-btn" onclick="openStatusScreen()">상태 확인</button><button class="menu-btn" onclick="toggleMenu();openShop()">상점</button><button class="menu-btn" onclick="openSaveScreen('save')">저장</button><button class="menu-btn" onclick="openSaveScreen('load')">불러오기</button><button class="menu-btn" onclick="toggleMenu()">닫기</button></div>
+  <!-- Status screen -->
+  <div id="status-screen"><h2>파티 상태</h2><div id="status-content"></div><div style="text-align:center;margin-top:12px"><button class="menu-btn" onclick="closeStatusScreen()">닫기</button></div></div>
+  <!-- Save screen -->
+  <div id="save-screen"><h2 id="save-title">저장</h2><div id="save-slots"></div><div style="text-align:center;margin-top:12px"><button class="menu-btn" onclick="closeSaveScreen()">닫기</button></div></div>
+  <!-- Endurance game -->
+  <div id="endurance-game"><h3 style="color:#c4956a">21일 시련</h3><p style="font-size:12px;color:#aaa;margin:8px 0">쑥과 마늘만 먹으며 동굴에서 버텨라!<br>타이밍에 맞춰 터치하여 인내하라!</p><div id="endurance-day" style="font-size:18px;font-weight:900;color:#FFD700;margin:8px 0">1일차</div><div id="endurance-bar"><div id="endurance-fill"></div></div><div id="endurance-prompt" style="font-size:14px;color:#c4956a;margin:8px 0"></div><button class="title-btn" id="endurance-btn" style="display:none">인내!</button></div>
+  <!-- Cinematic -->
+  <div id="cinematic"><div id="cin-text"></div><div id="cin-sub">터치하여 계속</div></div>
+  <!-- Episode banner -->
+  <div id="episode-banner"><div class="ep-num"></div><div class="ep-title"></div><div class="ep-desc"></div></div>
+  <!-- Chapter select -->
+  <div id="chapter-select">
+    <h2 style="color:#c4956a;font-size:18px;letter-spacing:3px">챕터 선택</h2>
+    <div class="ch-card" id="ch1-card" onclick="selectChapter(1)">
+      <h3>챕터 1: 환웅편</h3>
+      <p>환인의 뜻을 받들어 인간 세상으로 내려온 환웅.<br>신시 건설, 범족과의 전쟁, 웅녀와의 만남.</p>
+      <div class="ch-status new" id="ch1-status">시작</div>
+    </div>
+    <div class="ch-card" id="ch2-card" onclick="selectChapter(2)">
+      <h3>챕터 2: 단군편</h3>
+      <p>환웅과 웅녀의 아들 단군왕검.<br>고조선 건국, 아사달 건설, 팔조법금 제정.</p>
+      <div class="ch-status lock" id="ch2-status">&#128274; 챕터1 클리어 필요</div>
+    </div>
+    <div class="ch-card" id="ch3-card" onclick="selectChapter(3)">
+      <h3>챕터 3: 위만조선편</h3>
+      <p>연나라 위만의 반란, 한 무제의 침공.<br>왕검성 전투와 고조선의 멸망.</p>
+      <div class="ch-status lock" id="ch3-status">&#128274; 챕터2 클리어 필요</div>
+    </div>
+    <div class="ch-card" id="ch4-card" onclick="selectChapter(4)">
+      <h3>챕터 4: 부여~삼한편</h3>
+      <p>부여 건국, 옥저·동예, 마한·진한·변한.<br>삼국시대의 서막.</p>
+      <div class="ch-status lock" id="ch4-status">&#128274; 챕터3 클리어 필요</div>
+    </div>
+    <button class="title-btn title-btn2" onclick="closeChapterSelect()">뒤로</button>
+  </div>
+  <!-- Quiz -->
+  <div id="quiz-screen">
+    <div class="quiz-box">
+      <h3 style="color:#c4956a;margin-bottom:8px">현자의 시험</h3>
+      <div class="quiz-q" id="quiz-question"></div>
+      <div id="quiz-answers"></div>
+    </div>
+  </div>
+  <!-- Ritual game -->
+  <div id="ritual-game">
+    <h3 style="color:#c4956a">제천의식</h3>
+    <p style="font-size:12px;color:#aaa;margin:8px 0">하늘에 제사를 올려라!<br>빛이 과녁에 올 때 터치하라!</p>
+    <div id="ritual-round" style="font-size:16px;font-weight:900;color:#FFD700;margin:8px 0">1 / 5</div>
+    <div class="ritual-circle" id="ritual-circle">
+      <div class="ritual-target" id="ritual-target"></div>
+      <div class="ritual-marker" id="ritual-marker"></div>
+    </div>
+    <div id="ritual-score" style="font-size:12px;color:#aaa;margin:8px 0">성공: 0</div>
+    <button class="title-btn" id="ritual-btn" onclick="ritualTap()">제사!</button>
+  </div>
+  <!-- Title screen -->
+  <div id="title-screen">
+    <div style="animation:fadeUp .8s ease">
+      <div style="font-size:9px;letter-spacing:5px;color:#8a7a6a;margin-bottom:6px">TACTICAL RPG &middot; 파랜드 택틱스 스타일 &middot; BC 2400~BC 1세기</div>
+      <h1 class="title-text">한국사 영웅전</h1>
+      <div class="title-sub">v7 &mdash; 1부 고조선 &middot; 환웅 + 단군 + 위만 + 부여&middot;삼한</div>
+      <div style="margin-top:16px"><button class="title-btn" onclick="openChapterSelect()">새 게임</button></div>
+      <div><button class="title-btn title-btn2" onclick="openSaveScreen('load');document.getElementById('title-screen').style.display='none'">이어하기</button></div>
+      <div class="title-info">
+        &#9656; 4챕터 완전판 (환웅&#8594;단군&#8594;위만&#8594;부여&middot;삼한)<br>
+        &#9656; 병종 상성: 궁병 &gt; 보병 &gt; 기마병 &gt; 궁병<br>
+        &#9656; 지형 효과: 숲/산/요새<br>
+        &#9656; 클래스 승급 &middot; 장비 &middot; 상점<br>
+        &#9656; 출격 편성 &middot; ZOC &middot; 레벨 계승<br>
+        &#9656; 12&times;10 확장맵 &middot; 증원 시스템
+      </div>
+    </div>
+  </div>
+  <!-- Shop screen -->
+  <div id="shop-screen">
+    <h2>상점</h2>
+    <div class="shop-gold" id="shop-gold">소지금: 0G</div>
+    <div class="shop-tabs">
+      <button class="shop-tab active" id="shop-buy-tab" onclick="shopTab('buy')">구매</button>
+      <button class="shop-tab" id="shop-sell-tab" onclick="shopTab('sell')">판매</button>
+    </div>
+    <div id="shop-list"></div>
+    <div style="text-align:center;margin-top:12px"><button class="menu-btn" onclick="closeShop()">닫기</button></div>
+  </div>
+  <!-- D-pad (mobile) -->
+  <div id="dpad">
+    <div class="dpad-btn" style="top:0;left:40px" onclick="tryMove(0,-1)">&#9650;</div>
+    <div class="dpad-btn" style="top:40px;left:0" onclick="tryMove(-1,0)">&#9664;</div>
+    <div class="dpad-btn" style="top:40px;left:80px" onclick="tryMove(1,0)">&#9654;</div>
+    <div class="dpad-btn" style="top:80px;left:40px" onclick="tryMove(0,1)">&#9660;</div>
+    <div class="dpad-btn" style="top:40px;left:40px;font-size:10px" onclick="interactNearby()">&#9673;</div>
+  </div>
+  <!-- Auto-save indicator (NEW v7) -->
+  <div id="autosave-indicator"></div>
+</div>
+
+<!-- JS Modules (load order matters) -->
+<script src="js/config.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/story.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

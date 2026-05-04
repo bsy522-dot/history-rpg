@@ -52,10 +52,19 @@ const BGMP={
   // New BGM patterns
   tension:[196,220,196,165,196,220,262,220],
   village:[330,349,392,349,330,294,262,294],
-  victory_fanfare:[523,523,659,659,784,784,1047,1047]
+  victory_fanfare:[523,523,659,659,784,784,1047,1047],
+  // Extended chord progression patterns
+  ch1_explore:[262,330,392,330,349,294,262,247,262,330,392,440,392,330,294,262],
+  ch2_kingdom:[330,392,523,392,440,349,330,262,294,349,440,349,392,330,262,196],
+  ch3_war:[220,262,330,262,220,196,165,196,220,262,294,330,294,262,220,196],
+  ch4_epic:[392,494,587,494,523,440,392,330,349,440,523,587,659,587,523,440],
+  boss_intense:[220,262,330,220,196,262,330,392,262,330,392,440,330,262,220,196],
+  shop_calm:[349,392,440,392,349,330,294,262,294,330,349,392,440,523,440,392]
 };
 
-function startBGM(p){stopBGM();if(!ac)return;const n=BGMP[p]||BGMP.map;let i=0;bgmI=setInterval(()=>{pn(n[i%n.length],.25,'sine',mGain);i++},300)}
+function playChord(notes,d=.3,t='sine'){notes.forEach(f=>pn(f,d,t,mGain))}
+
+function startBGM(p){stopBGM();if(!ac)return;const n=BGMP[p]||BGMP.map;let i=0;bgmI=setInterval(()=>{pn(n[i%n.length],.25,'sine',mGain);if(i%4===0&&n.length>8)pn(n[i%n.length]/2,.4,'triangle',mGain);i++},280)}
 function stopBGM(){if(bgmI){clearInterval(bgmI);bgmI=null}}
 
 // Boss intensity boost
