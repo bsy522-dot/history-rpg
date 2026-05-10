@@ -1,5 +1,5 @@
 // ============================================================
-// audio.js — 한국사 영웅전 v7 Audio System
+// audio.js — 한국사 영웅전 v9 Audio System
 // ============================================================
 const AC=window.AudioContext||window.webkitAudioContext;
 let ac=null,mGain=null,sGain=null;
@@ -59,10 +59,30 @@ const BGMP={
   ch3_war:[220,262,330,262,220,196,165,196,220,262,294,330,294,262,220,196],
   ch4_epic:[392,494,587,494,523,440,392,330,349,440,523,587,659,587,523,440],
   boss_intense:[220,262,330,220,196,262,330,392,262,330,392,440,330,262,220,196],
-  shop_calm:[349,392,440,392,349,330,294,262,294,330,349,392,440,523,440,392]
+  shop_calm:[349,392,440,392,349,330,294,262,294,330,349,392,440,523,440,392],
+  // v9.0 dawn pattern
+  dawn:[262,294,330,392,440,392,330,294,349,392,440,523,440,392,349,330]
 };
 
 function playChord(notes,d=.3,t='sine'){notes.forEach(f=>pn(f,d,t,mGain))}
+
+// v9.0: playChordProgression for richer BGM harmonics
+function playChordProgression(key,type){
+  if(!ac)return;
+  const roots={C:262,D:294,E:330,F:349,G:392,A:440,B:494};
+  const root=roots[key]||262;
+  const progressions={
+    major:[[1,1.25,1.5],[1.5,1.875,2.25],[1.33,1.67,2],[1,1.25,1.5]],
+    minor:[[1,1.2,1.5],[1.33,1.6,2],[1.5,1.8,2.25],[1,1.2,1.5]],
+    epic:[[1,1.25,1.5,2],[1.33,1.67,2,2.67],[1.5,1.875,2.25,3],[1,1.25,1.5,2]]
+  };
+  const prog=progressions[type]||progressions.major;
+  prog.forEach((chord,i)=>{
+    setTimeout(()=>{
+      chord.forEach(mul=>pn(root*mul,.5,'sine',mGain));
+    },i*600);
+  });
+}
 
 function startBGM(p){stopBGM();if(!ac)return;const n=BGMP[p]||BGMP.map;let i=0;bgmI=setInterval(()=>{pn(n[i%n.length],.25,'sine',mGain);if(i%4===0&&n.length>8)pn(n[i%n.length]/2,.4,'triangle',mGain);i++},280)}
 function stopBGM(){if(bgmI){clearInterval(bgmI);bgmI=null}}
@@ -71,4 +91,59 @@ function stopBGM(){if(bgmI){clearInterval(bgmI);bgmI=null}}
 function setBGMIntensity(level){
   if(!mGain)return;
   mGain.gain.value = level==='boss' ? 0.18 : 0.12;
+}
+
+// v9.0: Ambient SFX for environment sounds
+function ambientSFX(type){
+  if(!ac)return;
+  switch(type){
+    case'wind':{
+      // White noise filtered with bandpass for wind
+      const buf=ac.createBuffer(1,ac.sampleRate*1.5,ac.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+      const src=ac.createBufferSource();src.buffer=buf;
+      const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=400;bp.Q.value=0.5;
+      const gn=ac.createGain();gn.gain.setValueAtTime(0,ac.currentTime);
+      gn.gain.linearRampToValueAtTime(0.06,ac.currentTime+0.3);
+      gn.gain.linearRampToValueAtTime(0.03,ac.currentTime+0.8);
+      gn.gain.linearRampToValueAtTime(0,ac.currentTime+1.5);
+      src.connect(bp);bp.connect(gn);gn.connect(sGain);src.start();src.stop(ac.currentTime+1.5);
+      break;
+    }
+    case'water':{
+      // Bubbling water: low-frequency oscillators with random modulation
+      for(let i=0;i<5;i++){
+        setTimeout(()=>{
+          const f=80+Math.random()*120;
+          pn(f,0.2+Math.random()*0.15,'sine');
+        },i*200+Math.random()*100);
+      }
+      break;
+    }
+    case'birds':{
+      // Bird chirps: high-frequency short tones
+      const chirps=[[1200,0.05],[1400,0.04],[1100,0.06],[1500,0.03],[1300,0.05]];
+      chirps.forEach(([f,dur],i)=>{
+        setTimeout(()=>pn(f,dur,'sine'),i*180+Math.random()*80);
+      });
+      break;
+    }
+    case'fire':{
+      // Crackling fire: noise bursts
+      for(let i=0;i<8;i++){
+        setTimeout(()=>{
+          const buf=ac.createBuffer(1,ac.sampleRate*0.04,ac.sampleRate);
+          const d=buf.getChannelData(0);
+          for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*0.3;
+          const src=ac.createBufferSource();src.buffer=buf;
+          const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=2000;
+          const gn=ac.createGain();gn.gain.setValueAtTime(0.08,ac.currentTime);
+          gn.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.04);
+          src.connect(hp);hp.connect(gn);gn.connect(sGain);src.start();
+        },i*120+Math.random()*60);
+      }
+      break;
+    }
+  }
 }
