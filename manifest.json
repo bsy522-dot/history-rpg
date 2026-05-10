@@ -1,7 +1,9 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "고조선 4챕터 택티컬 RPG — 환웅·단군·위만·부여삼한",
+  "description": "한국사 영웅전 v9.0 — 고조선 4챕터 택티컬 RPG. 다크모드, 전투로그, 파티클, 난이도 선택, PWA 지원",
+  "lang": "ko",
+  "categories": ["games", "education"],
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a14",
