@@ -1,5 +1,5 @@
 // ============================================================
-// engine.js — 한국사 영웅전 v7 Game Engine (State, Loop, Input)
+// engine.js — 한국사 영웅전 v9 Game Engine (State, Loop, Input)
 // ============================================================
 
 const C=document.getElementById('gameCanvas'),X=C.getContext('2d');
@@ -32,7 +32,25 @@ let G={
   },
   dlgQ:[],dlgI:0,dlgCb:null,dlgTyping:false,dlgLen:0,dlgTimer:0,
   endDay:0,endHP:100,saveMode:'save',_pm:null,
-  quizCb:null,ritualCb:null,ritualRound:0,ritualSuccess:0,ritualAngle:0
+  quizCb:null,ritualCb:null,ritualRound:0,ritualSuccess:0,ritualAngle:0,
+  // v9.0 new state
+  difficulty:1,  // 0=easy, 1=normal, 2=hard
+  battleSpeed:1  // 1 or 2
+};
+
+// v9.0: Difficulty setter
+window.setDifficulty=function(level){
+  G.difficulty=Math.max(0,Math.min(2,level));
+  const d=DIFFICULTY[G.difficulty];
+  if(typeof setTacInfo==='function')setTacInfo('난이도: '+d.name);
+};
+
+// v9.0: Battle speed toggle
+window.toggleBattleSpeed=function(){
+  G.battleSpeed=G.battleSpeed===1?2:1;
+  const el=document.getElementById('battle-speed-btn');
+  if(el)el.textContent=G.battleSpeed+'x';
+  if(typeof setTacInfo==='function')setTacInfo('전투 속도: '+G.battleSpeed+'x');
 };
 
 // --- Canvas Sizing ---
