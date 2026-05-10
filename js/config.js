@@ -1,6 +1,13 @@
 // ============================================================
-// config.js — 한국사 영웅전 v7 Constants & Data
+// config.js — 한국사 영웅전 v9 Constants & Data
 // ============================================================
+
+// --- Difficulty Settings (v9.0) ---
+const DIFFICULTY = [
+  {name:'쉬움',hpMul:0.7,atkMul:0.8,expMul:1.3,goldMul:1.3},
+  {name:'보통',hpMul:1.0,atkMul:1.0,expMul:1.0,goldMul:1.0},
+  {name:'어려움',hpMul:1.4,atkMul:1.3,expMul:0.8,goldMul:0.8}
+];
 
 // --- Type Advantage ---
 function typeAdv(a,d){const m={'궁병':'a','보병':'i','기마병':'c'};const x=m[a],y=m[d];if(!x||!y)return 1;if((x==='a'&&y==='i')||(x==='i'&&y==='c')||(x==='c'&&y==='a'))return 1.5;if((x==='i'&&y==='a')||(x==='c'&&y==='i')||(x==='a'&&y==='c'))return .75;return 1}
@@ -190,9 +197,6 @@ function defTacBattle(enemies,tacMap,allyPos,enemyPos,opts={}){return{enemies,ta
 // ============================================================
 // TACTICAL MAPS — ALL EXPANDED TO 12x10
 // ============================================================
-// Each map is 12 wide x 10 tall (was 10x8)
-// More terrain variety for longer, more strategic battles
-
 const TACMAP_PLAINS=mkTacMap([
   [0,0,1,0,0,0,0,0,1,0,0,0],
   [0,0,0,0,1,0,0,1,0,0,0,0],
@@ -271,7 +275,6 @@ const TACMAP_BOSS=mkTacMap([
   [0,0,0,0,0,0,0,0,0,0,0,0]
 ]);
 
-// Ch3/Ch4 tactical maps (12x10)
 const TACMAP_WANGGEOM=mkTacMap([
   [4,4,4,3,3,3,3,3,3,4,4,4],
   [4,0,0,0,4,4,4,4,0,0,0,4],
