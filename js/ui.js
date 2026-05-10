@@ -1,7 +1,10 @@
-// ===== ui.js — Korean History RPG UI Functions (from v6) =====
+// ===== ui.js — Korean History RPG v9 UI Functions =====
 
 // --- Shop Mode ---
 let shopMode='buy';
+
+// --- Battle Log (v9.0) ---
+let battleLog=[];
 
 // --- Tactical UI ---
 function showTacUI(){$('tac-ui').style.display='block';$('tac-unit-info').style.display='block'}
@@ -13,11 +16,11 @@ function showTacActions(unit){
   const sk=getSk(unit),hi=G.inv.some(i=>ITEMS[i.id]?.t==='cons'&&i.q>0);
   const canMove=!unit.moved;
   $('tac-actions').innerHTML=
-    `${canMove?'<button class="btn-move" onclick="tacAct(\'move\')">🦶 이동</button>':''}`+
-    `<button class="btn-atk" onclick="tacAct('atk')">⚔️ 공격</button>`+
-    `<button class="btn-skill" ${sk.length===0?'disabled':''} onclick="tacAct('skill')">✨ 기술</button>`+
-    `<button class="btn-item" ${!hi?'disabled':''} onclick="tacAct('item')">🎁 아이템</button>`+
-    `<button class="btn-wait" onclick="tacAct('wait')">⏳ 대기</button>`;
+    `${canMove?'<button class="btn-move" onclick="tacAct(\'move\')" aria-label="이동">🦶 이동</button>':''}`+
+    `<button class="btn-atk" onclick="tacAct('atk')" aria-label="공격">⚔️ 공격</button>`+
+    `<button class="btn-skill" ${sk.length===0?'disabled':''} onclick="tacAct('skill')" aria-label="기술">✨ 기술</button>`+
+    `<button class="btn-item" ${!hi?'disabled':''} onclick="tacAct('item')" aria-label="아이템">🎁 아이템</button>`+
+    `<button class="btn-wait" onclick="tacAct('wait')" aria-label="대기">⏳ 대기</button>`;
 }
 
 // --- Unit Info Panel ---
@@ -142,9 +145,9 @@ window.openSaveScreen=function(mode){
     else sl.innerHTML=`<h4>슬롯 ${i}</h4><p>비어있음</p>`;
     sl.onclick=()=>{if(mode==='save'){saveGame(i);closeSaveScreen();startDlg([{s:'',t:'저장 완료!'}],()=>{G.mode=G._pm||'map'})}else if(d){loadGame(i);closeSaveScreen()}};c.appendChild(sl)}};
 window.closeSaveScreen=function(){$('save-screen').style.display='none';if(G.mode==='save')G.mode=G._pm||'map'};
-window.autoSave=function(){try{saveGame(0);const ind=document.getElementById('autosave-indicator');if(ind){ind.style.display='block';ind.textContent='💾 자동저장';setTimeout(()=>ind.style.display='none',1500)}}catch(e){}};
-function saveGame(s){const d={stage:G.stage,chapter:G.chapter,sid:STAGES[G.stage]?.id,party:G.party.map(c=>({id:c.id,nm:c.nm,cl:c.cl,lv:c.lv,exp:c.exp,exn:c.exn,mhp:c.mhp,hp:c.hp,mmp:c.mmp,mp:c.mp,atk:c.atk,def:c.def,spd:c.spd,mov:c.mov,rng:c.rng,weapon:c.weapon,armor:c.armor,acc:c.acc,alive:c.alive,isLeader:c.isLeader})),inv:G.inv,gold:G.gold,cleared:G.cleared,pn:G.party.map(c=>c.nm).join(','),plv:G.party[0]?.lv,date:new Date().toLocaleString('ko-KR')};const key=s===0?'krpg7_auto':`krpg7_${s}`;localStorage.setItem(key,JSON.stringify(d))}
-function loadGame(s){const r=localStorage.getItem(s===0?'krpg7_auto':`krpg7_${s}`);if(!r)return;const d=JSON.parse(r);G.chapter=d.chapter||1;G.party=d.party.map(c=>{const ch=mkCh(c.id,c.nm,c.cl,c.lv,true,{weapon:c.weapon,armor:c.armor,acc:c.acc,leader:c.isLeader});ch.exp=c.exp;ch.exn=c.exn;ch.hp=c.hp;ch.mp=c.mp;ch.alive=c.alive!==false;ch.atk=c.atk;ch.def=c.def;ch.spd=c.spd;ch.mhp=c.mhp;ch.mmp=c.mmp;return ch});G.inv=d.inv||[];G.gold=d.gold||0;G.cleared=d.cleared||[];$('title-screen').style.display='none';startArea(d.stage)}
+window.autoSave=function(){try{saveGame(0);const ind=document.getElementById('autosave-indicator');if(ind){ind.style.display='block';ind.textContent='자동저장';setTimeout(()=>ind.style.display='none',1500)}}catch(e){}};
+function saveGame(s){const d={stage:G.stage,chapter:G.chapter,sid:STAGES[G.stage]?.id,party:G.party.map(c=>({id:c.id,nm:c.nm,cl:c.cl,lv:c.lv,exp:c.exp,exn:c.exn,mhp:c.mhp,hp:c.hp,mmp:c.mmp,mp:c.mp,atk:c.atk,def:c.def,spd:c.spd,mov:c.mov,rng:c.rng,weapon:c.weapon,armor:c.armor,acc:c.acc,alive:c.alive,isLeader:c.isLeader})),inv:G.inv,gold:G.gold,cleared:G.cleared,difficulty:G.difficulty,pn:G.party.map(c=>c.nm).join(','),plv:G.party[0]?.lv,date:new Date().toLocaleString('ko-KR')};const key=s===0?'krpg7_auto':`krpg7_${s}`;localStorage.setItem(key,JSON.stringify(d))}
+function loadGame(s){const r=localStorage.getItem(s===0?'krpg7_auto':`krpg7_${s}`);if(!r)return;const d=JSON.parse(r);G.chapter=d.chapter||1;G.difficulty=d.difficulty||1;G.party=d.party.map(c=>{const ch=mkCh(c.id,c.nm,c.cl,c.lv,true,{weapon:c.weapon,armor:c.armor,acc:c.acc,leader:c.isLeader});ch.exp=c.exp;ch.exn=c.exn;ch.hp=c.hp;ch.mp=c.mp;ch.alive=c.alive!==false;ch.atk=c.atk;ch.def=c.def;ch.spd=c.spd;ch.mhp=c.mhp;ch.mmp=c.mmp;return ch});G.inv=d.inv||[];G.gold=d.gold||0;G.cleared=d.cleared||[];$('title-screen').style.display='none';startArea(d.stage)}
 
 // --- Chapter Select ---
 window.openChapterSelect=function(){initAudio();$('title-screen').style.display='none';
@@ -225,3 +228,62 @@ window.shopSell=function(id){
   const sellPrice=Math.floor((it.price||0)*0.5);if(!sellPrice)return;
   inv.q--;G.gold+=sellPrice;sfx('sel');renderShop();
 };
+
+// ===== v9.0: Dark Mode Toggle =====
+window.toggleDarkMode=function(){
+  document.body.classList.toggle('light-mode');
+  const isLight=document.body.classList.contains('light-mode');
+  localStorage.setItem('krpg-theme',isLight?'light':'dark');
+  const btn=document.getElementById('theme-toggle');
+  if(btn)btn.textContent=isLight?'🌙':'☀️';
+};
+
+function initTheme(){
+  const saved=localStorage.getItem('krpg-theme');
+  if(saved==='light'){
+    document.body.classList.add('light-mode');
+    const btn=document.getElementById('theme-toggle');
+    if(btn)btn.textContent='🌙';
+  }
+}
+
+// ===== v9.0: Battle Log =====
+function addBattleLog(msg){
+  battleLog.push(msg);
+  if(battleLog.length>15)battleLog.shift();
+  renderBattleLog();
+}
+function renderBattleLog(){
+  const el=document.getElementById('battle-log');
+  if(!el)return;
+  el.innerHTML='<h4 style="color:#c4956a;margin:0 0 4px;font-size:10px">전투 기록</h4>'+
+    battleLog.map(m=>`<div style="font-size:9px;color:#aaa;padding:1px 0;border-bottom:1px solid #2a2438">${m}</div>`).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+// ===== v9.0: Keyboard Help Overlay =====
+window.showKeyboardHelp=function(){
+  const el=document.getElementById('kb-help');
+  if(!el)return;
+  el.style.display=el.style.display==='flex'?'none':'flex';
+};
+
+// Listen for '?' key to show keyboard help
+addEventListener('keydown',function(e){
+  if(e.key==='?'){
+    if(typeof showKeyboardHelp==='function')showKeyboardHelp();
+  }
+});
+
+// ===== v9.0: Difficulty selector rendering =====
+function renderDifficultySelector(){
+  const el=document.getElementById('difficulty-selector');
+  if(!el)return;
+  el.innerHTML=DIFFICULTY.map((d,i)=>
+    `<button class="title-btn${i===G.difficulty?' title-btn-active':''}" style="padding:8px 16px;font-size:12px;margin:0 4px;${i===G.difficulty?'border-color:#FFD700;color:#FFD700':''}" onclick="setDifficulty(${i});renderDifficultySelector()">${d.name}</button>`
+  ).join('');
+}
+window.renderDifficultySelector=renderDifficultySelector;
+
+// Initialize theme on load
+initTheme();
