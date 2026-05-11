@@ -72,9 +72,22 @@ function resolveEmoji(unit) {
   return unit.team === 'enemy' ? '👹' : '⚔️';
 }
 
-/** SVG 우선, 없으면 emoji 텍스트 fallback */
+function resolveImage(unit) {
+  if (!unit) return null;
+  const id = resolvePortraitId(unit);
+  if (id && _portraitMap && _portraitMap[id]?.image) return _portraitMap[id].image;
+  return null;
+}
+
+/** PNG image 우선, 없으면 SVG, 그래도 없으면 emoji fallback */
 function paintPortrait(el, unit) {
   if (!el) return;
+  const img = resolveImage(unit);
+  if (img) {
+    el.innerHTML = `<img src="${img}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:14px;display:block">`;
+    el.classList.add('v8-cutin-portrait-svg');
+    return;
+  }
   const svg = resolveSVG(unit);
   if (svg) {
     el.innerHTML = svg;
