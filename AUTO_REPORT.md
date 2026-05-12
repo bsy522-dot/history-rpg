@@ -2,6 +2,95 @@
 
 ---
 
+## [AUTO] 2026-05-12 history-rpg — v10.0 업적시스템+전적통계+턴순서+퀴즈40+SFX4종+SEO강화+SW스크립트주입
+
+### 1단계: 벤치마킹 분석 (영걸전/문명/AOE 대비)
+
+| 항목 | 벤치마크 수준 | 이전 상태 | 개선 후 |
+|------|-------------|----------|--------|
+| 업적 시스템 | 문명: 100+ 업적 | 없음 | ✅ 24종 업적 (전투/탐험/퀴즈/성장) |
+| 전적 통계 | 영걸전: 전투기록 열람 | 없음 | ✅ 20+ 항목 통계 (localStorage) |
+| 턴 순서 패널 | FE/SRPG: 행동순서 표시 | 없음 | ✅ 속도 기준 정렬+HP바 |
+| 역사 퀴즈 | 교육+게임 융합 | 30문 | ✅ 40문 (고구려/백제/철기 등 10문 추가) |
+| SFX 다양성 | AoE: 상황별 효과음 | 기본 | ✅ 4종 추가 (업적/전투개시/챕터클리어/승급) |
+| SEO/OG 메타 | 웹표준: 검색최적화 | 기본 | ✅ OG+Twitter+JSON-LD 구조화데이터 |
+| 비침습 확장 | 모듈 패턴 | 직접 수정 | ✅ SW 스크립트 주입 패턴 |
+| 런처 통계 | 진행도 표시 | 없음 | ✅ 승리/퀴즈/업적 카운터 |
+
+### 2단계: 개발팀 작업
+
+#### js/v10_patch.js — 신규 (자체 완결 패치 모듈, ~8KB)
+- **IIFE 구조**: 전역 오염 없이 CSS/DOM/훅 주입
+- **24종 업적 정의**: first_blood, veteran(10승), scholar(퀴즈10), endurer(인내게임), ritualist(제천), ch1~ch4_clear, shopper(5구매), gold_hoarder(500골드), promoter(승급), healer(50힐), crit_master(10크리), explorer(3마을), collector(10아이템), counter(5반격), speed(5턴내 승리), quiz_master(퀴즈20), item_user(10사용), lvl10, lvl20, full_party(4인파티), all_clear(전챕터)
+- **통계 추적 20+ 항목**: wins, losses, totalDmg, totalHeal, crits, counters, quizOk, quizTot, endurWin, ritualWin, purchases, promotions, townsVisited, itemsCollected, itemsUsed, fastWins, perfectQuiz, turns, maxDmg, kills, battles
+- **턴 순서 패널**: #turn-order에 유닛 속도순 정렬, HP바 표시, 전투 중 실시간 갱신
+- **함수 훅**: onVictoryContinue(승리추적), shopBuy(구매추적), answerQuiz(퀴즈추적), showTacUI/hideTacUI(턴순서 표시)
+- **퀴즈 10문 추가**: 고구려 건국신화, 백제 온조왕, 팔조법금, 철기시대, 고조선 위치, 부여 특산물, 진한→신라, 소도, 옥저 풍습, 동예 법률
+- **SFX 4종**: achievement(업적달성), battle_start(전투개시), chapter_clear(챕터클리어), promote(승급)
+- **메뉴 확장**: #menu-overlay에 업적/전적 버튼 동적 삽입
+- **주기적 업적 체크**: 15초 간격 setInterval
+- **window._v10 익스포트**: 런처에서 통계/업적 접근용
+
+#### sw.js — 수정 (서비스워커 스크립트 주입)
+- 캐시명 `krpg-v9` → `krpg-v10` 업데이트
+- 프리캐시 목록에 `./js/v10_patch.js` 추가
+- **HTML 응답 인터셉트**: korean-rpg-v7, korean-rpg-v8 페이지에 `<script src="./js/v10_patch.js"></script>` 자동 주입
+- 네트워크 응답 + 캐시 응답 모두 주입 처리
+- 중복 방지: `html.indexOf('v10_patch')<0` 가드
+- 파서 이슈 방지: `'<scr'+'ipt ...'` 문자열 분할
+
+#### manifest.json — 수정
+- description v10.0 업데이트: "24업적+통계+턴순서+40퀴즈+다크모드+PWA"
+
+#### index.html — 전면 리라이트 (v10.0 런처)
+- **SEO 강화**: OG 메타태그 (title/description/type/url/image), Twitter Card 메타태그
+- **JSON-LD 구조화 데이터**: @type VideoGame, operatingSystem Web, genre Education+RPG
+- **접근성**: skip-to-content 링크
+- **실시간 통계 바**: localStorage에서 krpg_stats/krpg_ach 읽어 승리/퀴즈/업적 카운터 표시
+- **게임 카드 3종**: v10 BEST(korean-rpg-v7.html), 3D Edition(korean-rpg-v8.html), v6 Legacy
+- **기능 배지 8종**: 24업적, 통계, 턴순서, 40퀴즈, 다크모드, PWA, 키보드, 접근성
+- **다크/라이트 모드 토글**: CSS 커스텀 프로퍼티 기반
+- **파티클 캔버스 배경**: 장식용 애니메이션
+- **세이브 배너**: localStorage 데이터 존재 시 표시
+
+### 3단계: 품질 검증
+
+| 검증 항목 | 결과 | 비고 |
+|----------|------|------|
+| 외부 CDN 사용 | ✅ 0건 | Three.js/Tone.js만 허용, 미사용 |
+| 개인정보 노출 | ✅ 0건 | 하드코딩된 개인정보 없음 |
+| 파일 삭제 | ✅ 0건 | 기존 파일 보존, 신규+수정만 |
+| HTML 엔티티 | ✅ 적용 | 속성 내 따옴표 &quot; 인코딩 |
+| 핵심 파일 보존 | ✅ 완전 | korean-rpg-v7.html(32KB) 미수정 |
+| 비침습 패턴 | ✅ 검증 | SW 주입으로 코어 파일 무변경 |
+| localStorage 키 | ✅ 일관 | krpg_stats, krpg_ach 네이밍 |
+| IIFE 격리 | ✅ 검증 | 전역 오염 window._v10만 |
+
+### 아키텍처 결정: SW 스크립트 주입 패턴
+
+**문제**: v10_patch.js를 korean-rpg-v7.html(32KB)에 적용해야 하나, 32KB HTML 전체를 재작성하면 위험도 높음
+
+**해결**: Service Worker fetch 인터셉터에서 HTML 응답 텍스트를 수정하여 `</body>` 앞에 스크립트 태그 주입
+
+**장점**:
+- 코어 게임 파일 무변경 (안정성)
+- v7, v8 모두 동일 패치 적용
+- 패치 제거 시 sw.js만 롤백
+- 오프라인 캐시에서도 주입 작동
+
+**트레이드오프**:
+- SW 미활성 첫 방문 시 v10 기능 미적용 (코어 게임은 정상 작동)
+- 두 번째 방문부터 완전 적용
+
+### 파일 변경 목록
+- `js/v10_patch.js` — **신규** (업적+통계+턴순서+퀴즈+SFX 패치 모듈)
+- `sw.js` — 캐시 v10 + 프리캐시 + HTML 스크립트 주입
+- `manifest.json` — description v10.0 업데이트
+- `index.html` — v10.0 런처 전면 리라이트 (SEO+통계+카드+배지)
+- `AUTO_REPORT.md` — v10.0 보고서 추가
+
+---
+
 ## [AUTO] 2026-05-10 history-rpg — v9.0 다크모드+전투로그+파티클+난이도+퀴즈30+PWA+키보드+접근성
 
 ### 1단계: 벤치마킹 분석
