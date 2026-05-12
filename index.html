@@ -3,75 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>한국사 영웅전 - 전략 RPG</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C4956A'/%3E%3Cstop offset='100%25' stop-color='%238B6B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23A0A8B8'/%3E%3Cstop offset='100%25' stop-color='%23707888'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M30 6L32 4l2 2v32l-2 2-2-2z' fill='url(%23s)'/%3E%3Cpath d='M26 12h12v4H26z' fill='%23C4956A'/%3E%3Cellipse cx='32' cy='42' rx='14' ry='4' fill='%238B6B3D' opacity='.3'/%3E%3Cpath d='M18 28c0-8 6-16 14-22v6c-5 4-8 10-8 16h-6z' fill='url(%23g)' opacity='.8'/%3E%3Cpath d='M46 28c0-8-6-16-14-22v6c5 4 8 10 8 16h6z' fill='url(%23g)' opacity='.8'/%3E%3Ccircle cx='32' cy='10' r='3' fill='%23FFD700'/%3E%3Cpath d='M14 46l8-4 4 6H18z' fill='url(%23s)'/%3E%3Cpath d='M50 46l-8-4-4 6h8z' fill='url(%23s)'/%3E%3Crect x='22' y='44' width='20' height='14' rx='3' fill='url(%23g)'/%3E%3Cpath d='M28 48h8v2h-8z' fill='%23FFD700' opacity='.6'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a14'/%3E%3Cpath d='M30 8v28l2 2 2-2V8z' fill='%23A0A8B8'/%3E%3Cpath d='M26 14h12v3H26z' fill='%23C4956A'/%3E%3Crect x='22' y='44' width='20' height='12' rx='3' fill='%23C4956A'/%3E%3Ccircle cx='32' cy='12' r='3' fill='%23FFD700'/%3E%3C/svg%3E">
+<title>한국사 영웅전 - 전략 택티컬 RPG v10.0</title>
+<meta name="description" content="한국사 영웅전 v10.0 - 고조선부터 삼한까지, 역사 속 영웅들과 함께하는 전략 택티컬 RPG. 24업적+통계+턴순서+40퀴즈">
+<meta property="og:title" content="한국사 영웅전 - 전략 택티컬 RPG">
+<meta property="og:description" content="고조선 4챕터 완전판. 환웅→단군→위만→부여삼한. 24업적, 실시간 통계, 역사퀴즈 40문">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="한국사 영웅전 v10.0">
+<meta name="twitter:description" content="영걸전 스타일 한국사 SRPG - 24업적+통계+턴순서+40퀴즈">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"한국사 영웅전","description":"고조선부터 삼한까지 역사 속 영웅들과 함께하는 전략 택티컬 RPG","applicationCategory":"GameApplication","genre":"Strategy RPG","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"inLanguage":"ko"}</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C4956A'/%3E%3Cstop offset='100%25' stop-color='%238B6B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23A0A8B8'/%3E%3Cstop offset='100%25' stop-color='%23707888'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M30 6L32 4l2 2v32l-2 2-2-2z' fill='url(%23s)'/%3E%3Cpath d='M26 12h12v4H26z' fill='%23C4956A'/%3E%3Cellipse cx='32' cy='42' rx='14' ry='4' fill='%238B6B3D' opacity='.3'/%3E%3Ccircle cx='32' cy='10' r='3' fill='%23FFD700'/%3E%3Crect x='22' y='44' width='20' height='14' rx='3' fill='url(%23g)'/%3E%3Cpath d='M28 48h8v2h-8z' fill='%23FFD700' opacity='.6'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a14'/%3E%3Cpath d='M30 8v28l2 2 2-2V8z' fill='%23A0A8B8'/%3E%3Crect x='22' y='44' width='20' height='12' rx='3' fill='%23C4956A'/%3E%3Ccircle cx='32' cy='12' r='3' fill='%23FFD700'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0a14">
-<meta name="description" content="한국사 영웅전 v9.0 - 고조선부터 고구려까지, 역사 속 영웅들과 함께하는 전략 택티컬 RPG">
 <style>
-:root{--bg:#0a0a14;--text:#e8dcc8;--card-bg:rgba(26,20,40,.9);--card-bg2:rgba(14,10,24,.95);--card-border:#3a3a4a;--sub-text:#7a7a8a;--footer-text:#2a2a3a;--feat-bg:rgba(255,255,255,.04);--feat-text:#5a5a6a}
-.light-mode{--bg:#f4f0e8;--text:#1a1a2a;--card-bg:rgba(255,255,255,.95);--card-bg2:rgba(240,235,225,.98);--card-border:#c4b8a0;--sub-text:#5a5a6a;--footer-text:#aaa;--feat-bg:rgba(0,0,0,.05);--feat-text:#6a6a7a}
+:root{--bg:#0a0a14;--text:#e8dcc8;--card-bg:rgba(26,20,40,.9);--card-bg2:rgba(14,10,24,.95);--card-border:#3a3a4a;--sub-text:#7a7a8a;--feat-bg:rgba(255,255,255,.04);--feat-text:#5a5a6a}
+.light-mode{--bg:#f4f0e8;--text:#1a1a2a;--card-bg:rgba(255,255,255,.95);--card-bg2:rgba(240,235,225,.98);--card-border:#c4b8a0;--sub-text:#5a5a6a;--feat-bg:rgba(0,0,0,.05);--feat-text:#6a6a7a}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
 #bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.container{max-width:500px;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:40px 20px 80px;position:relative;z-index:1}
-.logo-area{position:relative;margin-bottom:20px}
-.logo-area svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(196,149,106,.5))}
+a.skip{position:absolute;top:-40px;left:0;background:#FFD700;color:#000;padding:8px 16px;z-index:200;font-size:12px;text-decoration:none;border-radius:0 0 8px 0;transition:top .2s}a.skip:focus{top:0}
+.ctr{max-width:500px;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:40px 20px 80px;position:relative;z-index:1}
+.logo-area{position:relative;margin-bottom:20px}.logo-area svg{width:80px;height:80px;filter:drop-shadow(0 0 20px rgba(196,149,106,.5))}
 .logo-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;background:radial-gradient(circle,rgba(255,215,0,.12) 0%,transparent 70%);border-radius:50%;animation:pulse 3s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}}
 h1{font-size:30px;font-weight:900;background:linear-gradient(135deg,#FFD700,#C4956A,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;letter-spacing:3px;text-align:center}
 .sub{font-size:12px;color:#6a5a3a;margin-bottom:8px;letter-spacing:2px;text-align:center}
-.version{font-size:10px;color:#3a3a4a;margin-bottom:28px;letter-spacing:1px}
-.save-banner{width:100%;background:linear-gradient(135deg,rgba(39,174,96,.1),rgba(39,174,96,.05));border:1px solid rgba(39,174,96,.3);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:none;cursor:pointer;transition:all .3s}
-.save-banner:hover{border-color:rgba(39,174,96,.6);background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.08))}
-.save-banner h3{font-size:13px;color:#27ae60;margin-bottom:4px}
-.save-banner p{font-size:11px;color:#6a7a6a}
-.section{display:flex;align-items:center;gap:8px;width:100%;margin:16px 0 8px}
-.section-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,#5a4a3a33,transparent)}
-.section-label{font-size:10px;color:#5a4a3a;letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
+.version{font-size:10px;color:#3a3a4a;margin-bottom:20px;letter-spacing:1px}
+.save-banner{width:100%;background:linear-gradient(135deg,rgba(39,174,96,.1),rgba(39,174,96,.05));border:1px solid rgba(39,174,96,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:none;cursor:pointer;transition:all .3s}
+.save-banner:hover{border-color:rgba(39,174,96,.6)}
+.save-banner h3{font-size:13px;color:#27ae60;margin-bottom:4px}.save-banner p{font-size:11px;color:#6a7a6a}
+.stats-bar{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.stats-pill{font-size:10px;padding:4px 10px;border-radius:12px;border:1px solid #3a3a4a;background:rgba(26,20,40,.6);color:#8a7a6a}
+.stats-pill b{color:#FFD700}
+.sec{display:flex;align-items:center;gap:8px;width:100%;margin:14px 0 8px}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,#5a4a3a33,transparent)}
+.sec-label{font-size:10px;color:#5a4a3a;letter-spacing:3px;text-transform:uppercase;white-space:nowrap}
 .games{display:flex;flex-direction:column;gap:10px;width:100%}
-.game-card{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,var(--card-bg),var(--card-bg2));border:1px solid var(--card-border);border-radius:14px;padding:14px 16px;text-decoration:none;color:inherit;transition:all .3s;position:relative;overflow:hidden}
-.game-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
-.game-card:hover{border-color:#c4956a;transform:translateY(-2px);box-shadow:0 8px 32px rgba(196,149,106,.12)}
-.game-card:hover::before{opacity:1}
-.game-card:active{transform:scale(.98)}
-.game-card:focus-visible{outline:2px solid #FFD700;outline-offset:2px}
-.card-icon{font-size:32px;flex-shrink:0;line-height:1;margin-top:2px}
-.card-content{flex:1;min-width:0}
-.card-content h2{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px}
-.card-content p{font-size:11px;color:var(--sub-text);line-height:1.5}
-.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;border:1px solid;letter-spacing:0.5px}
-.badge-best{color:#FF5FA2;border-color:#FF5FA244;background:rgba(255,95,162,.08);animation:badgePulse 2s infinite}
-@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,95,162,.3)}50%{box-shadow:0 0 8px 2px rgba(255,95,162,.15)}}
+.gc{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,var(--card-bg),var(--card-bg2));border:1px solid var(--card-border);border-radius:14px;padding:14px 16px;text-decoration:none;color:inherit;transition:all .3s;position:relative;overflow:hidden}
+.gc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
+.gc:hover{border-color:#c4956a;transform:translateY(-2px);box-shadow:0 8px 32px rgba(196,149,106,.12)}.gc:hover::before{opacity:1}
+.gc:active{transform:scale(.98)}
+.gc:focus-visible{outline:2px solid #FFD700;outline-offset:2px}
+.gc-icon{font-size:32px;flex-shrink:0;line-height:1;margin-top:2px}.gc-c{flex:1;min-width:0}
+.gc-c h2{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.gc-c p{font-size:11px;color:var(--sub-text);line-height:1.5}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;border:1px solid;letter-spacing:.5px}
+.badge-best{color:#FF5FA2;border-color:#FF5FA244;background:rgba(255,95,162,.08);animation:bp 2s infinite}
+@keyframes bp{0%,100%{box-shadow:0 0 0 0 rgba(255,95,162,.3)}50%{box-shadow:0 0 8px 2px rgba(255,95,162,.15)}}
 .badge-ver{color:#00E5FF;border-color:#00E5FF44;background:rgba(0,229,255,.08);font-size:8px}
+.badge-3d{color:#aa88ff;border-color:#aa88ff44;background:rgba(170,136,255,.08)}
 .badge-tac{color:#5FA0FF;border-color:#5FA0FF44;background:rgba(95,160,255,.08)}
-.features{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.feats{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .feat{font-size:9px;color:var(--feat-text);background:var(--feat-bg);padding:2px 6px;border-radius:4px}
-/* Theme toggle */
 #theme-toggle{position:fixed;top:12px;right:12px;z-index:100;width:36px;height:36px;border-radius:50%;border:1px solid #5a4a3a;background:rgba(26,20,40,.8);color:#FFD700;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s}
-#theme-toggle:hover{border-color:#FFD700;transform:scale(1.1)}
-#theme-toggle:focus-visible{outline:2px solid #FFD700;outline-offset:2px}
-/* Feature badges section */
-.feature-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
-.fbadge{font-size:10px;padding:4px 10px;border-radius:12px;border:1px solid;font-weight:600}
-.fbadge-dark{color:#aa88ff;border-color:#aa88ff44;background:rgba(170,136,255,.08)}
-.fbadge-pwa{color:#00E5A0;border-color:#00E5A044;background:rgba(0,229,160,.08)}
-.fbadge-kb{color:#5FA0FF;border-color:#5FA0FF44;background:rgba(95,160,255,.08)}
-.fbadge-a11y{color:#FFD700;border-color:#FFD70044;background:rgba(255,215,0,.08)}
-.footer{margin-top:32px;text-align:center}
-.footer p{font-size:10px;color:var(--footer-text);line-height:1.8}
-@media(max-width:360px){
-  h1{font-size:24px}
-  .card-icon{font-size:26px}
-  .card-content h2{font-size:13px}
-}
+#theme-toggle:hover{border-color:#FFD700;transform:scale(1.1)}#theme-toggle:focus-visible{outline:2px solid #FFD700;outline-offset:2px}
+.fbadges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.fb{font-size:10px;padding:4px 10px;border-radius:12px;border:1px solid;font-weight:600}
+.fb-ach{color:#FFD700;border-color:#FFD70044;background:rgba(255,215,0,.08)}
+.fb-stat{color:#FF5FA2;border-color:#FF5FA244;background:rgba(255,95,162,.08)}
+.fb-turn{color:#aa88ff;border-color:#aa88ff44;background:rgba(170,136,255,.08)}
+.fb-quiz{color:#00E5A0;border-color:#00E5A044;background:rgba(0,229,160,.08)}
+.fb-dark{color:#aa88ff;border-color:#aa88ff44;background:rgba(170,136,255,.08)}
+.fb-pwa{color:#00E5A0;border-color:#00E5A044;background:rgba(0,229,160,.08)}
+.fb-kb{color:#5FA0FF;border-color:#5FA0FF44;background:rgba(95,160,255,.08)}
+.fb-a11y{color:#FFD700;border-color:#FFD70044;background:rgba(255,215,0,.08)}
+.footer{margin-top:32px;text-align:center}.footer p{font-size:10px;color:#2a2a3a;line-height:1.8}
+@media(max-width:360px){h1{font-size:24px}.gc-icon{font-size:26px}.gc-c h2{font-size:13px}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
 <button id="theme-toggle" onclick="toggleTheme()" aria-label="다크모드/라이트모드 전환" tabindex="1">&#9728;&#65039;</button>
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
-<div class="container" role="main">
+<div class="ctr" id="main" role="main">
   <div class="logo-area">
     <div class="logo-glow"></div>
     <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="한국사 영웅전 로고">
@@ -85,119 +91,91 @@ h1{font-size:30px;font-weight:900;background:linear-gradient(135deg,#FFD700,#C49
   </div>
   <h1>한국사 영웅전</h1>
   <p class="sub">택티컬 전략 RPG</p>
-  <p class="version">v9.0 &#8212; 다크모드 + 전투로그 + 파티클 + 난이도선택 + PWA</p>
+  <p class="version">v10.0 &#8212; 24업적 + 통계 + 턴순서 + 40퀴즈 + 다크모드 + PWA</p>
+
+  <div class="stats-bar" id="stats-bar" role="status" aria-label="플레이 현황">
+    <span class="stats-pill">&#9876;&#65039; 전투 <b id="sb-wins">0</b>승</span>
+    <span class="stats-pill">&#128218; 퀴즈 <b id="sb-quiz">0</b>문</span>
+    <span class="stats-pill">&#127942; 업적 <b id="sb-ach">0</b>/<b id="sb-ach-t">24</b></span>
+  </div>
+
   <div class="save-banner" id="save-banner" onclick="location.href='korean-rpg-v7.html?continue=1'" role="button" tabindex="2" aria-label="이어하기">
     <h3>&#9654; 이어하기</h3>
     <p id="save-info">저장된 데이터 로딩중...</p>
   </div>
 
-  <div class="section">
-    <span class="section-line"></span>
-    <span class="section-label">기능</span>
-    <span class="section-line"></span>
-  </div>
-  <div class="feature-badges" role="list" aria-label="v9.0 주요 기능">
-    <span class="fbadge fbadge-dark" role="listitem">&#127769; 다크모드</span>
-    <span class="fbadge fbadge-pwa" role="listitem">&#128241; PWA</span>
-    <span class="fbadge fbadge-kb" role="listitem">&#9000; 키보드</span>
-    <span class="fbadge fbadge-a11y" role="listitem">&#9855; 접근성</span>
+  <div class="sec"><span class="sec-line"></span><span class="sec-label">v10.0 신기능</span><span class="sec-line"></span></div>
+  <div class="fbadges" role="list" aria-label="v10.0 주요 기능">
+    <span class="fb fb-ach" role="listitem">&#127942; 24업적</span>
+    <span class="fb fb-stat" role="listitem">&#128202; 통계</span>
+    <span class="fb fb-turn" role="listitem">&#128101; 턴순서</span>
+    <span class="fb fb-quiz" role="listitem">&#128218; 40퀴즈</span>
+    <span class="fb fb-dark" role="listitem">&#127769; 다크모드</span>
+    <span class="fb fb-pwa" role="listitem">&#128241; PWA</span>
+    <span class="fb fb-kb" role="listitem">&#9000; 키보드</span>
+    <span class="fb fb-a11y" role="listitem">&#9855; 접근성</span>
   </div>
 
-  <div class="section">
-    <span class="section-line"></span>
-    <span class="section-label">최신 버전 (추천)</span>
-    <span class="section-line"></span>
-  </div>
+  <div class="sec"><span class="sec-line"></span><span class="sec-label">최신 버전 (추천)</span><span class="sec-line"></span></div>
   <div class="games" role="list" aria-label="게임 목록">
-    <a href="korean-rpg-v7.html" class="game-card" style="--accent:#FF5FA2" role="listitem" tabindex="3" aria-label="한국사 영웅전 v9 실행">
-      <span class="card-icon" aria-hidden="true">&#9876;&#65039;</span>
-      <div class="card-content">
-        <h2>한국사 영웅전 v9 <span class="badge badge-best">BEST</span> <span class="badge badge-ver">v9.0</span></h2>
-        <p>4챕터 완전판 &#8212; 환웅, 단군, 위만, 부여&#183;삼한. 다크모드, 전투로그, 파티클이펙트, 난이도선택, PWA오프라인</p>
-        <div class="features">
+    <a href="korean-rpg-v7.html" class="gc" style="--accent:#FF5FA2" role="listitem" tabindex="3" aria-label="v10 실행">
+      <span class="gc-icon" aria-hidden="true">&#9876;&#65039;</span>
+      <div class="gc-c">
+        <h2>한국사 영웅전 v10 <span class="badge badge-best">BEST</span> <span class="badge badge-ver">v10.0</span></h2>
+        <p>4챕터 완전판 &#8212; 환웅, 단군, 위만, 부여&#183;삼한. 24업적, 전적통계, 턴순서, 40퀴즈</p>
+        <div class="feats">
+          <span class="feat">&#127942; 24업적</span>
+          <span class="feat">&#128202; 통계</span>
           <span class="feat">&#127925; BGM</span>
           <span class="feat">&#128200; 레벨업</span>
           <span class="feat">&#127758; 미니맵</span>
           <span class="feat">&#128190; 자동저장</span>
-          <span class="feat">&#9876;&#65039; 피해 미리보기</span>
-          <span class="feat">&#128241; 반응형</span>
           <span class="feat">&#127769; 다크모드</span>
           <span class="feat">&#127918; 난이도</span>
         </div>
       </div>
     </a>
   </div>
-  <div class="section">
-    <span class="section-line"></span>
-    <span class="section-label">레거시</span>
-    <span class="section-line"></span>
-  </div>
+
+  <div class="sec"><span class="sec-line"></span><span class="sec-label">3D 버전</span><span class="sec-line"></span></div>
   <div class="games" role="list">
-    <a href="korean-rpg-v6.html" class="game-card" style="--accent:#5FA0FF" role="listitem" tabindex="4" aria-label="v6 레거시 버전 실행">
-      <span class="card-icon" aria-hidden="true">&#128220;</span>
-      <div class="card-content">
+    <a href="korean-rpg-v8.html" class="gc" style="--accent:#aa88ff" role="listitem" tabindex="4" aria-label="v8 3D 버전 실행">
+      <span class="gc-icon" aria-hidden="true">&#127760;</span>
+      <div class="gc-c">
+        <h2>3D 영걸전 에디션 <span class="badge badge-3d">3D</span> <span class="badge badge-ver">v8</span></h2>
+        <p>Three.js 3D &#8212; 택티컬 카메라 3모드, 영걸전풍 컷인, SRPG 전투</p>
+        <div class="feats">
+          <span class="feat">&#127912; Three.js 3D</span>
+          <span class="feat">&#127909; 3카메라</span>
+          <span class="feat">&#9876;&#65039; 컷인 연출</span>
+          <span class="feat">&#128101; 마을 탐험</span>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <div class="sec"><span class="sec-line"></span><span class="sec-label">레거시</span><span class="sec-line"></span></div>
+  <div class="games" role="list">
+    <a href="korean-rpg-v6.html" class="gc" style="--accent:#5FA0FF" role="listitem" tabindex="5" aria-label="v6 레거시 버전">
+      <span class="gc-icon" aria-hidden="true">&#128220;</span>
+      <div class="gc-c">
         <h2>v6 레거시 <span class="badge badge-tac">LEGACY</span></h2>
         <p>v6 단일파일 버전 &#8212; 클래스 승급, 장비 드롭, 상점 시스템</p>
       </div>
     </a>
   </div>
+
   <div class="footer">
-    <p>한국사 영웅전 v9.0<br>PRIME Holdings &copy; 2026</p>
+    <p>한국사 영웅전 v10.0<br>PRIME Holdings &copy; 2026</p>
   </div>
 </div>
 <script>
-// Theme toggle
-function toggleTheme(){
-  document.body.classList.toggle('light-mode');
-  var isLight=document.body.classList.contains('light-mode');
-  localStorage.setItem('krpg-theme',isLight?'light':'dark');
-  document.getElementById('theme-toggle').textContent=isLight?'🌙':'☀️';
-}
-(function(){
-  var saved=localStorage.getItem('krpg-theme');
-  if(saved==='light'){document.body.classList.add('light-mode');document.getElementById('theme-toggle').textContent='🌙'}
-})();
-// Particle background
-(function(){
-  var canvas = document.getElementById('bg-canvas');
-  var ctx = canvas.getContext('2d');
-  var W, H, particles = [];
-  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-  resize(); window.addEventListener('resize', resize);
-  function Particle(){ this.reset(); this.y = Math.random() * H; }
-  Particle.prototype.reset=function(){
-    this.x = Math.random() * W; this.y = H + 10;
-    this.size = Math.random() * 2 + 0.5;
-    this.speedY = -(Math.random() * 0.3 + 0.1);
-    this.speedX = (Math.random() - 0.5) * 0.2;
-    this.alpha = Math.random() * 0.3 + 0.1;
-    var colors = ['196,149,106','255,215,0','160,168,184'];
-    this.color = colors[Math.floor(Math.random()*colors.length)];
-  };
-  Particle.prototype.update=function(){ this.y += this.speedY; this.x += this.speedX; this.alpha -= 0.0003; if(this.y < -10 || this.alpha <= 0) this.reset(); };
-  Particle.prototype.draw=function(){ ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle = 'rgba('+this.color+','+this.alpha+')'; ctx.fill(); };
-  for(var i=0; i<40; i++) particles.push(new Particle());
-  function animate(){ ctx.clearRect(0,0,W,H); particles.forEach(function(p){ p.update(); p.draw(); }); requestAnimationFrame(animate); }
-  animate();
-})();
-// Save banner
-(function(){
-  try {
-    var save = localStorage.getItem('history-rpg-save');
-    if(save){
-      var data = JSON.parse(save);
-      var banner = document.getElementById('save-banner');
-      var info = document.getElementById('save-info');
-      banner.style.display = 'block';
-      var epNames = {1:'EP.1 환웅의 하강', 2:'EP.2 살수대첩'};
-      info.textContent = (epNames[data.episode]||'EP.1') + ' · Lv.' + (data.maxLevel||1) + ' · ' + (data.date||'');
-    }
-  } catch(e){}
-})();
-// Service Worker Registration
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(function(){});
-}
+function toggleTheme(){document.body.classList.toggle('light-mode');var l=document.body.classList.contains('light-mode');localStorage.setItem('krpg-theme',l?'light':'dark');document.getElementById('theme-toggle').textContent=l?'🌙':'☀️'}
+(function(){var s=localStorage.getItem('krpg-theme');if(s==='light'){document.body.classList.add('light-mode');document.getElementById('theme-toggle').textContent='🌙'}})();
+(function(){var c=document.getElementById('bg-canvas'),x=c.getContext('2d'),W,H,ps=[];function re(){W=c.width=innerWidth;H=c.height=innerHeight}re();addEventListener('resize',re);function P(){this.rs();this.y=Math.random()*H}P.prototype.rs=function(){this.x=Math.random()*W;this.y=H+10;this.sz=Math.random()*2+.5;this.sy=-(Math.random()*.3+.1);this.sx=(Math.random()-.5)*.2;this.a=Math.random()*.3+.1;var cs=['196,149,106','255,215,0','160,168,184'];this.c=cs[Math.floor(Math.random()*cs.length)]};P.prototype.up=function(){this.y+=this.sy;this.x+=this.sx;this.a-=.0003;if(this.y<-10||this.a<=0)this.rs()};P.prototype.dr=function(){x.beginPath();x.arc(this.x,this.y,this.sz,0,Math.PI*2);x.fillStyle='rgba('+this.c+','+this.a+')';x.fill()};for(var i=0;i<40;i++)ps.push(new P);(function an(){x.clearRect(0,0,W,H);ps.forEach(function(p){p.up();p.dr()});requestAnimationFrame(an)})()})();
+(function(){try{var s=localStorage.getItem('history-rpg-save');if(s){var d=JSON.parse(s),b=document.getElementById('save-banner'),i=document.getElementById('save-info');b.style.display='block';var ep={1:'EP.1 환웅의 하강',2:'EP.2 살수대첩'};i.textContent=(ep[d.episode]||'EP.1')+' Lv.'+(d.maxLevel||1)+' '+(d.date||'')}}catch(e){}})();
+(function(){try{var st=JSON.parse(localStorage.getItem('krpg_stats'))||{};var ach=JSON.parse(localStorage.getItem('krpg_ach'))||[];var w=document.getElementById('sb-wins');if(w)w.textContent=st.wins||0;var q=document.getElementById('sb-quiz');if(q)q.textContent=st.quizOk||0;var a=document.getElementById('sb-ach');if(a)a.textContent=ach.length||0}catch(e){}})();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){})}
 </script>
 </body>
 </html>
