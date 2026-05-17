@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>한국사 영웅전 v9 — 영걸전 스타일 택티컬 RPG</title>
+<title>한국사 영웅전 v11 — 영걸전 스타일 택티컬 RPG</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C4956A'/%3E%3Cstop offset='100%25' stop-color='%238B6B3D'/%3E%3C/linearGradient%3E%3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23A0A8B8'/%3E%3Cstop offset='100%25' stop-color='%23707888'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M30 6L32 4l2 2v32l-2 2-2-2z' fill='url(%23s)'/%3E%3Cpath d='M26 12h12v4H26z' fill='%23C4956A'/%3E%3Cellipse cx='32' cy='42' rx='14' ry='4' fill='%238B6B3D' opacity='.3'/%3E%3Cpath d='M18 28c0-8 6-16 14-22v6c-5 4-8 10-8 16h-6z' fill='url(%23g)' opacity='.8'/%3E%3Cpath d='M46 28c0-8-6-16-14-22v6c5 4 8 10 8 16h6z' fill='url(%23g)' opacity='.8'/%3E%3Ccircle cx='32' cy='10' r='3' fill='%23FFD700'/%3E%3Cpath d='M14 46l8-4 4 6H18z' fill='url(%23s)'/%3E%3Cpath d='M50 46l-8-4-4 6h8z' fill='url(%23s)'/%3E%3Crect x='22' y='44' width='20' height='14' rx='3' fill='url(%23g)'/%3E%3Cpath d='M28 48h8v2h-8z' fill='%23FFD700' opacity='.6'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a14'/%3E%3Cpath d='M30 8v28l2 2 2-2V8z' fill='%23A0A8B8'/%3E%3Cpath d='M26 14h12v3H26z' fill='%23C4956A'/%3E%3Crect x='22' y='44' width='20' height='12' rx='3' fill='%23C4956A'/%3E%3Ccircle cx='32' cy='12' r='3' fill='%23FFD700'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0608">
-<meta name="description" content="한국사 영웅전 v9 — 고조선부터 부여·삼한까지, 역사 속 영웅들과 함께하는 전략 택티컬 RPG">
+<meta name="description" content="한국사 영웅전 v11 — 고조선부터 부여·삼한까지, 역사도감+캐릭터도감+연표+일일도전+전략가이드+60퀴즈. 전략 택티컬 RPG">
+<meta name="keywords" content="한국사,RPG,전략,택티컬,고조선,단군,환웅,영걸전,SRPG,역사게임">
 <style>
 :root{--bg:#0a0608;--text:#e8dcc8;--ui-bg:rgba(26,20,40,.9);--ui-border:#5a4a3a;--hud-bg:#0a0608ee}
 .light-mode{--bg:#f0ece4;--text:#1a1a2a;--ui-bg:rgba(255,255,255,.92);--ui-border:#c4b8a0;--hud-bg:rgba(240,236,228,.95)}
@@ -304,7 +305,7 @@ canvas{display:block;position:absolute;top:0;left:0}
     <div style="animation:fadeUp .8s ease">
       <div style="font-size:9px;letter-spacing:5px;color:#8a7a6a;margin-bottom:6px">TACTICAL RPG &middot; 파랜드 택틱스 스타일 &middot; BC 2400~BC 1세기</div>
       <h1 class="title-text">한국사 영웅전</h1>
-      <div class="title-sub">v9.0 &mdash; 1부 고조선 &middot; 환웅 + 단군 + 위만 + 부여&middot;삼한</div>
+      <div class="title-sub">v11.0 &mdash; 1부 고조선 &middot; 환웅 + 단군 + 위만 + 부여&middot;삼한</div>
       <div style="margin-top:12px;font-size:10px;color:#6a5a3a">난이도 선택</div>
       <div id="difficulty-selector"></div>
       <div style="margin-top:16px"><button class="title-btn" onclick="openChapterSelect()" aria-label="새 게임">새 게임</button></div>
@@ -316,7 +317,10 @@ canvas{display:block;position:absolute;top:0;left:0}
         &#9656; 클래스 승급 &middot; 장비 &middot; 상점<br>
         &#9656; 출격 편성 &middot; ZOC &middot; 레벨 계승<br>
         &#9656; 12&times;10 확장맵 &middot; 증원 시스템<br>
-        &#9656; 다크모드 &middot; 전투로그 &middot; 난이도선택
+        &#9656; 다크모드 &middot; 전투로그 &middot; 난이도선택<br>
+        &#9656; 역사도감 30항목 &middot; 캐릭터도감 12종<br>
+        &#9656; 인터랙티브 연표 &middot; 일일도전 &middot; 전략가이드<br>
+        &#9656; 역사 퀴즈 60문 &middot; 키보드 단축키 E/C/L/D/G
       </div>
     </div>
   </div>
@@ -348,6 +352,11 @@ canvas{display:block;position:absolute;top:0;left:0}
     <div class="kb-row"><span class="kb-key">Enter</span> 상호작용 / 대화 진행</div>
     <div class="kb-row"><span class="kb-key">Space</span> 상호작용 / 대화 진행</div>
     <div class="kb-row"><span class="kb-key">Esc</span> 메뉴 / 취소</div>
+    <div class="kb-row"><span class="kb-key">E</span> 역사 도감</div>
+    <div class="kb-row"><span class="kb-key">C</span> 캐릭터 도감</div>
+    <div class="kb-row"><span class="kb-key">L</span> 역사 연표</div>
+    <div class="kb-row"><span class="kb-key">D</span> 일일 도전</div>
+    <div class="kb-row"><span class="kb-key">G</span> 전략 가이드</div>
     <div class="kb-row"><span class="kb-key">?</span> 이 도움말 표시</div>
     <button class="kb-close" onclick="showKeyboardHelp()">닫기</button>
   </div>
@@ -361,6 +370,7 @@ canvas{display:block;position:absolute;top:0;left:0}
 <script src="js/battle.js"></script>
 <script src="js/minigames.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/v11_patch.js"></script>
 <script>
 // v9.0: Show battle log and speed button during tactical mode
 (function(){

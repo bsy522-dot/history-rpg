@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v10.0 — 고조선 4챕터 택티컬 RPG. 24업적+통계+턴순서+40퀴즈+다크모드+PWA",
+  "description": "한국사 영웅전 v11.0 — 고조선 4챕터 택티컬 RPG. 역사도감30+캐릭터도감+인터랙티브연표+일일도전+전략가이드+60퀴즈+24업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",

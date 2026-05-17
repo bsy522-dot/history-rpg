@@ -1,8 +1,8 @@
-const CACHE='krpg-v10';
+const CACHE='krpg-v11';
 const PRECACHE=[
   './index.html','./korean-rpg-v7.html','./manifest.json',
   './js/config.js','./js/audio.js','./js/story.js','./js/engine.js',
-  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js'
+  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js','./js/v11_patch.js'
 ];
 
 self.addEventListener('install',e=>{
@@ -25,6 +25,9 @@ self.addEventListener('fetch',e=>{
             if(html.indexOf('v10_patch')<0){
               html=html.replace('</body>','<scr'+'ipt src="./js/v10_patch.js"></scr'+'ipt>\n</body>');
             }
+            if(html.indexOf('v11_patch')<0){
+              html=html.replace('</body>','<scr'+'ipt src="./js/v11_patch.js"></scr'+'ipt>\n</body>');
+            }
             return new Response(html,{status:200,headers:{'Content-Type':'text/html;charset=utf-8'}});
           });
         }
@@ -35,6 +38,9 @@ self.addEventListener('fetch',e=>{
           return r.text().then(html=>{
             if(html.indexOf('v10_patch')<0){
               html=html.replace('</body>','<scr'+'ipt src="./js/v10_patch.js"></scr'+'ipt>\n</body>');
+            }
+            if(html.indexOf('v11_patch')<0){
+              html=html.replace('</body>','<scr'+'ipt src="./js/v11_patch.js"></scr'+'ipt>\n</body>');
             }
             return new Response(html,{status:200,headers:{'Content-Type':'text/html;charset=utf-8'}});
           });
