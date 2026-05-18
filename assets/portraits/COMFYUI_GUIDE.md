@@ -155,6 +155,37 @@ modern clothing, hanbok joseon, modern hairstyle
 
 ---
 
+## 자동 양산 (2026-05-12 추가)
+
+병석님 PC에서 `D:\AI\06_도구\ComfyUI\` 의 ComfyUI portable + Z-Image turbo 모델 확인 완료. 다음 두 가지 자동화 자산을 준비해 두었습니다.
+
+### A. Python 일괄 양산 스크립트
+- 경로: `D:\AI\06_도구\ComfyUI\_gen_korean_rpg_portraits.py`
+- 사용:
+  ```cmd
+  # 1) ComfyUI 서버 부팅 (이미 켜져있으면 건너뛰기)
+  D:\AI\06_도구\ComfyUI\run_nvidia_gpu.bat
+
+  # 2) 시범 3인 (hwanin, dangun, ungnyeo)
+  D:\AI\06_도구\ComfyUI\python_embeded\python.exe D:\AI\06_도구\ComfyUI\_gen_korean_rpg_portraits.py --demo
+
+  # 3) 25명 전체
+  D:\AI\06_도구\ComfyUI\python_embeded\python.exe D:\AI\06_도구\ComfyUI\_gen_korean_rpg_portraits.py --all
+
+  # 4) 특정 키만 (재시도용)
+  ... _gen_korean_rpg_portraits.py --keys dangun ungnyeo
+  ```
+- 출력: `D:\AI\04_게임\한국사RPG\assets\portraits\<key>.png` 로 바로 저장 (1024×1024).
+- 시드는 캐릭터별로 고정(8001~8307). 재실행 시 동일 결과.
+
+### B. ComfyUI 웹 UI용 워크플로우 JSON
+- 경로: `assets/portraits/_workflow_template.json`
+- ComfyUI Web UI(http://127.0.0.1:8188) → 우측 "Load" 버튼 → JSON 선택.
+- 노드 20(Positive) 텍스트에서 `<CHARACTER_SPECIFIC_APPEND_HERE>` 위치에 위 표(2장)의 영문 추가어 붙여넣기.
+- 노드 40 seed / 노드 60 filename_prefix 변경 후 "Queue Prompt".
+
+---
+
 ## 시나리오 결정 (2026-05-12)
 
 - **sinha_general**: 단군의 충직한 기마 대장군으로 확정. 근거 — `units.json:158-170` (team=ally, unitType=기마병, skills=charge/war_cry, atk24·spd12), `story_ep2.json:58,71,108`에서 단군에게 "단군님" 호칭 + "명 받듭니다" + 출진·승리 보고를 도맡고, `portrait_art.js:433-464` SVG가 이미 황금 갑옷·투구·창·콧수염·사슴 자수로 묘사. 디자인은 이 SVG를 ComfyUI로 충실 재현.

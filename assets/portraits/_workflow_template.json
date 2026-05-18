@@ -1,0 +1,75 @@
+{
+  "_comment": "ComfyUI Z-Image turbo 워크플로우 템플릿 (한국사RPG portrait 양산용). ComfyUI 웹 UI에서 'Load' 버튼으로 import 한 뒤, 노드 20(Positive)에 캐릭터별 추가 프롬프트를 붙이고, 노드 40의 seed/노드 60의 filename_prefix만 바꿔 큐에 넣으면 됩니다. 모델 3종은 D:/AI/06_도구/ComfyUI/ComfyUI/models/ 에 이미 설치 확인됨 (z_image_turbo_bf16, qwen_3_4b, ae).",
+  "_usage": "POST http://127.0.0.1:8188/prompt  body={\"prompt\": <이 객체>, \"client_id\": \"<uuid>\"}",
+  "10": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "20": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["11", 0],
+      "text": "masterpiece, best quality, koei eiketsuden style, sangokushi eiketsuden portrait, anime manga illustration, ancient korean mythology, gojoseon era, bust shot, front view, head and shoulders, centered composition, soft cel shading, clean lineart, warm oriental color palette, solid plain background, detailed face, expressive eyes, <CHARACTER_SPECIFIC_APPEND_HERE>"
+    }
+  },
+  "21": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["11", 0],
+      "text": "lowres, blurry, jpeg artifacts, watermark, signature, text, logo, 3d render, photorealistic, photograph, western cartoon, chibi, sd, full body, multiple characters, crowd, complex background, landscape, deformed face, extra fingers, bad anatomy, cropped head, side view, back view, modern clothing, hanbok joseon, modern hairstyle"
+    }
+  },
+  "30": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "40": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["10", 0],
+      "positive": ["20", 0],
+      "negative": ["21", 0],
+      "latent_image": ["30", 0],
+      "seed": 8001,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    }
+  },
+  "50": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["40", 0],
+      "vae": ["12", 0]
+    }
+  },
+  "60": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["50", 0],
+      "filename_prefix": "krpg_<KEY>"
+    }
+  }
+}
