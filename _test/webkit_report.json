@@ -1,0 +1,196 @@
+{
+  "url": "http://localhost:8766/korean-rpg-v8.html?debug=1",
+  "engine": "webkit",
+  "results": [
+    {
+      "scenario": "W5_webgl_probe",
+      "profile": "iPhone 13",
+      "steps": [
+        "webgl_probe={'webgl2': True, 'webgl1': False, 'renderer': 'Apple GPU', 'version': 'WebGL 2.0', 'maxTex': 16384, 'engineWebglState': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "scene_after_load={'mode': 'title', 'scene': None, 'lastTrigger': None, 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W1_gate_exit",
+      "profile": "iPhone 13",
+      "steps": [
+        "start_ep1=False",
+        "in_town=False",
+        "webgl={'ok': True, 'renderer': 'Apple GPU'}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W2_joystick_drag",
+      "profile": "iPhone 13",
+      "steps": [
+        "start_ep1=True",
+        "in_town=True",
+        "joystick={'visible': True, 'cx': 93, 'cy': 563, 'w': 150, 'h': 150}",
+        "after_drag_right={'x': 7, 'y': 10}",
+        "after_drag_up={'x': 8, 'y': 10}",
+        "dpad_a={'cx': 344, 'cy': 610}",
+        "a_tapped=True",
+        "after_A={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "after_exit={'mode': 'battle', 'scene': 'battle:battle', 'lastTrigger': 'playBattleScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W3_touchcancel",
+      "profile": "iPhone 13",
+      "steps": [
+        "start_ep1=True",
+        "in_town=True",
+        "joystick={'visible': True, 'cx': 93, 'cy': 563, 'w': 150, 'h': 150}",
+        "after_cancelled_drags={'x': 10, 'y': 10}",
+        "after_recovery_drag={'x': 10, 'y': 10}",
+        "after_up={'x': 10, 'y': 10}",
+        "after_A={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "after_exit={'mode': 'battle', 'scene': 'battle:battle', 'lastTrigger': 'playBattleScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W4_rotate",
+      "profile": "iPhone 13",
+      "steps": [
+        "start_ep1=True",
+        "in_town=True",
+        "after_rotate={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': 'playExplorationScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "after_walk={'x': 9, 'y': 10}",
+        "after_exit={'mode': 'battle', 'scene': 'battle:battle', 'lastTrigger': 'playBattleScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W6_gate_stress",
+      "profile": "iPhone 13",
+      "steps": [
+        "start_ep1=True",
+        "in_town=True",
+        "at_gate_below={'x': 7, 'y': 10}",
+        "after_walk_into_gate={'x': 8, 'y': 10}",
+        "dpad_a={'cx': 344, 'cy': 610}",
+        "after_A_spam={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "dpad_b={'cx': 0, 'cy': 0}",
+        "after_B={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "after_settle={'mode': 'battle', 'scene': 'battle:battle', 'lastTrigger': 'playBattleScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    },
+    {
+      "scenario": "W6_gate_stress",
+      "profile": "iPhone SE",
+      "steps": [
+        "start_ep1=True",
+        "in_town=True",
+        "at_gate_below={'x': 7, 'y': 10}",
+        "after_walk_into_gate={'x': 8, 'y': 10}",
+        "dpad_a={'cx': 274, 'cy': 514}",
+        "after_A_spam={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "dpad_b={'cx': 0, 'cy': 0}",
+        "after_B={'mode': 'exploration', 'scene': 'exploration:town_scene', 'lastTrigger': '_runTrigger:ep1_depart', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}",
+        "after_settle={'mode': 'battle', 'scene': 'battle:battle', 'lastTrigger': 'playBattleScene:start', 'webgl': {'ok': True, 'renderer': 'Apple GPU'}}"
+      ],
+      "final_error": {
+        "visible": false,
+        "msg": ""
+      },
+      "console_errors": [],
+      "warnings": [
+        "THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000\n(50,12-96): warning X4713: Sample Bias value is limited to the range [-16.00, 15.99], using -16.000000 instead of -100.000000",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported",
+        "[audio] Web Audio API not supported"
+      ],
+      "net_4xx": []
+    }
+  ],
+  "device": {
+    "name": "iPhone 13",
+    "viewport": {
+      "width": 390,
+      "height": 664
+    },
+    "dpr": 3,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.4 Mobile/15E148 Safari/604.1"
+  }
+}
