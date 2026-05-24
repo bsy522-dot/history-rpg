@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v11.0 — 고조선 4챕터 택티컬 RPG. 역사도감30+캐릭터도감+인터랙티브연표+일일도전+전략가이드+60퀴즈+24업적+다크모드+PWA",
+  "description": "한국사 영웅전 v12.0 — 고조선 4챕터 택티컬 RPG. 세력도+인물관계도+명장면갤러리+병법서+전투복기+공유카드+연습모드+75퀴즈+36업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -14,6 +14,20 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "세력도",
+      "short_name": "세력도",
+      "url": "./korean-rpg-v7.html?open=factionmap",
+      "description": "고조선 시대 세력 분포도"
+    },
+    {
+      "name": "병법서",
+      "short_name": "병법서",
+      "url": "./korean-rpg-v7.html?open=artofwar",
+      "description": "전술 전략 심화 가이드"
     }
   ]
 }
