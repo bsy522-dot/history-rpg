@@ -1,8 +1,8 @@
-const CACHE='krpg-v12';
+const CACHE='krpg-v13';
 const PRECACHE=[
   './index.html','./korean-rpg-v7.html','./manifest.json',
   './js/config.js','./js/audio.js','./js/story.js','./js/engine.js',
-  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js','./js/v11_patch.js','./js/v12_patch.js'
+  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js','./js/v11_patch.js','./js/v12_patch.js','./js/v13_patch.js'
 ];
 
 self.addEventListener('install',e=>{
@@ -22,15 +22,11 @@ self.addEventListener('fetch',e=>{
       fetch(e.request).then(r=>{
         if(r.ok&&isGame){
           return r.text().then(html=>{
-            if(html.indexOf('v10_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v10_patch.js"></scr'+'ipt>\n</body>');
-            }
-            if(html.indexOf('v11_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v11_patch.js"></scr'+'ipt>\n</body>');
-            }
-            if(html.indexOf('v12_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v12_patch.js"></scr'+'ipt>\n</body>');
-            }
+            ['v10','v11','v12','v13'].forEach(v=>{
+              if(html.indexOf(v+'_patch')<0){
+                html=html.replace('</body>','<scr'+'ipt src="./js/'+v+'_patch.js"></scr'+'ipt>\n</body>');
+              }
+            });
             return new Response(html,{status:200,headers:{'Content-Type':'text/html;charset=utf-8'}});
           });
         }
@@ -39,15 +35,11 @@ self.addEventListener('fetch',e=>{
         if(!r)return r;
         if(isGame){
           return r.text().then(html=>{
-            if(html.indexOf('v10_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v10_patch.js"></scr'+'ipt>\n</body>');
-            }
-            if(html.indexOf('v11_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v11_patch.js"></scr'+'ipt>\n</body>');
-            }
-            if(html.indexOf('v12_patch')<0){
-              html=html.replace('</body>','<scr'+'ipt src="./js/v12_patch.js"></scr'+'ipt>\n</body>');
-            }
+            ['v10','v11','v12','v13'].forEach(v=>{
+              if(html.indexOf(v+'_patch')<0){
+                html=html.replace('</body>','<scr'+'ipt src="./js/'+v+'_patch.js"></scr'+'ipt>\n</body>');
+              }
+            });
             return new Response(html,{status:200,headers:{'Content-Type':'text/html;charset=utf-8'}});
           });
         }
