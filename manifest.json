@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v13.0 — 고조선 4챕터 택티컬 RPG. 진형시스템6종+영웅각성12인+유물도감15종+전쟁사연대기8편+유닛도감8종+캠페인8종+시대진보+90퀴즈+48업적+다크모드+PWA",
+  "description": "한국사 영웅전 v14.0 — 고조선 4챕터 택티컬 RPG. 외교시스템5국+자원관리4종+날씨효과4종+건축5종+교역6로+특수임무6종+랜덤이벤트12종+전술지도+105퀴즈+60업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,16 +18,22 @@
   ],
   "shortcuts": [
     {
-      "name": "진형 시스템",
-      "short_name": "진형",
-      "url": "./korean-rpg-v7.html?open=formation",
-      "description": "6종 전술 진형 선택"
+      "name": "외교 시스템",
+      "short_name": "외교",
+      "url": "./korean-rpg-v7.html?open=diplomacy",
+      "description": "5국 외교 관계 관리"
     },
     {
-      "name": "영웅 각성",
-      "short_name": "각성",
-      "url": "./korean-rpg-v7.html?open=awakening",
-      "description": "12인 영웅 각성 시스템"
+      "name": "건축 시스템",
+      "short_name": "건축",
+      "url": "./korean-rpg-v7.html?open=fortress",
+      "description": "성곽/창고/대장간/연병장/시장 건설"
+    },
+    {
+      "name": "전술 지도",
+      "short_name": "지도",
+      "url": "./korean-rpg-v7.html?open=tacmap",
+      "description": "고조선 시대 세력 분포도"
     }
   ]
 }
