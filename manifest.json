@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v16.0 — 고조선 4챕터 택티컬 RPG. 영웅관계도+기술연구트리11종+영웅스킬트리3영웅12스킬+세력영토지도9세력+문명불가사의6종+전투통계+일일도전6종+BGM10곡+역사연대기12사건+135퀴즈+84업적+다크모드+PWA",
+  "description": "한국사 영웅전 v17.0 — 고조선 4챕터 택티컬 RPG. 왕실계보12대+조정회의8신하+영토확장8지역+사계절순환+전설수집12종+병법서8전술+유적탐험6곳+고급기술트리12종+영웅관계도+기술연구트리11종+영웅스킬트리3영웅12스킬+세력영토지도9세력+문명불가사의6종+전투통계+일일도전6종+BGM10곡+역사연대기12사건+150퀴즈+96업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -46,6 +46,30 @@
       "short_name": "BGM",
       "url": "./korean-rpg-v7.html?open=bgm",
       "description": "10곡 역사 배경음악 Web Audio"
+    },
+    {
+      "name": "왕실 계보",
+      "short_name": "계보",
+      "url": "./korean-rpg-v7.html?open=lineage",
+      "description": "고조선 역대 12대 왕실 계보"
+    },
+    {
+      "name": "전설 수집",
+      "short_name": "전설",
+      "url": "./korean-rpg-v7.html?open=legends",
+      "description": "12종 한국 전설/신화 수집"
+    },
+    {
+      "name": "병법서",
+      "short_name": "병법",
+      "url": "./korean-rpg-v7.html?open=art",
+      "description": "8종 고대 전술 병법서"
+    },
+    {
+      "name": "유적 탐험",
+      "short_name": "유적",
+      "url": "./korean-rpg-v7.html?open=ruins",
+      "description": "6곳 고대 유적 탐험 Canvas"
     }
   ]
 }

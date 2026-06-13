@@ -769,3 +769,72 @@ python -m http.server 8765
 | CDN 외부링크 | ✅ 0건 |
 | 개인정보 노출 | ✅ 0건 |
 | manifest.json | ✅ VALID |
+
+---
+
+## [AUTO] 2026-06-13 history-rpg — v17.0 왕실계보12대+조정회의8신하+영토확장8지역+사계절순환4계절+전설수집12종+병법서8전술+유적탐험6곳+고급기술트리12종+15퀴즈추가(150)+12업적추가(96)+SFX10종+키보드8종
+
+### 1차: 벤치마킹 분석 (영걸전/문명/AOE 대비)
+
+| 열위점 | 해결 방안 | 결과 |
+|--------|----------|------|
+| 왕실 계보 부재 | 12대 왕조 계보도 Canvas 시각화 + 클릭 상세정보 | 해결 |
+| 조정 시스템 없음 | 8직위 신하 임명 (상대등/병부령/창부령/외사정 등) + 효과 적용 | 해결 |
+| 영토 확장 부족 | 8지역 정복 Canvas 지도 (아사달/번조선/진조선 등) + 비용 시스템 | 해결 |
+| 계절 시스템 없음 | 봄/여름/가을/겨울 4계절 순환 + 각 계절별 보너스/페널티 | 해결 |
+| 전설/신화 수집 없음 | 12종 한국 전설 카드 수집 (단군신화/주몽설화/처용설화 등) | 해결 |
+| 병법/전술 없음 | 8종 전술서 (매복/측면공격/화공/야습/보급선차단 등) | 해결 |
+| 유적 탐험 없음 | 6곳 고대 유적 Canvas 지도 + 위험도/보상 시스템 | 해결 |
+| 고급 기술 부족 | 12종 고급 기술 트리 (천문관측/한의술/조선술/화약 등) | 해결 |
+| 퀴즈 부족 | +15문 추가 (135 → 150) 왕실/조정/전술/유적 관련 | 해결 |
+| 업적 부족 | +12개 추가 (84 → 96) 계보/조정/영토/전설/병법/유적 | 해결 |
+
+### 2차: 개발팀 작업
+
+#### 프론트엔드 (UI/UX)
+- `v17-panel` 풀스크린 오버레이 z-index:131
+- `v17-grid` 반응형 그리드 레이아웃 (min 140px)
+- `v17-card` / `v17-list-item` 컴포넌트 (hover 효과, active 상태)
+- `v17-canvas-wrap` Canvas 시각화 래퍼 (max-width 560px)
+- FAB 퀵액션 8버튼 (우측 하단, v16은 좌측)
+- 사이드바 메뉴 8개 버튼 통합
+
+#### 백엔드 (로직)
+- 왕실 계보: 12대 데이터, 클릭 열람 추적, localStorage `kRPG_lineage`
+- 조정 회의: 8직위 임명/비용 시스템, localStorage `kRPG_court`
+- 영토 확장: 8지역 정복 메커닉, 수도에서 방사형 연결선, localStorage `kRPG_terr`
+- 사계절: 4계절 순환 + 경험 추적, localStorage `kRPG_season`
+- 전설 수집: 12종 수집/비용 메커닉, localStorage `kRPG_legends`
+- 병법서: 8전술 습득/비용 시스템, localStorage `kRPG_tactics`
+- 유적 탐험: 6곳 확률 기반 성공/실패 + 보상, localStorage `kRPG_ruins`
+- 고급 기술: 12종 선행 조건 연구 트리, localStorage `kRPG_v17tech`
+
+#### 콘텐츠
+- 퀴즈 15문: 고조선 왕실/관직/전술/유적 관련
+- 업적 12개: lineage_view/council_first/terr_first/season_cycle/legend_first/tactic_first/ruin_first/v17_explorer 등
+- SFX 10종: research/lineage/council/territory/season/legend/tactic/ruin/quiz_v17/ach_v17
+
+#### 오디오
+- Web Audio API 오실레이터 기반 SFX 10종
+- 각 시스템별 고유 주파수/파형 설정
+
+#### 비주얼
+- Canvas 4종: 왕실계보(520x310), 영토확장(520x320), 유적탐험(520x280), 고급기술(520x380)
+- 방사형 그라디언트, 점선 연결, 클릭 인터랙션
+
+#### 키보드 단축키
+- Shift+1: 왕실 계보 | Shift+2: 조정 회의 | Shift+3: 영토 확장 | Shift+4: 사계절
+- Shift+5: 전설 수집 | Shift+6: 병법서 | Shift+7: 유적 탐험 | Shift+8: 고급 기술
+
+### 3차: 품질 검증
+
+| 검사 항목 | 결과 |
+|------|------|
+| JS 문법 (node -c) | ✅ PASS |
+| v16 참조 없음 (v17_patch.js) | ✅ 0건 |
+| v17 네이밍 규칙 | ✅ v17-panel, v17-*, kRPG_v17ach, window._v17 |
+| z-index 131 | ✅ PASS |
+| CDN 외부링크 | ✅ 0건 |
+| 개인정보 노출 | ✅ 0건 |
+| sw.js 캐시 v17 | ✅ krpg-v17 + PRECACHE + injection |
+| manifest.json v17 | ✅ description + shortcuts 4종 추가 |
