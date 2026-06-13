@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v15.0 — 고조선 4챕터 택티컬 RPG. 장비시스템18종+첩보6종+제사6종+보급5종+유닛승급6병종+역사카드24종+야영6활동+전쟁시뮬레이터+120퀴즈+72업적+다크모드+PWA",
+  "description": "한국사 영웅전 v16.0 — 고조선 4챕터 택티컬 RPG. 왕실조정12관직+고대문자해독6종+민생경제+전장보고서+유적발굴8곳+역사시나리오6종+군사훈련소6종+세력연대기+135퀴즈+84업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,28 +18,28 @@
   ],
   "shortcuts": [
     {
-      "name": "장비 시스템",
-      "short_name": "장비",
-      "url": "./korean-rpg-v7.html?open=equip",
-      "description": "무기/방어구/장신구 18종 장착"
+      "name": "왕실 조정",
+      "short_name": "조정",
+      "url": "./korean-rpg-v7.html?open=court",
+      "description": "12관직 임명 및 조정 운영"
     },
     {
-      "name": "첩보 작전",
-      "short_name": "첩보",
-      "url": "./korean-rpg-v7.html?open=spy",
-      "description": "정찰/파괴공작/암살/이간책 6종"
+      "name": "유적 발굴",
+      "short_name": "발굴",
+      "url": "./korean-rpg-v7.html?open=excav",
+      "description": "8곳 유적 발굴 탐험"
     },
     {
-      "name": "역사 카드",
-      "short_name": "카드",
-      "url": "./korean-rpg-v7.html?open=cards",
-      "description": "24종 역사 카드 수집 및 전투"
+      "name": "역사 시나리오",
+      "short_name": "시나리오",
+      "url": "./korean-rpg-v7.html?open=scenario",
+      "description": "6가지 역사적 분기 선택"
     },
     {
-      "name": "전쟁 시뮬레이터",
-      "short_name": "전쟁",
-      "url": "./korean-rpg-v7.html?open=war",
-      "description": "실시간 Canvas 전투 시뮬레이션"
+      "name": "군사 훈련소",
+      "short_name": "훈련소",
+      "url": "./korean-rpg-v7.html?open=academy",
+      "description": "6종 군사 훈련으로 유닛 강화"
     }
   ]
 }
