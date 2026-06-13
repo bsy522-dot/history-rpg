@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v15.0 — 고조선 4챕터 택티컬 RPG. 장비시스템18종+첩보6종+제사6종+보급5종+유닛승급6병종+역사카드24종+야영6활동+전쟁시뮬레이터+120퀴즈+72업적+다크모드+PWA",
+  "description": "한국사 영웅전 v16.0 — 고조선 4챕터 택티컬 RPG. 기술트리24종+영웅도감12인+역사백과30항목+진형에디터6종+세력관계도+전투리플레이+일일임무+랭킹보드+전략가이드12팁+통계대시보드+135퀴즈+84업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,28 +18,28 @@
   ],
   "shortcuts": [
     {
-      "name": "장비 시스템",
-      "short_name": "장비",
-      "url": "./korean-rpg-v7.html?open=equip",
-      "description": "무기/방어구/장신구 18종 장착"
+      "name": "기술 트리",
+      "short_name": "기술",
+      "url": "./korean-rpg-v7.html?open=tech",
+      "description": "4시대 24개 기술 연구"
     },
     {
-      "name": "첩보 작전",
-      "short_name": "첩보",
-      "url": "./korean-rpg-v7.html?open=spy",
-      "description": "정찰/파괴공작/암살/이간책 6종"
+      "name": "영웅 도감",
+      "short_name": "영웅",
+      "url": "./korean-rpg-v7.html?open=heroes",
+      "description": "12인 고대 영웅 백과"
     },
     {
-      "name": "역사 카드",
-      "short_name": "카드",
-      "url": "./korean-rpg-v7.html?open=cards",
-      "description": "24종 역사 카드 수집 및 전투"
+      "name": "역사 백과사전",
+      "short_name": "백과",
+      "url": "./korean-rpg-v7.html?open=enc",
+      "description": "고조선~삼한 30항목 백과"
     },
     {
-      "name": "전쟁 시뮬레이터",
-      "short_name": "전쟁",
-      "url": "./korean-rpg-v7.html?open=war",
-      "description": "실시간 Canvas 전투 시뮬레이션"
+      "name": "랭킹 보드",
+      "short_name": "랭킹",
+      "url": "./korean-rpg-v7.html?open=ranking",
+      "description": "AI 10인 대전 순위표"
     }
   ]
 }
