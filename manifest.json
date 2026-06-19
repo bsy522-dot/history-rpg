@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v16.0 — 고조선 4챕터 택티컬 RPG. 기술트리12종+세력관계Canvas+문화유산8종+황금기+진형시뮬레이터6종+영웅열전12인+전술분석Canvas+사계절+135퀴즈+84업적+다크모드+PWA",
+  "description": "한국사 영웅전 v17.0 — 고조선 4챕터 택티컬 RPG. 전쟁안개탐사+왕조계보도Canvas+편대편성10병종+동맹체결5국+승리조건추적Canvas+역사이벤트12종+전투사기시스템+전장지형시뮬레이터Canvas+150퀴즈+96업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,28 +18,40 @@
   ],
   "shortcuts": [
     {
-      "name": "기술 연구 트리",
-      "short_name": "기술트리",
-      "url": "./korean-rpg-v7.html?open=tech",
-      "description": "12종 기술 연구 (석기→왕국)"
+      "name": "전쟁안개 탐사",
+      "short_name": "전쟁안개",
+      "url": "./korean-rpg-v7.html?open=fog",
+      "description": "미지의 영토 탐사 Canvas 맵"
     },
     {
-      "name": "세력 관계도",
-      "short_name": "세력관계",
-      "url": "./korean-rpg-v7.html?open=faction",
-      "description": "5세력 관계 Canvas 시각화"
+      "name": "왕조 계보도",
+      "short_name": "계보도",
+      "url": "./korean-rpg-v7.html?open=dynasty",
+      "description": "고조선~삼국 혈통 Canvas"
     },
     {
-      "name": "영웅 열전",
-      "short_name": "영웅열전",
-      "url": "./korean-rpg-v7.html?open=hero",
-      "description": "12인 영웅 스토리"
+      "name": "편대 편성",
+      "short_name": "편대",
+      "url": "./korean-rpg-v7.html?open=squad",
+      "description": "10병종 편대 편성기"
     },
     {
-      "name": "진형 시뮬레이터",
-      "short_name": "진형",
-      "url": "./korean-rpg-v7.html?open=formation",
-      "description": "6종 전투 진형 Canvas 시뮬레이션"
+      "name": "동맹 체결",
+      "short_name": "동맹",
+      "url": "./korean-rpg-v7.html?open=alliance",
+      "description": "5국 외교 동맹 시스템"
+    },
+    {
+      "name": "승리 조건",
+      "short_name": "승리조건",
+      "url": "./korean-rpg-v7.html?open=victory",
+      "description": "4종 승리 조건 추적 Canvas"
+    },
+    {
+      "name": "역사 이벤트",
+      "short_name": "이벤트",
+      "url": "./korean-rpg-v7.html?open=events",
+      "description": "12종 역사 이벤트 카드"
     }
   ]
 }
