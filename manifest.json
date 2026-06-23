@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v17.0 — 고조선 4챕터 택티컬 RPG. 전쟁안개탐사+왕조계보도Canvas+편대편성10병종+동맹체결5국+승리조건추적Canvas+역사이벤트12종+전투사기시스템+전장지형시뮬레이터Canvas+150퀴즈+96업적+다크모드+PWA",
+  "description": "한국사 영웅전 v18.0 — 고조선 4챕터 택티컬 RPG. 전략자문회의Canvas+역사연표20사건Canvas+군량미관리소+정찰망구축Canvas+전설무기제련소12종+역사명장면극장12편+전쟁보고서Canvas+병영훈련소3종+165퀴즈+108업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,40 +18,40 @@
   ],
   "shortcuts": [
     {
-      "name": "전쟁안개 탐사",
-      "short_name": "전쟁안개",
-      "url": "./korean-rpg-v7.html?open=fog",
-      "description": "미지의 영토 탐사 Canvas 맵"
+      "name": "전략 자문회의",
+      "short_name": "자문회의",
+      "url": "./korean-rpg-v7.html?open=council",
+      "description": "4명 자문관 국력 레이더 Canvas"
     },
     {
-      "name": "왕조 계보도",
-      "short_name": "계보도",
-      "url": "./korean-rpg-v7.html?open=dynasty",
-      "description": "고조선~삼국 혈통 Canvas"
+      "name": "역사 연표",
+      "short_name": "연표",
+      "url": "./korean-rpg-v7.html?open=timeline",
+      "description": "20대 역사 사건 타임라인 Canvas"
     },
     {
-      "name": "편대 편성",
-      "short_name": "편대",
-      "url": "./korean-rpg-v7.html?open=squad",
-      "description": "10병종 편대 편성기"
+      "name": "군량미 관리소",
+      "short_name": "보급",
+      "url": "./korean-rpg-v7.html?open=supply",
+      "description": "4종 보급품 관리 Canvas"
     },
     {
-      "name": "동맹 체결",
-      "short_name": "동맹",
-      "url": "./korean-rpg-v7.html?open=alliance",
-      "description": "5국 외교 동맹 시스템"
+      "name": "정찰망 구축",
+      "short_name": "정찰",
+      "url": "./korean-rpg-v7.html?open=scout",
+      "description": "12x10 정찰 Canvas 맵"
     },
     {
-      "name": "승리 조건",
-      "short_name": "승리조건",
-      "url": "./korean-rpg-v7.html?open=victory",
-      "description": "4종 승리 조건 추적 Canvas"
+      "name": "전설무기 제련소",
+      "short_name": "제련소",
+      "url": "./korean-rpg-v7.html?open=forge",
+      "description": "12종 전설무기 제련"
     },
     {
-      "name": "역사 이벤트",
-      "short_name": "이벤트",
-      "url": "./korean-rpg-v7.html?open=events",
-      "description": "12종 역사 이벤트 카드"
+      "name": "명장면 극장",
+      "short_name": "극장",
+      "url": "./korean-rpg-v7.html?open=theater",
+      "description": "12대 역사 명장면 관람"
     }
   ]
 }

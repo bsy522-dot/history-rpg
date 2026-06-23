@@ -1,8 +1,8 @@
-const CACHE='krpg-v17';
+const CACHE='krpg-v18';
 const PRECACHE=[
   './index.html','./korean-rpg-v7.html','./manifest.json',
   './js/config.js','./js/audio.js','./js/story.js','./js/engine.js',
-  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js','./js/v11_patch.js','./js/v12_patch.js','./js/v13_patch.js','./js/v14_patch.js','./js/v15_patch.js','./js/v16_patch.js','./js/v17_patch.js'
+  './js/battle.js','./js/minigames.js','./js/ui.js','./js/v10_patch.js','./js/v11_patch.js','./js/v12_patch.js','./js/v13_patch.js','./js/v14_patch.js','./js/v15_patch.js','./js/v16_patch.js','./js/v17_patch.js','./js/v18_patch.js'
 ];
 
 self.addEventListener('install',e=>{
@@ -22,7 +22,7 @@ self.addEventListener('fetch',e=>{
       fetch(e.request).then(r=>{
         if(r.ok&&isGame){
           return r.text().then(html=>{
-            ['v10','v11','v12','v13','v14','v15','v16','v17'].forEach(v=>{
+            ['v10','v11','v12','v13','v14','v15','v16','v17','v18'].forEach(v=>{
               if(html.indexOf(v+'_patch')<0){
                 html=html.replace('</body>','<scr'+'ipt src="./js/'+v+'_patch.js"></scr'+'ipt>\n</body>');
               }
@@ -35,7 +35,7 @@ self.addEventListener('fetch',e=>{
         if(!r)return r;
         if(isGame){
           return r.text().then(html=>{
-            ['v10','v11','v12','v13','v14','v15','v16','v17'].forEach(v=>{
+            ['v10','v11','v12','v13','v14','v15','v16','v17','v18'].forEach(v=>{
               if(html.indexOf(v+'_patch')<0){
                 html=html.replace('</body>','<scr'+'ipt src="./js/'+v+'_patch.js"></scr'+'ipt>\n</body>');
               }
