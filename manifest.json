@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v17.0 — 고조선 4챕터 택티컬 RPG. 전쟁안개탐사+왕조계보도Canvas+편대편성10병종+동맹체결5국+승리조건추적Canvas+역사이벤트12종+전투사기시스템+전장지형시뮬레이터Canvas+150퀴즈+96업적+다크모드+PWA",
+  "description": "한국사 영웅전 v18.0 — 고조선 4챕터 택티컬 RPG. 일기토결투장10영웅+불가사의건설8종Canvas+공성전시뮬레이터Canvas6무기+영웅개인서사12인+군량병참도Canvas4자원+삼십육계모략관12계략+고대무예수련장12종+영토변천도Canvas6시대+165퀴즈+108업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -18,40 +18,40 @@
   ],
   "shortcuts": [
     {
-      "name": "전쟁안개 탐사",
-      "short_name": "전쟁안개",
-      "url": "./korean-rpg-v7.html?open=fog",
-      "description": "미지의 영토 탐사 Canvas 맵"
+      "name": "일기토 결투장",
+      "short_name": "일기토",
+      "url": "./korean-rpg-v7.html?open=duel",
+      "description": "10영웅 1:1 결투 아레나"
     },
     {
-      "name": "왕조 계보도",
-      "short_name": "계보도",
-      "url": "./korean-rpg-v7.html?open=dynasty",
-      "description": "고조선~삼국 혈통 Canvas"
+      "name": "불가사의 건설",
+      "short_name": "불가사의",
+      "url": "./korean-rpg-v7.html?open=wonder",
+      "description": "8종 고대 불가사의 Canvas"
     },
     {
-      "name": "편대 편성",
-      "short_name": "편대",
-      "url": "./korean-rpg-v7.html?open=squad",
-      "description": "10병종 편대 편성기"
+      "name": "공성전 시뮬레이터",
+      "short_name": "공성전",
+      "url": "./korean-rpg-v7.html?open=siege",
+      "description": "6무기 공성 시뮬레이터 Canvas"
     },
     {
-      "name": "동맹 체결",
-      "short_name": "동맹",
-      "url": "./korean-rpg-v7.html?open=alliance",
-      "description": "5국 외교 동맹 시스템"
+      "name": "영웅 서사",
+      "short_name": "서사",
+      "url": "./korean-rpg-v7.html?open=heroquest",
+      "description": "12인 영웅 개인 서사"
     },
     {
-      "name": "승리 조건",
-      "short_name": "승리조건",
-      "url": "./korean-rpg-v7.html?open=victory",
-      "description": "4종 승리 조건 추적 Canvas"
+      "name": "삼십육계 모략관",
+      "short_name": "모략",
+      "url": "./korean-rpg-v7.html?open=stratagem",
+      "description": "12계략 전술 카드 시스템"
     },
     {
-      "name": "역사 이벤트",
-      "short_name": "이벤트",
-      "url": "./korean-rpg-v7.html?open=events",
-      "description": "12종 역사 이벤트 카드"
+      "name": "영토 변천도",
+      "short_name": "영토",
+      "url": "./korean-rpg-v7.html?open=territory",
+      "description": "6시대 영토 변천 Canvas"
     }
   ]
 }
