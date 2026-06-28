@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v18.0 — 고조선 4챕터 택티컬 RPG. 일기토결투장10영웅+불가사의건설8종Canvas+공성전시뮬레이터Canvas6무기+영웅개인서사12인+군량병참도Canvas4자원+삼십육계모략관12계략+고대무예수련장12종+영토변천도Canvas6시대+165퀴즈+108업적+다크모드+PWA",
+  "description": "한국사 영웅전 v19.0 — 고조선 4챕터 택티컬 RPG. 고대천문관Canvas+전투기상시스템+고대화폐교역소+영웅관계도Canvas+수호신소환+민속놀이+퀴즈대결+병법서연구실+180퀴즈+120업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -52,6 +52,24 @@
       "short_name": "영토",
       "url": "./korean-rpg-v7.html?open=territory",
       "description": "6시대 영토 변천 Canvas"
+    },
+    {
+      "name": "고대 천문관",
+      "short_name": "천문관",
+      "url": "./korean-rpg-v7.html?open=astronomy",
+      "description": "별자리 관측 Canvas"
+    },
+    {
+      "name": "고대 화폐 교역소",
+      "short_name": "교역소",
+      "url": "./korean-rpg-v7.html?open=trade",
+      "description": "고대 화폐 교역 시뮬레이션"
+    },
+    {
+      "name": "병법서 연구실",
+      "short_name": "병법서",
+      "url": "./korean-rpg-v7.html?open=artofwar",
+      "description": "8병법서 전략 연구"
     }
   ]
 }
