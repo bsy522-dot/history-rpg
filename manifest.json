@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v18.0 — 고조선 4챕터 택티컬 RPG. 일기토결투장10영웅+불가사의건설8종Canvas+공성전시뮬레이터Canvas6무기+영웅개인서사12인+군량병참도Canvas4자원+삼십육계모략관12계략+고대무예수련장12종+영토변천도Canvas6시대+165퀴즈+108업적+다크모드+PWA",
+  "description": "한국사 영웅전 v19.0 — 고조선 4챕터 택티컬 RPG. 영웅인연관계도Canvas12인+전쟁전야회의실Canvas5참모+전투리플레이분석Canvas+시대발전기Canvas6시대+첩보네트워크Canvas8임무+고대문자해독기12종+제천달력Canvas4계절12의식+왕의칙령12종+180퀴즈+120업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -52,6 +52,54 @@
       "short_name": "영토",
       "url": "./korean-rpg-v7.html?open=territory",
       "description": "6시대 영토 변천 Canvas"
+    },
+    {
+      "name": "영웅 인연관계도",
+      "short_name": "인연",
+      "url": "./korean-rpg-v7.html?open=bond",
+      "description": "12인 영웅 인연 Canvas"
+    },
+    {
+      "name": "전쟁전야 회의실",
+      "short_name": "회의",
+      "url": "./korean-rpg-v7.html?open=council",
+      "description": "5참모 전쟁전야 회의 Canvas"
+    },
+    {
+      "name": "전투 리플레이",
+      "short_name": "리플레이",
+      "url": "./korean-rpg-v7.html?open=replay",
+      "description": "전투 리플레이 분석 Canvas"
+    },
+    {
+      "name": "시대 발전기",
+      "short_name": "발전",
+      "url": "./korean-rpg-v7.html?open=age",
+      "description": "6시대 발전 Canvas"
+    },
+    {
+      "name": "첩보 네트워크",
+      "short_name": "첩보",
+      "url": "./korean-rpg-v7.html?open=spy",
+      "description": "8임무 첩보 네트워크 Canvas"
+    },
+    {
+      "name": "고대문자 해독기",
+      "short_name": "문자",
+      "url": "./korean-rpg-v7.html?open=glyph",
+      "description": "12종 고대 문자 해독"
+    },
+    {
+      "name": "제천 달력",
+      "short_name": "달력",
+      "url": "./korean-rpg-v7.html?open=calendar",
+      "description": "4계절 12의식 제천 달력 Canvas"
+    },
+    {
+      "name": "왕의 칙령",
+      "short_name": "칙령",
+      "url": "./korean-rpg-v7.html?open=decree",
+      "description": "12종 왕의 칙령 시스템"
     }
   ]
 }
