@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v18.0 — 고조선 4챕터 택티컬 RPG. 일기토결투장10영웅+불가사의건설8종Canvas+공성전시뮬레이터Canvas6무기+영웅개인서사12인+군량병참도Canvas4자원+삼십육계모략관12계략+고대무예수련장12종+영토변천도Canvas6시대+165퀴즈+108업적+다크모드+PWA",
+  "description": "한국사 영웅전 v19.0 — 고조선 4챕터 택티컬 RPG. 고대천문관Canvas28수+전쟁연대기Canvas16건+외교회담장Canvas5국+고대암호해독기6종+무장갤러리16종+민심게이지Canvas6축Radar+전략보드게임Canvas8x8+고대음악연주기8곡+180퀴즈+120업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -52,6 +52,54 @@
       "short_name": "영토",
       "url": "./korean-rpg-v7.html?open=territory",
       "description": "6시대 영토 변천 Canvas"
+    },
+    {
+      "name": "고대 천문관",
+      "short_name": "천문관",
+      "url": "./korean-rpg-v7.html?open=astro",
+      "description": "28수 별자리 Canvas"
+    },
+    {
+      "name": "전쟁 연대기",
+      "short_name": "연대기",
+      "url": "./korean-rpg-v7.html?open=chronicle",
+      "description": "16건 전쟁 타임라인 Canvas"
+    },
+    {
+      "name": "외교 회담장",
+      "short_name": "외교",
+      "url": "./korean-rpg-v7.html?open=diplo",
+      "description": "5국 외교 회담 Canvas"
+    },
+    {
+      "name": "고대 암호 해독기",
+      "short_name": "암호",
+      "url": "./korean-rpg-v7.html?open=cipher",
+      "description": "6종 고대 암호 해독"
+    },
+    {
+      "name": "무장 갤러리",
+      "short_name": "무장",
+      "url": "./korean-rpg-v7.html?open=armory",
+      "description": "16종 고대 무장 갤러리"
+    },
+    {
+      "name": "민심 게이지",
+      "short_name": "민심",
+      "url": "./korean-rpg-v7.html?open=morale",
+      "description": "6축 민심 레이더 Canvas"
+    },
+    {
+      "name": "전략 보드게임",
+      "short_name": "보드게임",
+      "url": "./korean-rpg-v7.html?open=boardgame",
+      "description": "8x8 전략 보드게임 Canvas"
+    },
+    {
+      "name": "고대 음악 연주기",
+      "short_name": "음악",
+      "url": "./korean-rpg-v7.html?open=music",
+      "description": "8곡 고대 음악 Web Audio"
     }
   ]
 }
