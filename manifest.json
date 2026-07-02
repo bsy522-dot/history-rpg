@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v19.0 — 고조선 4챕터 택티컬 RPG. 영웅인연관계도Canvas12인+전쟁전야회의실Canvas5참모+전투리플레이분석Canvas+시대발전기Canvas6시대+첩보네트워크Canvas8임무+고대문자해독기12종+제천달력Canvas4계절12의식+왕의칙령12종+180퀴즈+120업적+다크모드+PWA",
+  "description": "한국사 영웅전 v20.0 — 고조선 4챕터 택티컬 RPG. 군대사기엔진Canvas10유닛+날씨계절전투8종Canvas+외교혼인인질6후보4인질+교역대상단8로Canvas+문화위업트랙10종Canvas+인구경제시뮬레이션Canvas+유닛진화6종5단계Canvas+불가사의활성화파워8종Canvas+195퀴즈+132업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -100,6 +100,54 @@
       "short_name": "칙령",
       "url": "./korean-rpg-v7.html?open=decree",
       "description": "12종 왕의 칙령 시스템"
+    },
+    {
+      "name": "군대 사기엔진",
+      "short_name": "사기",
+      "url": "./korean-rpg-v7.html?open=morale",
+      "description": "10유닛 군대 사기 Canvas"
+    },
+    {
+      "name": "날씨 계절전투",
+      "short_name": "날씨",
+      "url": "./korean-rpg-v7.html?open=weather",
+      "description": "8종 날씨 계절 전투 Canvas"
+    },
+    {
+      "name": "외교 혼인인질",
+      "short_name": "혼인",
+      "url": "./korean-rpg-v7.html?open=marriage",
+      "description": "6후보 4인질 외교 혼인"
+    },
+    {
+      "name": "교역 대상단",
+      "short_name": "교역",
+      "url": "./korean-rpg-v7.html?open=trade",
+      "description": "8로 교역 대상단 Canvas"
+    },
+    {
+      "name": "문화 위업트랙",
+      "short_name": "위업",
+      "url": "./korean-rpg-v7.html?open=prestige",
+      "description": "10종 문화 위업 Canvas"
+    },
+    {
+      "name": "인구 경제시뮬",
+      "short_name": "경제",
+      "url": "./korean-rpg-v7.html?open=population",
+      "description": "7직업 4자원 인구 경제 Canvas"
+    },
+    {
+      "name": "유닛 진화",
+      "short_name": "진화",
+      "url": "./korean-rpg-v7.html?open=evolution",
+      "description": "6종 5단계 유닛 진화 Canvas"
+    },
+    {
+      "name": "불가사의 파워",
+      "short_name": "파워",
+      "url": "./korean-rpg-v7.html?open=wpower",
+      "description": "8종 불가사의 활성화 파워"
     }
   ]
 }
