@@ -2,6 +2,48 @@
 
 ---
 
+## [AUTO] 2026-07-06 history-rpg — v21.0 전장전술보드Canvas12x12+영웅장비대장간Canvas12종+세력영토정복맵Canvas10지역+역사연대기스크롤Canvas12사건+전투보상창고Canvas12종+영웅스킬별자리Canvas4영웅7스킬+왕궁건설시뮬레이터Canvas10건물+전쟁사연감Canvas10전쟁+퀴즈+15(195→210)+업적+12(132→144)+SFX12종+키보드8종
+
+### Stage 1: Benchmarking
+
+| 항목 | 세계 최고 | v20.0 현재 | v21.0 목표 |
+|------|----------|-----------|-----------|
+| 전장 전술 | Fire Emblem 10x10+ | 8x8 택티컬 | 12x12 전술보드 Canvas |
+| 장비/단조 | Diablo IV 50+ 장비 | 없음 | 12종 대장간 Canvas |
+| 영토 정복 | Civilization VI 100+ | 6시대 변천도 | 10지역 정복맵 Canvas |
+| 역사 타임라인 | Total War 스크롤 | 없음 | 12사건 연대기 Canvas |
+| 전리품 | Hades 40+ 보상 | 기본 보상 | 12종 보상창고 Canvas |
+| 스킬 트리 | Path of Exile 1000+ | 없음 | 4영웅7스킬 별자리 Canvas |
+| 건설 | Stronghold 30+ | 불가사의 8종 | 10건물 왕궁건설 Canvas |
+| 전쟁 기록 | CK III 전쟁기록 | 없음 | 10전쟁 연감 Canvas |
+| 퀴즈 | 교육게임 200+ | 195문 | 210문 (+15) |
+| 업적 | Steam 100+ | 132개 | 144개 (+12) |
+
+### Stage 2: Development
+
+- **js/v21_patch.js** (~850줄 IIFE)
+- 8 Canvas: 전장전술보드12x12, 영웅장비대장간12종, 세력영토정복맵10지역, 역사연대기스크롤12사건, 전투보상창고12종, 영웅스킬별자리4영웅7스킬, 왕궁건설시뮬레이터10건물, 전쟁사연감10전쟁
+- 퀴즈 +15 (195->210), 업적 +12 (132->144)
+- SFX 12종 Web Audio, 키보드 Shift+1~8, 하단 내비 8버튼
+
+### Stage 3: Quality
+
+| 항목 | 결과 |
+|------|------|
+| JS syntax (node -c) | PASS |
+| CDN 외부 참조 | 0건 |
+| 개인정보 | 0건 |
+| SW 캐시 | krpg-v21 |
+| Manifest | v21.0 + 8 shortcuts (30총) |
+| Script 태그 | 반영 완료 |
+| SEO 메타 | v21 반영 완료 |
+
+### Stage 4: Commit & Push
+
+- `[AUTO] 2026-07-06 history-rpg v21.0`
+
+---
+
 ## [AUTO] 2026-07-02 history-rpg — v20.0 군대사기엔진Canvas10유닛+날씨계절전투8종Canvas+외교혼인인질6후보4인질+교역대상단8로Canvas+문화위업트랙10종Canvas+인구경제시뮬레이션Canvas+유닛진화6종5단계Canvas+불가사의활성화파워8종Canvas+퀴즈+15(180→195)+업적+12(120→132)+SFX21종+키보드8종
 
 ### 1차: 벤치마킹 분석 (영걸전/문명/AOE 대비)
