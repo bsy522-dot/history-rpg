@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v21.0 — 고조선 4챕터 택티컬 RPG. 전장전술보드Canvas12x12+영웅장비대장간Canvas12종+세력영토정복맵Canvas10지역+역사연대기스크롤Canvas12사건+전투보상창고Canvas12종+영웅스킬별자리Canvas4영웅7스킬+왕궁건설시뮬레이터Canvas10건물+전쟁사연감Canvas10전쟁+210퀴즈+144업적+다크모드+PWA",
+  "description": "한국사 영웅전 v22.0 — 고조선 4챕터 택티컬 RPG. 첩보정보망Canvas8요원+외교동맹관계도Canvas8세력+영웅가계도Canvas6세대13인+병법서연구소Canvas12종+전투진형편성기Canvas8진형+사계절농경시뮬Canvas4계절+왕실의례행사관Canvas10의례Radar+문명연표비교기Canvas6문명+225퀴즈+156업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -196,6 +196,54 @@
       "short_name": "전쟁사",
       "url": "./korean-rpg-v7.html?open=warhistory",
       "description": "10전쟁 전쟁사 연감 Canvas"
+    },
+    {
+      "name": "첩보 정보망",
+      "short_name": "첩보망",
+      "url": "./korean-rpg-v7.html?open=spynet",
+      "description": "8요원 첩보 정보망 Canvas"
+    },
+    {
+      "name": "외교 동맹관계도",
+      "short_name": "외교동맹",
+      "url": "./korean-rpg-v7.html?open=diplomacy",
+      "description": "8세력 외교 동맹 관계도 Canvas"
+    },
+    {
+      "name": "영웅 가계도",
+      "short_name": "가계도",
+      "url": "./korean-rpg-v7.html?open=bloodline",
+      "description": "6세대 13인 영웅 가계도 Canvas"
+    },
+    {
+      "name": "병법서 연구소",
+      "short_name": "병법서",
+      "url": "./korean-rpg-v7.html?open=strategy",
+      "description": "12종 병법서 연구 Canvas"
+    },
+    {
+      "name": "전투진형 편성기",
+      "short_name": "진형",
+      "url": "./korean-rpg-v7.html?open=formation",
+      "description": "8진형 전투 편성 Canvas"
+    },
+    {
+      "name": "사계절 농경시뮬",
+      "short_name": "농경",
+      "url": "./korean-rpg-v7.html?open=farming",
+      "description": "4계절 농경 시뮬레이터 Canvas"
+    },
+    {
+      "name": "왕실 의례행사관",
+      "short_name": "의례",
+      "url": "./korean-rpg-v7.html?open=ceremony",
+      "description": "10의례 왕실 행사 Radar Canvas"
+    },
+    {
+      "name": "문명 연표비교기",
+      "short_name": "연표",
+      "url": "./korean-rpg-v7.html?open=civtimeline",
+      "description": "6문명 연표 비교 Canvas"
     }
   ]
 }
