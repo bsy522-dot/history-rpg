@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v22.0 — 고조선 4챕터 택티컬 RPG. 첩보정보망Canvas8요원+외교동맹관계도Canvas8세력+영웅가계도Canvas6세대13인+병법서연구소Canvas12종+전투진형편성기Canvas8진형+사계절농경시뮬Canvas4계절+왕실의례행사관Canvas10의례Radar+문명연표비교기Canvas6문명+225퀴즈+156업적+다크모드+PWA",
+  "description": "한국사 영웅전 v23.0 — 고조선 4챕터 택티컬 RPG. 영웅무기도감Canvas12종6축Radar+전투통계대시보드Canvas6지표+왕국재정관리Canvas수입지출+고대유물발굴Canvas8구역+군사훈련소Canvas6병종+역사지도탐험Canvas12지역+전설영웅각성Canvas6영웅3단계+왕조계승시뮬Canvas8후보+240퀴즈+168업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -244,6 +244,54 @@
       "short_name": "연표",
       "url": "./korean-rpg-v7.html?open=civtimeline",
       "description": "6문명 연표 비교 Canvas"
+    },
+    {
+      "name": "영웅 무기도감",
+      "short_name": "무기도감",
+      "url": "./korean-rpg-v7.html?open=weaponcodex",
+      "description": "12종 전설 무기 6축 Radar Canvas"
+    },
+    {
+      "name": "전투통계 대시보드",
+      "short_name": "전투통계",
+      "url": "./korean-rpg-v7.html?open=battlestats",
+      "description": "6지표 전투 통계 Canvas"
+    },
+    {
+      "name": "왕국 재정관리",
+      "short_name": "재정",
+      "url": "./korean-rpg-v7.html?open=treasury",
+      "description": "수입/지출 왕국 재정 Canvas"
+    },
+    {
+      "name": "고대유물 발굴",
+      "short_name": "발굴",
+      "url": "./korean-rpg-v7.html?open=excavation",
+      "description": "8구역 유물 발굴 Canvas"
+    },
+    {
+      "name": "군사 훈련소",
+      "short_name": "훈련소",
+      "url": "./korean-rpg-v7.html?open=training",
+      "description": "6병종 군사 훈련 Canvas"
+    },
+    {
+      "name": "역사지도 탐험",
+      "short_name": "역사지도",
+      "url": "./korean-rpg-v7.html?open=historymap",
+      "description": "12지역 고대 한반도 탐험 Canvas"
+    },
+    {
+      "name": "전설영웅 각성",
+      "short_name": "각성",
+      "url": "./korean-rpg-v7.html?open=awakening",
+      "description": "6영웅 3단계 각성 Canvas"
+    },
+    {
+      "name": "왕조계승 시뮬",
+      "short_name": "계승",
+      "url": "./korean-rpg-v7.html?open=dynasty",
+      "description": "8후보 왕조 계승 Radar Canvas"
     }
   ]
 }

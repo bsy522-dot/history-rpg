@@ -2,6 +2,46 @@
 
 ---
 
+## [AUTO] 2026-07-12 history-rpg — v23.0 영웅무기도감Canvas12종6축Radar+전투통계대시보드Canvas6지표+왕국재정관리Canvas수입지출+고대유물발굴Canvas8구역+군사훈련소Canvas6병종+역사지도탐험Canvas12지역+전설영웅각성Canvas6영웅3단계+왕조계승시뮬Canvas8후보+퀴즈+15(225→240)+업적+12(156→168)+SFX12종+키보드8종
+
+### 1차 벤치마킹
+| 비교대상 | 열위점 | v23 해결 |
+|---|---|---|
+| 영걸전 | 무기 도감/수집 시스템 | ✅ 영웅무기도감 12종 6축 Radar Canvas |
+| 문명 | 전투 통계 분석 | ✅ 전투통계대시보드 6지표 바차트 Canvas |
+| 에이지오브엠파이어 | 경제/재정 관리 | ✅ 왕국재정관리 4자원 수입/지출 Canvas |
+| 문명 | 고고학/유물 발굴 | ✅ 고대유물발굴 8구역 6유물 Canvas |
+| 에이지오브엠파이어 | 유닛 훈련 시스템 | ✅ 군사훈련소 6병종 5축 Radar Canvas |
+| 문명 | 역사 지도 탐험 | ✅ 역사지도탐험 12지역 인터랙티브맵 Canvas |
+| 영걸전 | 영웅 각성/진화 | ✅ 전설영웅각성 6영웅 3단계 Canvas |
+| 에이지오브엠파이어 | 왕조 계승 시뮬 | ✅ 왕조계승시뮬 8후보 6축 Radar Canvas |
+
+### 2차 개발 (v23_patch.js 1071줄 49KB)
+- 영웅무기도감: 12종 전설 무기(천추검/환웅신부/주몽활/광개토대왕창/을지문덕방패/연개소문극/선덕여왕신주/계백쌍검/대조영철퇴/해모수용광검/비류해신단도/온조건국기) 6축 Radar(공격/방어/속도/사정거리/내구/마법) Canvas, 수집 시스템
+- 전투통계대시보드: 승리/패배/총데미지/총힐링/크리티컬/퍼펙트승 6지표 바차트 Canvas, 모의전투 시뮬, 승률/평균데미지 서머리
+- 왕국재정관리: 금/식량/철/옥 4자원 바차트 Canvas, 세금수거/교역/건설투자/군사모집 4액션, 수입지출 로그
+- 고대유물발굴: 8구역 발굴 그리드, 6유물(비파형동검/반달돌칼/뿌무늬거울/빗살무늬토기/청동방울/고인돌버섬), 발굴 현황 지도 Canvas
+- 군사훈련소: 6병종(보병/기병/궁병/창병/공성병/척후병) 5축 Radar(공격/방어/속도/사기/기술) Canvas, 레벨업 시스템(Lv.1~10)
+- 역사지도탐험: 12지역(아사달/부여/졸본/위례성/서라벌/가야/옥저/동예/마한/진한/변한/낙랑) 한반도 인터랙티브맵 Canvas
+- 전설영웅각성: 6영웅(단군/환웅/주몬/을지문덕/광개토/금와) x 3단계 각성 Canvas, 파워 수치 시각화
+- 왕조계승시뮬: 8후보(태자나무/왕자바람/장군철산/학자명월/왕비한빛/재상그름자/호족돌바람/신관별빛) 6축 Radar(혈통/무력/지혜/카리스마/지지도/외교) Canvas
+- 퀴즈 v23: 15문항 (천부인3종/살수대첩/광개토대왕릉비/영고/8조법금/졸본성/화랑도/온조비류/가야연맹/무천/한사군/천리장성/마한54국/풍백우사운사/아사달)
+- 업적 +12개 (156→168): weapon_viewer/weapon_6/weapon_master/stat_viewer/battle_10/treasury_viewer/gold_10k/excav_4/excav_master/train_30/map_6/awaken_6
+- SFX 12종 Web Audio API: weapon_select/weapon_collect/stat_view/treasury_collect/treasury_spend/excavate/artifact_found/train_complete/map_explore/awaken/dynasty_crown/achieve_v23
+- 키보드 Shift+G/H/J/K/Z/X/C/V
+
+### 3차 품질검증
+- JS 구문: node -c PASS
+- 괄호 밸런스: ALL BALANCED (892/115/350)
+- CDN 참조: 0건
+- 개인정보 노출: 0건
+- 하단 고정 네비바: 미생성 (UI불가침 규칙 준수, 기존 nav에 append만)
+- sw.js: PASS (krpg-v23 캐시, v23_patch.js PRECACHE+자동주입)
+- manifest.json: VALID (+8 shortcuts, 총46종)
+- index.html SEO: v23.0 전면 갱신
+
+---
+
 ## [AUTO] 2026-07-09 history-rpg — v22.0 첩보정보망Canvas8요원+외교동맹관계도Canvas8세력+영웅가계도Canvas6세대13인+병법서연구소Canvas12종+전투진형편성기Canvas8진형+사계절농경시뮬Canvas4계절+왕실의례행사관Canvas10의례Radar+문명연표비교기Canvas6문명+퀴즈+15(210→225)+업적+12(144→156)+SFX12종+키보드8종
 
 ### 1차 벤치마킹
