@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v23.0 — 고조선 4챕터 택티컬 RPG. 영웅무기도감Canvas12종6축Radar+전투통계대시보드Canvas6지표+왕국재정관리Canvas수입지출+고대유물발굴Canvas8구역+군사훈련소Canvas6병종+역사지도탐험Canvas12지역+전설영웅각성Canvas6영웅3단계+왕조계승시뮬Canvas8후보+240퀴즈+168업적+다크모드+PWA",
+  "description": "한국사 영웅전 v24.0 — 고조선 4챕터 택티컬 RPG. 기술연구트리Canvas12종+고대교역시장Canvas6자원시세+전투지형시뮬Canvas8종+세력정보6축Radar8세력+전략AI어드바이저Canvas8전략+영웅칭호작위Canvas10단계+군량보급관리Canvas6종+퀴즈리그Canvas성적추이+255퀴즈+180업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -292,6 +292,54 @@
       "short_name": "계승",
       "url": "./korean-rpg-v7.html?open=dynasty",
       "description": "8후보 왕조 계승 Radar Canvas"
+    },
+    {
+      "name": "기술 연구 트리",
+      "short_name": "기술트리",
+      "url": "./korean-rpg-v7.html?open=techtree",
+      "description": "12종 기술 연구 트리 Canvas"
+    },
+    {
+      "name": "고대 교역 시장",
+      "short_name": "교역시장",
+      "url": "./korean-rpg-v7.html?open=market",
+      "description": "6종 자원 교환 시장 Canvas"
+    },
+    {
+      "name": "전투 지형 시뮬",
+      "short_name": "지형시뮬",
+      "url": "./korean-rpg-v7.html?open=terrainsim",
+      "description": "8종 지형별 공방속 Canvas"
+    },
+    {
+      "name": "세력 정보 프로필",
+      "short_name": "세력정보",
+      "url": "./korean-rpg-v7.html?open=faction",
+      "description": "8세력 6축 Radar Canvas"
+    },
+    {
+      "name": "전략 AI 어드바이저",
+      "short_name": "전략AI",
+      "url": "./korean-rpg-v7.html?open=advisor",
+      "description": "8전략 위험도/보상 Canvas"
+    },
+    {
+      "name": "영웅 칭호 작위",
+      "short_name": "칭호",
+      "url": "./korean-rpg-v7.html?open=titles",
+      "description": "10단계 작위 승급 Canvas"
+    },
+    {
+      "name": "군량 보급 관리",
+      "short_name": "보급",
+      "url": "./korean-rpg-v7.html?open=supply",
+      "description": "6종 보급품 재고 Canvas"
+    },
+    {
+      "name": "퀴즈 리그",
+      "short_name": "리그",
+      "url": "./korean-rpg-v7.html?open=quizleague",
+      "description": "퀴즈 성적 추이 Canvas"
     }
   ]
 }
