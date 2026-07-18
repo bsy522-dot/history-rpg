@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v24.0 — 고조선 4챕터 택티컬 RPG. 기술연구트리Canvas12종+고대교역시장Canvas6자원시세+전투지형시뮬Canvas8종+세력정보6축Radar8세력+전략AI어드바이저Canvas8전략+영웅칭호작위Canvas10단계+군량보급관리Canvas6종+퀴즈리그Canvas성적추이+255퀴즈+180업적+다크모드+PWA",
+  "description": "한국사 영웅전 v25.0 — 고조선 4챕터 택티컬 RPG. 고대의학원Canvas10종6축Radar+전쟁평의회Canvas10안건투표+세력국력비교Canvas8세력7축DualRadar+영웅특성매트릭스Canvas10영웅8특성히트맵+군사편제관리Canvas8병종4축+고대건축양식Canvas10종6축Radar+전략자원광산Canvas8광산채굴+영웅전투력그래프Canvas10영웅라인+270퀴즈+192업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -340,6 +340,54 @@
       "short_name": "리그",
       "url": "./korean-rpg-v7.html?open=quizleague",
       "description": "퀴즈 성적 추이 Canvas"
+    },
+    {
+      "name": "고대 의학원",
+      "short_name": "의학원",
+      "url": "./korean-rpg-v7.html?open=medacademy",
+      "description": "10종 치료법 6축 Radar Canvas"
+    },
+    {
+      "name": "전쟁 평의회",
+      "short_name": "평의회",
+      "url": "./korean-rpg-v7.html?open=warcouncil",
+      "description": "10안건 투표 Canvas"
+    },
+    {
+      "name": "세력 국력비교",
+      "short_name": "국력",
+      "url": "./korean-rpg-v7.html?open=natpower",
+      "description": "8세력 7축 DualRadar Canvas"
+    },
+    {
+      "name": "영웅 특성매트릭스",
+      "short_name": "특성",
+      "url": "./korean-rpg-v7.html?open=traitmatrix",
+      "description": "10영웅 8특성 히트맵 Canvas"
+    },
+    {
+      "name": "군사 편제관리",
+      "short_name": "편제",
+      "url": "./korean-rpg-v7.html?open=regiment",
+      "description": "8병종 4축 편제 Canvas"
+    },
+    {
+      "name": "고대 건축양식도감",
+      "short_name": "건축",
+      "url": "./korean-rpg-v7.html?open=archguide",
+      "description": "10종 건축양식 6축 Radar Canvas"
+    },
+    {
+      "name": "전략 자원광산",
+      "short_name": "광산",
+      "url": "./korean-rpg-v7.html?open=minesim",
+      "description": "8광산 자원 채굴 Canvas"
+    },
+    {
+      "name": "영웅 전투력그래프",
+      "short_name": "전투력",
+      "url": "./korean-rpg-v7.html?open=heropower",
+      "description": "10영웅 전투력 라인 Canvas"
     }
   ]
 }

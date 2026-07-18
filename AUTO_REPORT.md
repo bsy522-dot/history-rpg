@@ -1149,3 +1149,46 @@ python -m http.server 8765
 | 개인정보 노출 | ✅ 0건 |
 | SW 캐시 갱신 | ✅ krpg-v17 |
 | Manifest 갱신 | ✅ v17.0 + 6 shortcuts |
+
+---
+
+## [AUTO] 2026-07-18 history-rpg — v25.0 고대의학원Canvas10종6축Radar+전쟁평의회Canvas10안건투표+세력국력비교Canvas8세력7축DualRadar+영웅특성매트릭스Canvas10영웅8특성히트맵+군사편제관리Canvas8병종4축+고대건축양식Canvas10종6축Radar+전략자원광산Canvas8광산채굴+영웅전투력그래프Canvas10영웅라인+퀴즈+15(255→270)+업적+12(180→192)+SFX15종+키보드8종
+
+### 1차 벤치마킹 (영걸전/문명/에이지오브엠파이어)
+- **영걸전 대비**: 의료/치료 시스템 부재 → 10종 고대 의학원 6축 Radar Canvas 추가
+- **문명 대비**: 세력 국력 비교 부재 → 8세력 7축 DualRadar 동시 비교 Canvas 추가
+- **에이지오브엠파이어 대비**: 군사 편제/부대 관리 부재 → 8병종 4축 군사 편제 관리 Canvas 추가
+
+### 2차 개발 (v25_patch.js ~700줄)
+| 기능 | 설명 |
+|------|------|
+| 고대의학원 Canvas | 10종 치료법 6축 Radar (효과·속도·비용·지속·범위·부작용) |
+| 전쟁평의회 Canvas | 10안건 전쟁참모 투표 Canvas (찬성/반대/보류 Bar) |
+| 세력국력비교 Canvas | 8세력 7축 DualRadar (군사·경제·문화·외교·기술·영토·인구) |
+| 영웅특성매트릭스 Canvas | 10영웅 8특성 히트맵 (무력·지력·매력·통솔·체력·민첩·운·명성) |
+| 군사편제관리 Canvas | 8병종 4축 GroupedBar (공격·방어·기동·사기) |
+| 고대건축양식도감 Canvas | 10종 건축양식 6축 Radar (내구도·미관·실용·규모·비용·공기) |
+| 전략자원광산 Canvas | 8광산 자원 채굴 Bar+시뮬레이션 |
+| 영웅전투력그래프 Canvas | 10영웅 전투력 레벨별 LineChart |
+| 퀴즈 15문항 | 고조선/부여/삼국시대 역사 (255→270) |
+| 업적 12종 | v25_healer~v25_complete (180→192) |
+| SFX 15종 | heal/council/compare/matrix/regiment/arch/mine/power/quiz_ok/quiz_fail/ach/nav/esc/open/close |
+| 키보드 8종 | Shift+Q/W/E/R/A/S/D/F |
+| 네비 | 기존 nav에 8버튼 append (하단 고정바 없음) |
+| URL 파라미터 | ?open=medacademy/warcouncil/natpower/traitmatrix/regiment/archguide/minesim/heropower |
+
+### 3차 품질 체크
+| 항목 | 결과 |
+|------|------|
+| node -c syntax | ✅ 통과 |
+| 괄호 균형 () {} [] | ✅ 791/791, 335/335, 169/169 |
+| CDN 외부 참조 | ✅ 0건 |
+| 개인정보 노출 | ✅ 0건 |
+| 하단 고정 네비바 | ✅ 0건 |
+| SW 캐시 갱신 | ✅ krpg-v25 |
+| Manifest 갱신 | ✅ v25.0 + 8 shortcuts (총 54) |
+
+### 4차 최종화
+- sw.js: CACHE krpg-v24→krpg-v25, PRECACHE에 v25_patch.js 추가, injection 배열에 v25 추가
+- index.html: title/meta/OG/Twitter/JSON-LD v24→v25, 255→270퀴즈, 180→192업적, 신기능 뱃지 8종
+- manifest.json: description v25.0, shortcuts +8 (medacademy/warcouncil/natpower/traitmatrix/regiment/archguide/minesim/heropower)
