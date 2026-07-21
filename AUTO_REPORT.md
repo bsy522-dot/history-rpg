@@ -1192,3 +1192,50 @@ python -m http.server 8765
 - sw.js: CACHE krpg-v24→krpg-v25, PRECACHE에 v25_patch.js 추가, injection 배열에 v25 추가
 - index.html: title/meta/OG/Twitter/JSON-LD v24→v25, 255→270퀴즈, 180→192업적, 신기능 뱃지 8종
 - manifest.json: description v25.0, shortcuts +8 (medacademy/warcouncil/natpower/traitmatrix/regiment/archguide/minesim/heropower)
+
+---
+
+## [AUTO] 2026-07-21 history-rpg — v26.0 고대무역항관리Canvas8항구교역량Bar+역사적전투재현Canvas10전투6축Radar+고대화폐수집관Canvas10종희귀도Bar+첩보전시뮬레이터Canvas6세력6유형히트맵+왕권계승분쟁도Canvas8시나리오네트워크+고대축성술시뮬Canvas8성곽6축Radar+영웅유물감정소Canvas12유물5축Bar+고대제례의식관Canvas10의식6축Radar+퀴즈+15(270→285)+업적+12(192→204)+SFX17종+키보드Shift+G/H/J/K/L/Z/X/C
+
+### 1차 벤치마킹 (영걸전/문명/에이지오브엠파이어)
+- **영걸전 대비**: 무역/교역항 관리 부재 → 8항구 교역량/번영도 Bar Canvas 추가
+- **문명 대비**: 화폐/경제사 수집 부재 → 10종 고대 화폐 수집관 희귀도 Bar Canvas 추가
+- **에이지오브엠파이어 대비**: 역사적 전투 비교 분석 부재 → 10전투 6축 Radar 비교 Canvas 추가
+- **공통 열위점**: 첩보전 시뮬레이션 부재 → 6세력 6유형 성공률 히트맵 Canvas 추가
+- **왕권 계승 분쟁 시각화 부재** → 8시나리오 네트워크 그래프 Canvas 추가
+- **축성술 시뮬 부재** → 8성곽 6축 Radar + 공성 시뮬 Canvas 추가
+- **유물 감정 시스템 부재** → 12유물 5축 감정 Bar Canvas 추가
+- **제례 의식 시스템 부재** → 10의식 6축 Radar + 사기/신앙 보너스 Canvas 추가
+
+### 2차 개발 (v26_patch.js ~997줄)
+| 기능 | 설명 |
+|------|------|
+| 고대무역항관리 Canvas | 8항구 교역량/번영도 Horizontal Bar (620x400), 투자/업그레이드, 상세정보 |
+| 역사적전투재현 Canvas | 10전투(살수대첩/광개토정복/안시성 등) 6축 Radar (600x380), 최대 2전투 비교 모드 |
+| 고대화폐수집관 Canvas | 10종 화폐(명도전/반량전/은병/쇄은 등) 희귀도 Bar + 도넛 수집률 (580x360) |
+| 첩보전시뮬레이터 Canvas | 6세력 × 6유형 성공률 히트맵 (620x380), 임무 실행/성공 카운터 |
+| 왕권계승분쟁도 Canvas | 8시나리오(고조선말기/부여/고구려초기 등) 네트워크 그래프 (600x380), 안정도 아크 |
+| 고대축성술시뮬 Canvas | 8성곽(토성/석성/산성/관문성 등) 6축 Radar (620x400), 공성 시뮬레이션 |
+| 영웅유물감정소 Canvas | 12유물(환웅천부인/단군조의/주몽신궁 등) 5축 Horizontal Bar (580x360) |
+| 고대제례의식관 Canvas | 10제례(제천대제/영고/동맹/무천 등) 6축 Radar (600x380), 사기/신앙 보너스 |
+| 퀴즈 15문항 | 무역/전투/화폐/첩보/축성/유물/제례 (270→285) |
+| 업적 12종 | trade_navigator~v26_complete (192→204) |
+| SFX 17종 | trade_port/trade_deal/battle_view/battle_compare/currency_find/currency_grade/spy_mission/spy_success/succession_resolve/fortress_build/fortress_siege/artifact_appraise/artifact_find/ritual_perform/quiz_v26/quiz_wrong_v26/achieve_v26 |
+| 키보드 8종 | Shift+G/H/J/K/L/Z/X/C |
+| 네비 | 기존 nav에 9버튼 append (하단 고정바 없음) |
+| URL 파라미터 | ?open=tradeport/battlereenact/currency/espionage/succession/fortification/artifact/ritual/quiz26 |
+
+### 3차 품질 체크
+| 항목 | 결과 |
+|------|------|
+| node -c syntax | ✅ 통과 |
+| CDN 외부 참조 | ✅ 0건 |
+| 개인정보 노출 | ✅ 0건 |
+| 하단 고정 네비바 | ✅ 0건 (UI불가침 규칙 준수) |
+| SW 캐시 갱신 | ✅ krpg-v26 |
+| Manifest 갱신 | ✅ v26.0 + 8 shortcuts (총 68종) |
+
+### 4차 최종화
+- sw.js: CACHE krpg-v25→krpg-v26, PRECACHE에 v26_patch.js 추가, injection 배열에 v26 추가
+- index.html: title/meta/OG/Twitter/JSON-LD v25→v26, 270→285퀴즈, 192→204업적, 신기능 뱃지 8종
+- manifest.json: description v26.0, shortcuts +8 (tradeport/battlereenact/currency/espionage/succession/fortification/artifact/ritual)

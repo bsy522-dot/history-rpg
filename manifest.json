@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v25.0 — 고조선 4챕터 택티컬 RPG. 고대의학원Canvas10종6축Radar+전쟁평의회Canvas10안건투표+세력국력비교Canvas8세력7축DualRadar+영웅특성매트릭스Canvas10영웅8특성히트맵+군사편제관리Canvas8병종4축+고대건축양식Canvas10종6축Radar+전략자원광산Canvas8광산채굴+영웅전투력그래프Canvas10영웅라인+270퀴즈+192업적+다크모드+PWA",
+  "description": "한국사 영웅전 v26.0 — 고조선 4챕터 택티컬 RPG. 고대무역항관리Canvas8항구교역량Bar+역사적전투재현Canvas10전투6축Radar+고대화폐수집관Canvas10종희귀도Bar+첩보전시뮬레이터Canvas6세력히트맵+왕권계승분쟁도Canvas8시나리오네트워크+고대축성술시뮬Canvas8성곽6축Radar+영웅유물감정소Canvas12유물5축Bar+고대제례의식관Canvas10의식6축Radar+285퀴즈+204업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -388,6 +388,54 @@
       "short_name": "전투력",
       "url": "./korean-rpg-v7.html?open=heropower",
       "description": "10영웅 전투력 라인 Canvas"
+    },
+    {
+      "name": "고대 무역항 관리자",
+      "short_name": "무역항",
+      "url": "./korean-rpg-v7.html?open=tradeport",
+      "description": "8항구 교역량 관리 Canvas"
+    },
+    {
+      "name": "역사적 전투 재현기",
+      "short_name": "전투재현",
+      "url": "./korean-rpg-v7.html?open=battlereenact",
+      "description": "10전투 6축 Radar 재현 Canvas"
+    },
+    {
+      "name": "고대 화폐 수집관",
+      "short_name": "화폐",
+      "url": "./korean-rpg-v7.html?open=currency",
+      "description": "10종 고대 화폐 수집 Canvas"
+    },
+    {
+      "name": "첩보전 시뮬레이터",
+      "short_name": "첩보전",
+      "url": "./korean-rpg-v7.html?open=espionage",
+      "description": "6세력 6유형 첩보전 히트맵 Canvas"
+    },
+    {
+      "name": "왕권 계승 분쟁도",
+      "short_name": "계승분쟁",
+      "url": "./korean-rpg-v7.html?open=succession",
+      "description": "8시나리오 왕권 계승 Canvas"
+    },
+    {
+      "name": "고대 축성술 시뮬",
+      "short_name": "축성술",
+      "url": "./korean-rpg-v7.html?open=fortification",
+      "description": "8성곽 6축 Radar 축성 Canvas"
+    },
+    {
+      "name": "영웅 유물 감정소",
+      "short_name": "유물감정",
+      "url": "./korean-rpg-v7.html?open=artifact",
+      "description": "12유물 5축 감정 Canvas"
+    },
+    {
+      "name": "고대 제례 의식관",
+      "short_name": "제례",
+      "url": "./korean-rpg-v7.html?open=ritual",
+      "description": "10의식 6축 Radar 제례 Canvas"
     }
   ]
 }
