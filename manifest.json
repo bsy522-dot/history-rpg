@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v26.0 — 고조선 4챕터 택티컬 RPG. 고대무역항관리Canvas8항구교역량Bar+역사적전투재현Canvas10전투6축Radar+고대화폐수집관Canvas10종희귀도Bar+첩보전시뮬레이터Canvas6세력히트맵+왕권계승분쟁도Canvas8시나리오네트워크+고대축성술시뮬Canvas8성곽6축Radar+영웅유물감정소Canvas12유물5축Bar+고대제례의식관Canvas10의식6축Radar+285퀴즈+204업적+다크모드+PWA",
+  "description": "한국사 영웅전 v27.0 — 고조선 4챕터 택티컬 RPG. 고대천문관측소Canvas10별자리성도+영웅무공훈장관Canvas10영웅5축Radar+고대법전편찬소Canvas8법전5축Bar+전장병종상성도Canvas8병종네트워크+고대농경달력Canvas12월3축Bar+왕실도서관Canvas10문헌서가+고대의술약전Canvas10약재3축Radar+영웅우정유대망Canvas10영웅12관계네트워크+300퀴즈+216업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -436,6 +436,54 @@
       "short_name": "제례",
       "url": "./korean-rpg-v7.html?open=ritual",
       "description": "10의식 6축 Radar 제례 Canvas"
+    },
+    {
+      "name": "고대 천문 관측소",
+      "short_name": "천문관측",
+      "url": "./korean-rpg-v7.html?open=astro",
+      "description": "10대 별자리 관측 성도 Canvas"
+    },
+    {
+      "name": "영웅 무공 훈장관",
+      "short_name": "무공훈장",
+      "url": "./korean-rpg-v7.html?open=merit",
+      "description": "10영웅 5축 Radar 무공 Canvas"
+    },
+    {
+      "name": "고대 법전 편찬소",
+      "short_name": "법전",
+      "url": "./korean-rpg-v7.html?open=lawcodex",
+      "description": "8법전 5축 법체계 분석 Canvas"
+    },
+    {
+      "name": "전장 병종 상성도",
+      "short_name": "병종상성",
+      "url": "./korean-rpg-v7.html?open=counter",
+      "description": "8병종 상성 네트워크 Canvas"
+    },
+    {
+      "name": "고대 농경 달력",
+      "short_name": "농경달력",
+      "url": "./korean-rpg-v7.html?open=farmcalendar",
+      "description": "12월 농사활동 3축 Bar Canvas"
+    },
+    {
+      "name": "왕실 도서관",
+      "short_name": "도서관",
+      "url": "./korean-rpg-v7.html?open=library",
+      "description": "10문헌 지혜 서가 Canvas"
+    },
+    {
+      "name": "고대 의술 약전",
+      "short_name": "의술약전",
+      "url": "./korean-rpg-v7.html?open=medicine",
+      "description": "10약재 3축 Radar Canvas"
+    },
+    {
+      "name": "영웅 우정 유대망",
+      "short_name": "유대망",
+      "url": "./korean-rpg-v7.html?open=bondnetwork",
+      "description": "10영웅 12관계 네트워크 Canvas"
     }
   ]
 }

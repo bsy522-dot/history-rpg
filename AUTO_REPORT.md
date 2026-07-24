@@ -1239,3 +1239,53 @@ python -m http.server 8765
 - sw.js: CACHE krpg-v25→krpg-v26, PRECACHE에 v26_patch.js 추가, injection 배열에 v26 추가
 - index.html: title/meta/OG/Twitter/JSON-LD v25→v26, 270→285퀴즈, 192→204업적, 신기능 뱃지 8종
 - manifest.json: description v26.0, shortcuts +8 (tradeport/battlereenact/currency/espionage/succession/fortification/artifact/ritual)
+
+---
+
+## [AUTO] 2026-07-24 history-rpg — v27.0 고대천문관측소Canvas620x400(10별자리성도별밝기관측등급)+영웅무공훈장관Canvas600x380(10영웅5축Radar훈장S~D등급)+고대법전편찬소Canvas620x400(8법전5축Bar엄격성공정성적용범위)+전장병종상성도Canvas620x380(8병종상성네트워크스탯비교)+고대농경달력Canvas600x380(12월3축농사활동비옥도강수량Bar)+왕실도서관Canvas620x400(10문헌서가지혜희귀도분량Bar)+고대의술약전Canvas600x380(10약재3축Radar약효채취희귀도)+영웅우정유대망Canvas640x400(10영웅12관계유대네트워크그래프)+퀴즈+15(285→300)+업적+12(204→216)+SFX20종+키보드Shift+1~8+9
+
+### 벤치마킹: 영걸전 / 문명 / 에이지오브엠파이어
+
+| 비교항목 | 경쟁앱 | history-rpg v26 | v27 개선 |
+|---------|--------|----------------|---------|
+| 천문/과학 시스템 | 문명: 천문학 기술 연구 | 미보유 | ✅ 고대천문관측소 10별자리 성도 |
+| 영웅 훈장/공적 | 영걸전: 영웅별 공적 추적 | 미보유 | ✅ 무공훈장관 5축 Radar |
+| 법률/통치 체계 | 문명: 정부/시민 체계 | 미보유 | ✅ 법전편찬소 8법전 비교 |
+| 병종 상성 | AoE: 상세 유닛 카운터 | 일부 | ✅ 8병종 상성 네트워크 |
+| 농경/식량 | 문명: 농경 시스템 | 미보유 | ✅ 12월 농경 달력 |
+| 문화/도서관 | 문명: 대도서관 불가사의 | 미보유 | ✅ 왕실도서관 10문헌 |
+| 의술/치료 | 영걸전: 치유 아이템 | 기본적 | ✅ 의술약전 10약재 |
+| 영웅 관계망 | 영걸전: 의형제/혼인 | 일부 | ✅ 유대망 12관계 네트워크 |
+
+### 개선사항
+
+**v27_patch.js (1105줄, 자기완결형 IIFE 패치 모듈)**
+
+1. **고대 천문 관측소** (Canvas 620x400): 북두칠성/삼태성/견우/직녀 등 10별자리, 밝기 기반 관측등급, 별자리 성도 시각화, 탭 전환
+2. **영웅 무공 훈장관** (Canvas 600x380): 단군~광개토대왕 10영웅, 5축(건국/군사/통합/문화/외교) Radar, S~D등급
+3. **고대 법전 편찬소** (Canvas 620x400): 팔조법금~옥저민며느리제 8법전, 5축(엄격성/공정성/적용범위/문화반영/집행력) Bar
+4. **전장 병종 상성도** (Canvas 620x380): 보병/궁병/기병/창병/기마궁/공성병/척후병/승병 8병종, 상성 네트워크 + 5스탯 Bar
+5. **고대 농경 달력** (Canvas 600x380): 12월 농사활동/토양비옥도/강수량 3축 스택 Bar, 5곡 중심 농경 정보
+6. **왕실 도서관** (Canvas 620x400): 천부경/삼일신고/환단고기 등 10문헌, 지혜/희귀도/분량 3축 Bar, 서가 시각화
+7. **고대 의술 약전** (Canvas 600x380): 인삼/쑥/당귀/녹용 등 10약재, 약효/채취용이/희귀도 3축 Radar
+8. **영웅 우정 유대망** (Canvas 640x400): 10영웅 12관계(부자/계승/라이벌/형제/동료/동맹), 네트워크 그래프, 유대강도
+
+- 퀴즈 v27 +15문 (285→300): 천문/법전/병종/농경/문헌/의술/유대 관련 15문항
+- 업적 +12종 (204→216): astro_observer/merit_viewer/law_scholar/counter_strategist/farm_planner/library_reader/med_herbalist/bond_connector/quiz_v27_master/quiz_v27_s/v27_explorer/v27_complete
+- SFX 20종 Web Audio API (star_observe/star_map/merit_award/merit_promote/law_enact/law_scroll/counter_strike/counter_defend/farm_plant/farm_harvest/library_open/library_learn/med_brew/med_cure/bond_form/bond_strengthen/quiz_correct_v27/quiz_wrong_v27/achieve_v27/nav_v27)
+- 키보드 Shift+1~8+9 (8섹션+퀴즈)
+- 기존 네비바에 9버튼 append (하단 네비바 신규생성 없음 - UI불가침 규칙 준수)
+
+### 품질검증 결과
+
+| 항목 | 결과 |
+|-----|------|
+| JS 문법 (node -c) | ✅ PASS |
+| JSON 유효성 | ✅ PASS |
+| 외부 CDN 참조 | ✅ 0건 |
+| 개인정보 노출 | ✅ 0건 |
+| 하단 고정 네비바 신설 | ✅ 0건 (기존 nav append만 사용) |
+| 파일 삭제 | ✅ 0건 |
+| HTML entities 따옴표 | ✅ 준수 |
+| SW 캐시 갱신 | ✅ krpg-v26→krpg-v27, v27_patch.js PRECACHE |
+| Manifest shortcuts | ✅ 8종 추가 (총79종) |
