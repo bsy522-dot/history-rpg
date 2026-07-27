@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v27.0 — 고조선 4챕터 택티컬 RPG. 고대천문관측소Canvas10별자리성도+영웅무공훈장관Canvas10영웅5축Radar+고대법전편찬소Canvas8법전5축Bar+전장병종상성도Canvas8병종네트워크+고대농경달력Canvas12월3축Bar+왕실도서관Canvas10문헌서가+고대의술약전Canvas10약재3축Radar+영웅우정유대망Canvas10영웅12관계네트워크+300퀴즈+216업적+다크모드+PWA",
+  "description": "한국사 영웅전 v28.0 — 고조선 4챕터 택티컬 RPG. 고대악기관Canvas10악기5축Radar+영웅궁합도Canvas10영웅히트맵+고대교통로Canvas8경로3축Bar+전통축제관Canvas10축제3축Bar+전후복구시뮬Canvas8도시게이지+외교문서관Canvas10문서3축Bar+영웅훈련스케줄러Canvas10영웅5축Radar+방어시설네트워크Canvas8시설네트워크+315퀴즈+228업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -484,6 +484,54 @@
       "short_name": "유대망",
       "url": "./korean-rpg-v7.html?open=bondnetwork",
       "description": "10영웅 12관계 네트워크 Canvas"
+    },
+    {
+      "name": "고대 악기관",
+      "short_name": "악기관",
+      "url": "./korean-rpg-v7.html?open=instrument",
+      "description": "10종 고대 악기 5축 Radar Canvas"
+    },
+    {
+      "name": "영웅 궁합도",
+      "short_name": "궁합도",
+      "url": "./korean-rpg-v7.html?open=herocompat",
+      "description": "10영웅 궁합 히트맵 Canvas"
+    },
+    {
+      "name": "고대 교통로",
+      "short_name": "교통로",
+      "url": "./korean-rpg-v7.html?open=transport",
+      "description": "8경로 교통로 3축 Bar Canvas"
+    },
+    {
+      "name": "전통 축제관",
+      "short_name": "축제관",
+      "url": "./korean-rpg-v7.html?open=festival",
+      "description": "10종 전통 축제 3축 Bar Canvas"
+    },
+    {
+      "name": "전후 복구 시뮬",
+      "short_name": "복구시뮬",
+      "url": "./korean-rpg-v7.html?open=recovery",
+      "description": "8도시 전후 복구 게이지 Canvas"
+    },
+    {
+      "name": "외교 문서관",
+      "short_name": "외교문서",
+      "url": "./korean-rpg-v7.html?open=treaty",
+      "description": "10종 외교 문서 3축 Bar Canvas"
+    },
+    {
+      "name": "영웅 훈련 스케줄러",
+      "short_name": "훈련스케줄",
+      "url": "./korean-rpg-v7.html?open=herotrain",
+      "description": "10영웅 5축 훈련 Radar Canvas"
+    },
+    {
+      "name": "방어시설 네트워크",
+      "short_name": "방어시설",
+      "url": "./korean-rpg-v7.html?open=defnetwork",
+      "description": "8시설 방어 네트워크 Canvas"
     }
   ]
 }

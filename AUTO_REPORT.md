@@ -2,6 +2,54 @@
 
 ---
 
+## [AUTO] 2026-07-27 history-rpg — v28.0 고대악기관Canvas10악기5축Radar+영웅궁합도Canvas10영웅히트맵+고대교통로Canvas8경로3축Bar+전통축제관Canvas10축제3축Bar+전후복구시뮬Canvas8도시게이지+외교문서관Canvas10문서3축Bar+영웅훈련스케줄러Canvas10영웅5축Radar+방어시설네트워크Canvas8시설네트워크+퀴즈+15(300→315)+업적+12(216→228)+SFX18종+키보드9종
+
+### 1차 벤치마킹 (영걸전/문명/에이지오브엠파이어)
+| 비교대상 | 열위점 | v28 해결 |
+|---|---|---|
+| 영걸전 | 악기/음악 시스템 부재 | 고대악기관 10종 5축 Radar Canvas |
+| 영걸전 | 영웅간 궁합/상성 부재 | 영웅궁합도 10영웅 히트맵 Canvas |
+| 문명 | 교통/도로 체계 부재 | 고대교통로 8경로 3축 Bar Canvas |
+| 문명 | 축제/문화행사 부재 | 전통축제관 10축제 3축 Bar Canvas |
+| 에이지오브엠파이어 | 전후 복구 시뮬 부재 | 전후복구시뮬 8도시 게이지 Canvas |
+| 에이지오브엠파이어 | 외교문서 체계 부재 | 외교문서관 10문서 3축 Bar Canvas |
+| 영걸전 | 영웅 훈련 스케줄 부재 | 영웅훈련스케줄러 10영웅 5축 Radar Canvas |
+| 에이지오브엠파이어 | 방어시설 네트워크 부재 | 방어시설네트워크 8시설 네트워크 Canvas |
+
+### 2차 개발 (v28_patch.js ~700줄 IIFE)
+1. **고대 악기관**: 거문고/가야금/비파/피리/대금/해금/장구/편경/편종/나각 10종, 음색/음역/난이도/의례성/역사 5축 Radar Canvas
+2. **영웅 궁합도**: 10영웅(환웅/단군/웅녀/풍백/우사/운사/해모수/주몽/비류/온조) 10x10 히트맵 Canvas, 궁합점수 1~10
+3. **고대 교통로**: 왕도/관도/마도/수로/해로/산로/파발로/변경로 8경로, 속도/안전/수용량 3축 Bar Canvas
+4. **전통 축제관**: 영고/동맹/무천/제천대제/팔관회/추석/단오/한식/수릿날/소도제 10축제, 규모/기간/참여도 3축 Bar Canvas
+5. **전후 복구 시뮬**: 아사달/졸본/국내성/위례성/서라벌/금관가야/옥저성/동예읍 8도시, 복구율 게이지 Canvas
+6. **외교 문서관**: 10문서(조공문/국서/화친서/동맹서/선전포고/항복서/조약서/혼인서/통상서/사죄서), 격식/중요도/긴급도 3축 Bar Canvas
+7. **영웅 훈련 스케줄러**: 10영웅, 무력/지략/통솔/정치/매력(신망) 5축 Radar Canvas, 훈련 +3 시스템
+8. **방어시설 네트워크**: 산성/봉화대/토성/목책/수성/성문/해자/망루 8시설, 네트워크 그래프 Canvas
+- 퀴즈 +15문 (300→315): 악기/궁합/교통/축제/복구/외교/훈련/방어 관련
+- 업적 +12개 (216→228): instrument_explorer/compat_master/route_analyst/festival_host/recovery_planner/diplomat/training_optimizer/defense_architect/quiz_v28_master/v28_explorer/v28_complete/history_scholar_v28
+- SFX 18종 Web Audio API
+- 키보드 Shift+A(악기)/S(궁합)/D(교통)/F(축제)/G(복구)/H(외교)/J(훈련)/K(방어)/0(퀴즈)
+
+### 3차 품질검증
+| 항목 | 결과 |
+|---|---|
+| JS 구문 (node -c) | PASS |
+| 괄호 균형 () | 692/692 PASS |
+| 괄호 균형 {} | 302/302 PASS |
+| 괄호 균형 [] | 166/166 PASS |
+| CDN 참조 | 0건 PASS |
+| 개인정보 | 0건 PASS |
+| 하단 고정 네비바 | 미생성 (UI불가침 규칙 준수) |
+| sw.js | krpg-v27→v28 캐시 갱신, v28_patch.js PRECACHE+자동주입 |
+| manifest.json | VALID JSON, v28.0 설명, +8 shortcuts (총87종) |
+| index.html SEO | v28.0 전면 갱신 (title/desc/keywords/OG/Twitter/JSON-LD) |
+
+### 4차 마무리
+- 커밋: [AUTO] 2026-07-27 history-rpg v28.0
+- 파일 변경: js/v28_patch.js (신규 ~700줄), index.html, sw.js, manifest.json, AUTO_REPORT.md
+
+---
+
 ## [AUTO] 2026-07-15 history-rpg — v24.0 기술연구트리Canvas12종+고대교역시장Canvas6자원시세+전투지형시뮬Canvas8종공방속+세력정보6축Radar8세력+전략AI어드바이저Canvas8전략위험보상+영웅칭호작위Canvas10단계+군량보급관리Canvas6종재고+퀴즈리그트래커Canvas성적추이+퀴즈+15(240→255)+업적+12(168→180)+SFX12종+키보드8종
 
 ### 1차 벤치마킹 (영걸전/문명/에이지오브엠파이어)
