@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v28.0 — 고조선 4챕터 택티컬 RPG. 고대악기관Canvas10악기5축Radar+영웅궁합도Canvas10영웅히트맵+고대교통로Canvas8경로3축Bar+전통축제관Canvas10축제3축Bar+전후복구시뮬Canvas8도시게이지+외교문서관Canvas10문서3축Bar+영웅훈련스케줄러Canvas10영웅5축Radar+방어시설네트워크Canvas8시설네트워크+315퀴즈+228업적+다크모드+PWA",
+  "description": "한국사 영웅전 v29.0 — 고조선 4챕터 택티컬 RPG. 고대복식도감Canvas10종6축Radar+영웅명대사아카이브Canvas10영웅3축Bar+세력관계변천Canvas6시대5세력히트맵+고대무역품Canvas12교역품4축Bar+전략적요충지Canvas8요충지네트워크+영웅성장시뮬Canvas10영웅5스탯라인차트+고대형벌법제도Canvas8형벌5축Radar+왕실혈통순위도Canvas10왕족4축스택바+330퀴즈+240업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -532,6 +532,54 @@
       "short_name": "방어시설",
       "url": "./korean-rpg-v7.html?open=defnetwork",
       "description": "8시설 방어 네트워크 Canvas"
+    },
+    {
+      "name": "고대 복식 도감",
+      "short_name": "복식도감",
+      "url": "./korean-rpg-v7.html?open=costume",
+      "description": "10종 고대 복식 6축 Radar Canvas"
+    },
+    {
+      "name": "영웅 명대사 아카이브",
+      "short_name": "명대사",
+      "url": "./korean-rpg-v7.html?open=heroQuote",
+      "description": "10영웅 명대사 3축 Bar Canvas"
+    },
+    {
+      "name": "세력 관계 변천 타임라인",
+      "short_name": "세력관계",
+      "url": "./korean-rpg-v7.html?open=eraRelation",
+      "description": "6시대 5세력 관계 히트맵 Canvas"
+    },
+    {
+      "name": "고대 무역품 가치 분석기",
+      "short_name": "무역품",
+      "url": "./korean-rpg-v7.html?open=tradeGoods",
+      "description": "12교역품 4축 가치 Bar Canvas"
+    },
+    {
+      "name": "전략적 요충지 분석기",
+      "short_name": "요충지",
+      "url": "./korean-rpg-v7.html?open=chokepoint",
+      "description": "8요충지 네트워크 Canvas"
+    },
+    {
+      "name": "영웅 성장 시뮬레이터",
+      "short_name": "성장시뮬",
+      "url": "./korean-rpg-v7.html?open=heroGrowth",
+      "description": "10영웅 5스탯 라인차트 Canvas"
+    },
+    {
+      "name": "고대 형벌 법제도",
+      "short_name": "형벌법제",
+      "url": "./korean-rpg-v7.html?open=penaltyLaw",
+      "description": "8형벌 5축 Radar Canvas"
+    },
+    {
+      "name": "왕실 혈통 순위도",
+      "short_name": "혈통순위",
+      "url": "./korean-rpg-v7.html?open=royalLineage",
+      "description": "10왕족 4축 스택바 Canvas"
     }
   ]
 }

@@ -1337,3 +1337,50 @@ python -m http.server 8765
 | HTML entities 따옴표 | ✅ 준수 |
 | SW 캐시 갱신 | ✅ krpg-v26→krpg-v27, v27_patch.js PRECACHE |
 | Manifest shortcuts | ✅ 8종 추가 (총79종) |
+
+---
+
+## [AUTO] 2026-07-30 history-rpg — v29.0 고대복식도감Canvas10종6축Radar+영웅명대사아카이브Canvas10영웅3축Bar+세력관계변천타임라인Canvas6시대5세력히트맵+고대무역품가치분석Canvas12교역품4축Bar+전략적요충지분석Canvas8요충지네트워크+영웅성장시뮬레이터Canvas10영웅5스탯라인차트+고대형벌법제도Canvas8형벌5축Radar+왕실혈통순위도Canvas10왕족4축스택바+퀴즈+15(315→330)+업적+12(228→240)+SFX18종+키보드9종
+
+### 1차 벤치마킹 (영걸전/문명/에이지오브엠파이어)
+| 비교대상 | 열위점 | v29 해결 |
+|---|---|---|
+| 영걸전 | 복식/의상 도감 부재 | 고대복식도감 10종 6축 Radar Canvas |
+| 영걸전 | 영웅 명대사 아카이브 부재 | 영웅명대사아카이브 10영웅 3축 Bar Canvas |
+| 문명 | 세력간 관계 변천 시각화 부재 | 세력관계변천타임라인 6시대 5세력 히트맵 Canvas |
+| 문명 | 무역품 가치 비교분석 부재 | 고대무역품가치분석 12교역품 4축 Bar Canvas |
+| 에이지오브엠파이어 | 전략적 요충지 분석 부재 | 전략적요충지분석 8요충지 네트워크 Canvas |
+| 에이지오브엠파이어 | 영웅 성장 시뮬레이션 부재 | 영웅성장시뮬레이터 10영웅 5스탯 라인차트 Canvas |
+| 영걸전 | 형벌/법 체계 부재 | 고대형벌법제도 8형벌 5축 Radar Canvas |
+| 에이지오브엠파이어 | 왕실 혈통/계보 시각화 부재 | 왕실혈통순위도 10왕족 4축 스택바 Canvas |
+
+### 2차 개발 (v29_patch.js ~950줄 IIFE)
+1. **고대 복식 도감**: 곤룡포/관복/갑옷/천의/무복/제례복/평민복/무관복/왕비복/사냥복 10종, 품격/기능성/장식성/역사성/희귀도/계절성 6축 Radar Canvas 620x400
+2. **영웅 명대사 아카이브**: 단군/환웅/치우/주몽/광개토/을지/김유신/이순신/세종/강감찬 10영웅, 카리스마/지혜/용기 3축 Bar Canvas 620x400
+3. **세력 관계 변천 타임라인**: 고조선건국기/위만조선기/한사군시기/삼한초기/삼국초기/통일기 6시대, 고조선/부여/고구려/백제/신라 5세력 히트맵 Canvas 640x400
+4. **고대 무역품 가치 분석기**: 인삼/철기/옥/비단/소금/금/은/곡물/토기/말/모피/약재 12교역품, 희귀도/수요도/교환가치/운송난이도 4축 Bar Canvas 620x400
+5. **전략적 요충지 분석기**: 살수/한산도/안시성/대관령/조령/한강하류/낙동강/압록강 8요충지, 상호연결 네트워크 Canvas 640x400
+6. **영웅 성장 시뮬레이터**: 단군/환웅/치우/주몽/광개토/을지/김유신/이순신/세종/강감찬 10영웅, 무력/지력/통솔/매력/정치 5스탯 라인차트 Canvas 620x400
+7. **고대 형벌 법제도**: 태형/장형/도형/유형/사형/속죄금/공개처형/유배 8형벌, 엄격도/빈도/억제력/형평성/잔혹도 5축 Radar Canvas 620x400
+8. **왕실 혈통 순위도**: 단군/부루/부소/구을/적위/해모수/주몽/유리/대무신/대조대 10왕족, 정통성/군사력/외교력/민심 4축 스택바 Canvas 640x400
+
+### 3차 품질 상세
+- 퀴즈 v29 +15문 (315→330): 복식/명대사/세력관계/무역품/요충지/성장/형벌/혈통 관련 15문항
+- 업적 +12종 (228→240): costume_expert/quote_scholar/era_historian/goods_merchant/choke_strategist/growth_tracker/penalty_judge/lineage_keeper/quiz_v29_master/quiz_v29_s/v29_explorer/v29_complete
+- SFX 18종 Web Audio API (sfxCostume/sfxQuote/sfxRelation/sfxGoods/sfxChoke/sfxGrowth/sfxPenalty/sfxLineage/sfxQuiz29/sfxQuizWrong29/sfxAchieve29/sfxNav29/sfxOpen29/sfxClose29/sfxHover29/sfxClick29/sfxComplete29/sfxSelect29)
+- 키보드 Shift+Q/W/E/R/T/Y/U/I/9 (8섹션+퀴즈)
+- 기존 네비바에 9버튼 append (하단 네비바 신규생성 없음 - UI불가침 규칙 준수)
+
+### 품질검증 결과
+
+| 항목 | 결과 |
+|-----|------|
+| JS 문법 (node -c) | ✅ PASS |
+| JSON 유효성 | ✅ PASS |
+| 외부 CDN 참조 | ✅ 0건 |
+| 개인정보 노출 | ✅ 0건 |
+| 하단 고정 네비바 신설 | ✅ 0건 (기존 nav append만 사용) |
+| 파일 삭제 | ✅ 0건 |
+| HTML entities 따옴표 | ✅ 준수 |
+| SW 캐시 갱신 | ✅ krpg-v28→krpg-v29, v29_patch.js PRECACHE |
+| Manifest shortcuts | ✅ 8종 추가 (총87종) |
