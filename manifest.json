@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v29.0 — 고조선 4챕터 택티컬 RPG. 고대복식도감Canvas10종6축Radar+영웅명대사아카이브Canvas10영웅3축Bar+세력관계변천Canvas6시대5세력히트맵+고대무역품Canvas12교역품4축Bar+전략적요충지Canvas8요충지네트워크+영웅성장시뮬Canvas10영웅5스탯라인차트+고대형벌법제도Canvas8형벌5축Radar+왕실혈통순위도Canvas10왕족4축스택바+330퀴즈+240업적+다크모드+PWA",
+  "description": "한국사 영웅전 v30.0 — 고조선 4챕터 택티컬 RPG. 고대음식문화백과Canvas10종6축Radar+전쟁병참보급시뮬Canvas8종라인차트+고대주거양식Canvas8종5축Radar+영웅전투스타일DNACanvas10영웅8축+고대제철야금술Canvas8종6축Bar+세력별군사전략Canvas6세력6축Radar+고대지리풍수Canvas8지형5축Bar+종합마스터리Canvas8분야반원게이지+345퀴즈+252업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -580,6 +580,54 @@
       "short_name": "혈통순위",
       "url": "./korean-rpg-v7.html?open=royalLineage",
       "description": "10왕족 4축 스택바 Canvas"
+    },
+    {
+      "name": "고대 음식문화 백과",
+      "short_name": "음식문화",
+      "url": "./korean-rpg-v7.html?open=foodCulture",
+      "description": "10종 고대 음식 6축 Radar Canvas"
+    },
+    {
+      "name": "전쟁 병참보급 시뮬레이터",
+      "short_name": "병참보급",
+      "url": "./korean-rpg-v7.html?open=supplyLine",
+      "description": "8종 보급품 거리별 잔존량 라인차트 Canvas"
+    },
+    {
+      "name": "고대 주거양식 비교도",
+      "short_name": "주거양식",
+      "url": "./korean-rpg-v7.html?open=housingStyle",
+      "description": "8종 주거 5축 Radar Canvas"
+    },
+    {
+      "name": "영웅 전투스타일 DNA",
+      "short_name": "전투DNA",
+      "url": "./korean-rpg-v7.html?open=fightDNA",
+      "description": "10영웅 8축 전투 스타일 분석 Canvas"
+    },
+    {
+      "name": "고대 제철야금술",
+      "short_name": "야금술",
+      "url": "./korean-rpg-v7.html?open=metallurgy",
+      "description": "8종 금속 6축 Bar Canvas"
+    },
+    {
+      "name": "세력별 군사전략 비교",
+      "short_name": "군사전략",
+      "url": "./korean-rpg-v7.html?open=militaryStrategy",
+      "description": "6세력 6축 Radar 오버레이 Canvas"
+    },
+    {
+      "name": "고대 지리풍수 분석기",
+      "short_name": "지리풍수",
+      "url": "./korean-rpg-v7.html?open=geoFengshui",
+      "description": "8지형 5축 Bar Canvas"
+    },
+    {
+      "name": "종합 역사지식 마스터리",
+      "short_name": "마스터리",
+      "url": "./korean-rpg-v7.html?open=mastery",
+      "description": "8분야 반원게이지 + 종합등급 Canvas"
     }
   ]
 }
