@@ -1,7 +1,7 @@
 {
   "name": "한국사 영웅전",
   "short_name": "한국사RPG",
-  "description": "한국사 영웅전 v30.0 — 고조선 4챕터 택티컬 RPG. 고대음식문화백과Canvas10종6축Radar+전쟁병참보급시뮬Canvas8종라인차트+고대주거양식Canvas8종5축Radar+영웅전투스타일DNACanvas10영웅8축+고대제철야금술Canvas8종6축Bar+세력별군사전략Canvas6세력6축Radar+고대지리풍수Canvas8지형5축Bar+종합마스터리Canvas8분야반원게이지+345퀴즈+252업적+다크모드+PWA",
+  "description": "한국사 영웅전 v31.0 — 고조선 4챕터 택티컬 RPG. 천문역법시뮬레이터Canvas12절기6축Radar+전설무기도감Canvas12무기6축Bar+외교사신단관리기Canvas8사신네트워크+지형효과분석기Canvas8지형4축Radar+신화전설아카이브Canvas10신화히트맵+국력변천타임라인Canvas6시대라인차트+특기스킬트리Canvas4영웅8스킬트리+문명발전지수Canvas6축반원게이지+360퀴즈+264업적+다크모드+PWA",
   "lang": "ko",
   "categories": ["games", "education"],
   "start_url": "./index.html",
@@ -628,6 +628,54 @@
       "short_name": "마스터리",
       "url": "./korean-rpg-v7.html?open=mastery",
       "description": "8분야 반원게이지 + 종합등급 Canvas"
+    },
+    {
+      "name": "천문역법 시뮬레이터",
+      "short_name": "천문역법",
+      "url": "./korean-rpg-v7.html?open=astroCalendar",
+      "description": "12절기 6축 Radar 천문역법 Canvas"
+    },
+    {
+      "name": "전설무기 도감",
+      "short_name": "전설무기",
+      "url": "./korean-rpg-v7.html?open=legendWeapon",
+      "description": "12전설무기 6축 Bar 비교 Canvas"
+    },
+    {
+      "name": "외교사신단 관리기",
+      "short_name": "사신단",
+      "url": "./korean-rpg-v7.html?open=envoyManager",
+      "description": "8사신 외교 네트워크 Canvas"
+    },
+    {
+      "name": "지형효과 분석기",
+      "short_name": "지형효과",
+      "url": "./korean-rpg-v7.html?open=terrainEffect",
+      "description": "8지형 4축 Radar 전투효과 Canvas"
+    },
+    {
+      "name": "신화전설 아카이브",
+      "short_name": "신화전설",
+      "url": "./korean-rpg-v7.html?open=mythArchive",
+      "description": "10신화 히트맵 아카이브 Canvas"
+    },
+    {
+      "name": "국력변천 타임라인",
+      "short_name": "국력변천",
+      "url": "./korean-rpg-v7.html?open=powerTimeline",
+      "description": "6시대 국력 라인차트 Canvas"
+    },
+    {
+      "name": "특기 스킬트리",
+      "short_name": "스킬트리",
+      "url": "./korean-rpg-v7.html?open=skillTree",
+      "description": "4영웅 8스킬 트리 Canvas"
+    },
+    {
+      "name": "문명발전 지수",
+      "short_name": "문명발전",
+      "url": "./korean-rpg-v7.html?open=civIndex",
+      "description": "6축 반원게이지 문명발전 Canvas"
     }
   ]
 }
